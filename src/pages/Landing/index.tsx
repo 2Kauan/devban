@@ -85,7 +85,7 @@ export default function Landing() {
             </Link>
             <a 
               href="#features" 
-              className="flex items-center gap-2 px-8 py-4 bg-secondary/10 text-secondary rounded-full text-lg font-semibold hover:bg-secondary/20 transition-all"
+              className="flex items-center gap-2 px-8 py-4 bg-background border border-border text-foreground rounded-full text-lg font-semibold hover:bg-muted transition-all shadow-sm"
             >
               Conheça os Recursos
             </a>
@@ -140,13 +140,13 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t border-border/40 py-12 px-4 bg-background">
         <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-xs">F</span>
+          <div className="flex items-center gap-2 mb-4 md:mb-0">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-lg">D</span>
             </div>
-            <span className="font-bold text-lg">Flowban</span>
+            <span className="font-bold text-lg">DevBan</span>
           </div>
-          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Flowban. Todos os direitos reservados.</p>
+          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} DevBan. Todos os direitos reservados.</p>
           <div className="flex gap-4 text-sm text-muted-foreground">
             <a href="#" className="hover:text-foreground">Privacidade</a>
             <a href="#" className="hover:text-foreground">Termos</a>

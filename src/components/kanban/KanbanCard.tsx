@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { forwardRef, memo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { KanbanCardType } from '@/types/kanban';
@@ -10,7 +10,7 @@ interface KanbanCardProps {
   isOverlay?: boolean;
 }
 
-export const KanbanCard = forwardRef<HTMLDivElement, KanbanCardProps>(
+export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
   ({ card, onClick, isOverlay }, ref) => {
     const {
       attributes,
@@ -66,7 +66,11 @@ export const KanbanCard = forwardRef<HTMLDivElement, KanbanCardProps>(
     return (
       <div
         ref={isOverlay ? ref : setNodeRef}
-        style={style}
+        style={{
+          ...style,
+          borderColor: card.border_color || undefined,
+          borderWidth: card.border_color ? '2px' : '1px'
+        }}
         onClick={() => onClick(card)}
         className={`bg-card p-4 rounded-xl border border-border shadow-sm mb-3 cursor-grab active:cursor-grabbing group hover:border-primary/50 transition-colors relative overflow-hidden ${
           isOverlay ? 'rotate-2 scale-105 shadow-xl' : ''
@@ -74,12 +78,6 @@ export const KanbanCard = forwardRef<HTMLDivElement, KanbanCardProps>(
         {...attributes}
         {...listeners}
       >
-        {card.border_color && (
-          <div 
-            className="absolute top-0 left-0 right-0 h-1.5 opacity-80" 
-            style={{ backgroundColor: card.border_color }}
-          />
-        )}
         <div className="flex justify-between items-start mb-2 mt-1">
           <div className="flex gap-2 items-center flex-wrap">
             <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${priorityColors[card.priority]}`}>
@@ -130,4 +128,10 @@ export const KanbanCard = forwardRef<HTMLDivElement, KanbanCardProps>(
     );
   }
 );
-KanbanCard.displayName = 'KanbanCard';
+KanbanCardInner.displayName = 'KanbanCardInner';
+
+export const KanbanCard = memo(KanbanCardInner, (prev, next) => {
+  return prev.card === next.card && 
+         prev.isOverlay === next.isOverlay &&
+         prev.onClick === next.onClick;
+});

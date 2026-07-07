@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, memo } from 'react';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { KanbanColumnType, KanbanCardType } from '@/types/kanban';
@@ -10,16 +10,15 @@ interface KanbanColumnProps {
   cards: KanbanCardType[];
   onCardClick: (card: KanbanCardType) => void;
   onAddCard: (columnId: string) => void;
-  onUpdateColumn?: (columnId: string, title: string) => void;
+  onUpdateColumn?: (columnId: string, updates: Partial<KanbanColumnType>) => void;
   onDeleteColumn?: (columnId: string) => void;
   canEdit?: boolean;
 }
 
-export function KanbanColumn({ column, cards, onCardClick, onAddCard, onUpdateColumn, onDeleteColumn, canEdit = true }: KanbanColumnProps) {
+export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpdateColumn, onDeleteColumn, canEdit = true }: KanbanColumnProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(column.title);
   const [editColor, setEditColor] = useState(column.color || '');
-  const menuRef = useRef<HTMLDivElement>(null);
 
   const COLUMN_COLORS = [
     { value: '', label: 'Padrão' },
@@ -54,16 +53,6 @@ export function KanbanColumn({ column, cards, onCardClick, onAddCard, onUpdateCo
   };
 
   const cardIds = useMemo(() => cards.map((c) => c.id), [cards]);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setShowMenu(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const handleSaveEdit = () => {
     if (editTitle.trim() && (editTitle !== column.title || editColor !== (column.color || '')) && onUpdateColumn) {
@@ -194,4 +183,19 @@ export function KanbanColumn({ column, cards, onCardClick, onAddCard, onUpdateCo
       </div>
     </div>
   );
-}
+};
+KanbanColumnInner.displayName = 'KanbanColumnInner';
+
+export const KanbanColumn = memo(KanbanColumnInner, (prev, next) => {
+  if (prev.column !== next.column) return false;
+  if (prev.canEdit !== next.canEdit) return false;
+  if (prev.cards.length !== next.cards.length) return false;
+  
+  // As React Query structural sharing is enabled, cards that haven't changed will maintain reference
+  for (let i = 0; i < prev.cards.length; i++) {
+    if (prev.cards[i] !== next.cards[i]) return false;
+  }
+  
+  // We assume functions passed via props (onCardClick, onAddCard, etc) are stable (useCallback)
+  return true;
+});

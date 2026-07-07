@@ -79,9 +79,9 @@ export default function Login() {
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center justify-center gap-2 mb-6">
             <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-              <span className="text-primary-foreground font-bold text-xl">F</span>
+              <span className="text-primary-foreground font-bold text-xl">D</span>
             </div>
-            <span className="font-bold text-2xl tracking-tight text-foreground">Flowban</span>
+            <span className="font-bold text-2xl tracking-tight text-foreground">DevBan</span>
           </Link>
           <h2 className="text-2xl font-bold text-foreground">Bem-vindo de volta</h2>
           <p className="text-muted-foreground mt-2 text-sm">Insira suas credenciais para acessar sua conta</p>

@@ -10,10 +10,10 @@ export function Header() {
     <header className="fixed top-0 w-full z-50 border-b border-border/40 bg-background/80 backdrop-blur-md">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-lg">F</span>
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm">
+            <span className="text-primary-foreground font-bold text-lg leading-none">D</span>
           </div>
-          <span className="font-bold text-xl tracking-tight">Flowban</span>
+          <span className="font-bold text-xl tracking-tight">DevBan</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
