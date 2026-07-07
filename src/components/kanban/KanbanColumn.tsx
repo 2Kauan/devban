@@ -1,9 +1,9 @@
-import { useState, useMemo, useRef, useEffect, memo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { KanbanColumnType, KanbanCardType } from '@/types/kanban';
 import { KanbanCard } from './KanbanCard';
-import { GripHorizontal, MoreHorizontal, Plus, Pencil, Trash2, Edit2 } from 'lucide-react';
+import { GripHorizontal, Plus, Trash2, Edit2 } from 'lucide-react';
 
 interface KanbanColumnProps {
   column: KanbanColumnType;

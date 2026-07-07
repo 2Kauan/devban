@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, Bell, FolderKanban, Trash2 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Search, Bell, FolderKanban } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { CreateProjectModal } from '@/components/ui/CreateProjectModal';
 import type { Project } from '@/types/database';
 import { toast } from 'sonner';
 
@@ -15,7 +14,6 @@ export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (user) {

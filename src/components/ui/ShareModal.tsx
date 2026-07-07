@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Copy, Globe, Lock, ChevronDown, Check, User } from 'lucide-react';
+import { X, Copy, Globe, Lock, ChevronDown, Check } from 'lucide-react';
 import type { Project } from '@/types/database';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';

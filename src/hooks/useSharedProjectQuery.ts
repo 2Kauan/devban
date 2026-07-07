@@ -111,7 +111,7 @@ export function useSharedProjectQuery(token: string | undefined) {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'projects', filter: `id=eq.${projectId}` },
-        (payload) => {
+        () => {
            // If project changes (e.g. permission changed), invalidate query to fetch new state
            queryClient.invalidateQueries({ queryKey: ['sharedProject', token] });
         }

@@ -4,10 +4,10 @@ import { KanbanBoard } from '@/components/kanban/KanbanBoard';
 
 export default function Preview() {
   const columns = [
-    { id: 'col-1', project_id: 'preview', title: 'Ideias', position: 1000, created_at: '', updated_at: '' },
-    { id: 'col-2', project_id: 'preview', title: 'A Fazer', position: 2000, created_at: '', updated_at: '' },
-    { id: 'col-3', project_id: 'preview', title: 'Fazendo', position: 3000, created_at: '', updated_at: '' },
-    { id: 'col-4', project_id: 'preview', title: 'Concluído', position: 4000, created_at: '', updated_at: '' }
+    { id: 'col-1', project_id: 'preview', title: 'Ideias', position: 1000, description: '', created_at: '', updated_at: '' },
+    { id: 'col-2', project_id: 'preview', title: 'A Fazer', position: 2000, description: '', created_at: '', updated_at: '' },
+    { id: 'col-3', project_id: 'preview', title: 'Fazendo', position: 3000, description: '', created_at: '', updated_at: '' },
+    { id: 'col-4', project_id: 'preview', title: 'Concluído', position: 4000, description: '', created_at: '', updated_at: '' }
   ];
 
   const cards = [

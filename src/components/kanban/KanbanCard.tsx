@@ -2,7 +2,7 @@ import { forwardRef, memo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { KanbanCardType } from '@/types/kanban';
-import { MessageSquare, Clock, GripVertical, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle } from 'lucide-react';
+import { MessageSquare, Clock, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle } from 'lucide-react';
 
 interface KanbanCardProps {
   card: KanbanCardType;

@@ -52,7 +52,7 @@ export function AccessRequestsModal({ isOpen, onClose, projectId }: AccessReques
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setRequests(data || []);
+      setRequests((data as unknown as RequestType[]) || []);
     } catch (error: any) {
       toast.error('Erro ao carregar solicitações');
     } finally {

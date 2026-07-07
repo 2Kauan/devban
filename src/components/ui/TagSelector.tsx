@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Tag, Plus, X, Check } from 'lucide-react';
+import { Plus, X, Check } from 'lucide-react';
 import type { Category } from '@/types/database';
 import { motion, AnimatePresence } from 'framer-motion';
 

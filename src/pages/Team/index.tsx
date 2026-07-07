@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
-import { Users, History, FolderKanban, ArrowRight, Plus } from 'lucide-react';
+import { Users, History } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale/pt-BR';

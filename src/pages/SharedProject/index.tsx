@@ -1,13 +1,10 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import type { KanbanColumnType, KanbanCardType } from '@/types/kanban';
+import type { KanbanCardType } from '@/types/kanban';
 import { KanbanBoard } from '@/components/kanban/KanbanBoard';
 import { toast } from 'sonner';
-import { ArrowLeft, UserPlus, LogIn } from 'lucide-react';
 import { CardModal } from '@/components/ui/CardModal';
-import { PromptModal } from '@/components/ui/PromptModal';
-import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { SharedProjectHeader } from '@/components/project/SharedProjectHeader';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSharedProjectQuery } from '@/hooks/useSharedProjectQuery';
