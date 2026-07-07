@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
-import { Users, History } from 'lucide-react';
+import { Users, History, Menu } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale/pt-BR';
@@ -30,6 +30,7 @@ export default function TeamPage() {
   const [activeTab, setActiveTab] = useState<'activity' | 'members'>('activity');
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // We need to fetch the projects the user has access to for the sidebar
   const [projects, setProjects] = useState<any[]>([]);
@@ -99,13 +100,18 @@ export default function TeamPage() {
 
   return (
     <div className="flex h-[calc(100vh-4rem)] w-full bg-background overflow-hidden">
-      <Sidebar projects={projects} onProjectCreated={fetchData} />
+      <Sidebar projects={projects} onProjectCreated={fetchData} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-muted/10">
-        <header className="h-16 border-b border-border/50 flex items-center justify-between px-6 bg-background shrink-0">
-          <div>
-            <h1 className="text-xl font-bold">Equipe e Atividades</h1>
-            <p className="text-sm text-muted-foreground">Acompanhe o que está acontecendo nos seus projetos</p>
+        <header className="h-16 border-b border-border/50 flex items-center justify-between px-4 sm:px-6 bg-background shrink-0">
+          <div className="flex items-center gap-3">
+            <button className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground" onClick={() => setIsSidebarOpen(true)}>
+              <Menu size={24} />
+            </button>
+            <div>
+              <h1 className="text-xl font-bold">Equipe e Atividades</h1>
+              <p className="text-sm text-muted-foreground hidden sm:block">Acompanhe o que está acontecendo nos seus projetos</p>
+            </div>
           </div>
         </header>
 

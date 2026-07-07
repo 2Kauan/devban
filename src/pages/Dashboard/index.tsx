@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Bell, FolderKanban } from 'lucide-react';
+import { Search, Bell, FolderKanban, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -46,13 +47,18 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-[calc(100vh-4rem)] w-full bg-background overflow-hidden">
-      <Sidebar projects={projects} onProjectCreated={fetchProjects} />
+      <Sidebar projects={projects} onProjectCreated={fetchProjects} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-muted/10">
-        <header className="h-16 border-b border-border/50 flex items-center justify-between px-6 bg-background">
-          <div>
-            <h1 className="text-xl font-bold">Meus Projetos</h1>
-            <p className="text-sm text-muted-foreground">Bem-vindo, {profile?.name || user?.email}</p>
+        <header className="h-16 border-b border-border/50 flex items-center justify-between px-4 sm:px-6 bg-background">
+          <div className="flex items-center gap-3">
+            <button className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground" onClick={() => setIsSidebarOpen(true)}>
+              <Menu size={24} />
+            </button>
+            <div>
+              <h1 className="text-xl font-bold">Meus Projetos</h1>
+              <p className="text-sm text-muted-foreground hidden sm:block">Bem-vindo, {profile?.name || user?.email}</p>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="relative hidden sm:block">

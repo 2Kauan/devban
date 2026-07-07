@@ -1,25 +1,43 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Plus, LayoutDashboard, FolderKanban, Users, Settings, LogOut, ShieldAlert } from 'lucide-react';
+import { Plus, LayoutDashboard, FolderKanban, Users, Settings, LogOut, ShieldAlert, Menu, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CreateProjectModal } from '@/components/ui/CreateProjectModal';
 import type { Project } from '@/types/database';
 
 interface SidebarProps {
   projects: Project[];
   onProjectCreated: () => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export function Sidebar({ projects, onProjectCreated }: SidebarProps) {
+export function Sidebar({ projects, onProjectCreated, isOpen, onClose }: SidebarProps) {
   const location = useLocation();
   const { signOut, profile } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
+  // Fecha a sidebar ao mudar de rota
+  useEffect(() => {
+    onClose();
+  }, [location.pathname]);
+
   return (
     <>
-      <aside className="w-64 border-r border-border/50 bg-muted/20 flex flex-col hidden md:flex">
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 md:hidden"
+          onClick={onClose}
+        />
+      )}
+      
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 border-r border-border/50 bg-background md:bg-muted/20 flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full hidden md:flex'}`}>
+        <div className="p-4 flex items-center justify-between md:hidden border-b border-border/50">
+          <span className="font-bold text-lg">Menu</span>
+          <button onClick={onClose} className="p-2 text-muted-foreground hover:text-foreground bg-muted/50 rounded-lg"><X size={20} /></button>
+        </div>
         <div className="p-6">
           <button 
             onClick={() => setIsCreateModalOpen(true)}
