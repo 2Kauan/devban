@@ -1,0 +1,107 @@
+import { Link, useLocation } from 'react-router-dom';
+import { Plus, LayoutDashboard, FolderKanban, Users, Settings, LogOut, ShieldAlert } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useState } from 'react';
+import { CreateProjectModal } from '@/components/ui/CreateProjectModal';
+import type { Project } from '@/types/database';
+
+interface SidebarProps {
+  projects: Project[];
+  onProjectCreated: () => void;
+}
+
+export function Sidebar({ projects, onProjectCreated }: SidebarProps) {
+  const location = useLocation();
+  const { signOut, profile } = useAuth();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const isActive = (path: string) => location.pathname === path;
+
+  return (
+    <>
+      <aside className="w-64 border-r border-border/50 bg-muted/20 flex flex-col hidden md:flex">
+        <div className="p-6">
+          <button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors shadow-sm"
+          >
+            <Plus className="h-5 w-5" />
+            Novo Projeto
+          </button>
+        </div>
+        <nav className="flex-1 px-4 space-y-2">
+          <Link 
+            to="/dashboard" 
+            className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive('/dashboard') ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}`}
+          >
+            <LayoutDashboard className="h-5 w-5" />
+            Visão Geral
+          </Link>
+          
+          <div className="pt-4 pb-2">
+            <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Projetos Recentes
+            </p>
+          </div>
+          <div className="space-y-1">
+            {projects.slice(0, 3).map(p => (
+              <Link 
+                key={p.id}
+                to={`/project/${p.id}`} 
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive(`/project/${p.id}`) ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}`}
+              >
+                <FolderKanban className="h-4 w-4" />
+                <span className="truncate">{p.name}</span>
+              </Link>
+            ))}
+          </div>
+
+          <div className="pt-4 pb-2">
+            <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Geral
+            </p>
+          </div>
+          <Link 
+            to="/team" 
+            className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive('/team') ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}`}
+          >
+            <Users className="h-5 w-5" />
+            Equipe
+          </Link>
+          {profile?.role === 'admin' && (
+            <Link 
+              to="/admin" 
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive('/admin') ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}`}
+            >
+              <ShieldAlert className="h-5 w-5" />
+              Painel Admin
+            </Link>
+          )}
+        </nav>
+        <div className="p-4 border-t border-border/50 space-y-2">
+          <Link 
+            to="/settings" 
+            className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive('/settings') ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}`}
+          >
+            <Settings className="h-5 w-5" />
+            Configurações
+          </Link>
+          <button 
+            onClick={() => signOut()} 
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
+          >
+            <LogOut className="h-5 w-5" />
+            Sair
+          </button>
+        </div>
+      </aside>
+      
+      <CreateProjectModal 
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={onProjectCreated}
+        hasFreeProject={projects.some(p => p.is_free)}
+      />
+    </>
+  );
+}
