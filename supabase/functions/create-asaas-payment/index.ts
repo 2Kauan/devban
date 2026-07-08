@@ -104,10 +104,11 @@ serve(async (req) => {
         headers: { 'access_token': asaasApiKey }
       });
       const pixData = await pixRes.json();
-      if (!pixData.errors) {
-        pixQrCode = pixData.payload; // O Pix Copia e Cola
-        pixEncodedImage = pixData.encodedImage; // Base64 da imagem
+      if (pixData.errors) {
+        throw new Error(`Erro ao gerar PIX: ${pixData.errors[0].description}`);
       }
+      pixQrCode = pixData.payload; // O Pix Copia e Cola
+      pixEncodedImage = pixData.encodedImage; // Base64 da imagem
     }
 
     const finalResponse = {
