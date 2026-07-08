@@ -118,11 +118,22 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
               <MessageSquare size={12} /> 0
             </div>
           </div>
-          {card.assigned_to && (
-            <div className="w-5 h-5 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-[9px] font-bold text-primary">
-              A
-            </div>
-          )}
+          <div className="flex items-center gap-4">
+            {card.assignees && card.assignees.length > 0 && (
+              <div className="flex -space-x-2">
+                {card.assignees.slice(0, 3).map((assignee, idx) => (
+                  <div key={assignee.id || idx} className="w-5 h-5 rounded-full border border-background overflow-hidden relative z-10" style={{ zIndex: 10 - idx }}>
+                    <img src={assignee.avatar_url || `https://ui-avatars.com/api/?name=${assignee.name}&size=20`} alt={assignee.name || 'User'} className="w-full h-full object-cover" />
+                  </div>
+                ))}
+                {card.assignees.length > 3 && (
+                  <div className="w-5 h-5 rounded-full bg-muted border border-background flex items-center justify-center text-[8px] font-bold relative z-0">
+                    +{card.assignees.length - 3}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );

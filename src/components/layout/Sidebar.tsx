@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Plus, LayoutDashboard, FolderKanban, Users, Settings, LogOut, ShieldAlert, Menu, X } from 'lucide-react';
+import { Plus, LayoutDashboard, FolderKanban, Users, Settings, LogOut, ShieldAlert, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { CreateProjectModal } from '@/components/ui/CreateProjectModal';

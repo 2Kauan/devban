@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Share2, Search, Filter, Bell } from 'lucide-react';
+import { ArrowLeft, Share2, Search, Filter, Bell, Menu } from 'lucide-react';
 import type { Project as ProjectType, ProjectPermission } from '@/types/database';
 
 import { UserProfileButton } from '@/components/ui/UserProfileButton';

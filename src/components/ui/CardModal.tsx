@@ -555,7 +555,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                             <span className="text-muted-foreground font-normal">Nenhum</span>
                           ) : (
                             localAssignees.map(a => (
-                              <img key={a.id} src={a.avatar_url || `https://ui-avatars.com/api/?name=${a.name}`} alt={a.name} className="w-6 h-6 rounded-full border border-border" title={a.name} />
+                              <img key={a.id} src={a.avatar_url || `https://ui-avatars.com/api/?name=${a.name || 'User'}`} alt={a.name || 'User'} className="w-6 h-6 rounded-full border border-border" title={a.name || 'User'} />
                             ))
                           )}
                         </div>
@@ -580,7 +580,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                                   className="w-full flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-muted transition-colors text-left"
                                 >
                                   <div className="relative">
-                                    <img src={member.profiles.avatar_url || `https://ui-avatars.com/api/?name=${member.profiles.name}`} className="w-8 h-8 rounded-full" />
+                                    <img src={member.profiles.avatar_url || `https://ui-avatars.com/api/?name=${member.profiles.name || 'User'}`} className="w-8 h-8 rounded-full" />
                                     {isSelected && (
                                       <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-0.5">
                                         <CheckSquare size={10} />
