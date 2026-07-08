@@ -45,7 +45,7 @@ serve(async (req) => {
       });
     }
 
-    const { method, paymentId } = await req.json();
+    const { method, paymentId, projectName } = await req.json();
 
     const asaasApiKey = Deno.env.get('ASAAS_API_KEY') || Deno.env.get('VITE_ASAAS_API_KEY');
     if (!asaasApiKey) {
@@ -88,7 +88,7 @@ serve(async (req) => {
         billingType: method === 'pix' ? 'PIX' : 'CREDIT_CARD', // Ou 'UNDEFINED'
         value: 5.00,
         dueDate: dueDate,
-        description: 'Projeto Adicional - Kanban Premium',
+        description: projectName ? `DevBan: Criação do Projeto '${projectName}'` : 'Projeto Adicional - Kanban Premium',
         externalReference: paymentId
       })
     });

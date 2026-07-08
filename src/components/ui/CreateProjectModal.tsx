@@ -68,7 +68,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
         // Step 2: Call Edge Function to create Asaas charge
         let asaasData = null;
         const { data: funcData, error: funcError } = await supabase.functions.invoke('create-asaas-payment', {
-          body: { paymentId: paymentRecord.id, method: paymentMethod }
+          body: { paymentId: paymentRecord.id, method: paymentMethod, projectName: data.name }
         });
 
         if (funcError || funcData?.error) {
