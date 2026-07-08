@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,10 +27,28 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
   const [showPayment, setShowPayment] = useState(false);
   const [paymentData, setPaymentData] = useState<{ id: string; pixQrCode: string | null; invoiceUrl: string | null; pixEncodedImage?: string | null } | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'credit_card'>('pix');
+  const [requiresPayment, setRequiresPayment] = useState(false);
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ProjectForm>({
     resolver: zodResolver(projectSchema),
   });
+
+  // Check slots when modal opens
+  useEffect(() => {
+    async function checkSlots() {
+      if (!user || !isOpen) return;
+      try {
+        const { count: projectsCount } = await supabase.from('projects').select('*', { count: 'exact', head: true }).eq('owner_id', user.id);
+        const { count: paymentsCount } = await supabase.from('payments').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'confirmed');
+        const allowedSlots = 1 + (paymentsCount || 0);
+        const currentProjects = projectsCount || 0;
+        setRequiresPayment(currentProjects >= allowedSlots);
+      } catch (e) {
+        console.error("Error checking slots:", e);
+      }
+    }
+    checkSlots();
+  }, [isOpen, user]);
 
   if (!isOpen) return null;
 
@@ -39,15 +57,27 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
     setIsLoading(true);
 
     try {
-      const { data: freeProjects, error: checkError } = await supabase
+      // Logic for Slots/Balance
+      // 1 slot free by default + 1 slot per confirmed payment
+      const { count: projectsCount, error: checkProjError } = await supabase
         .from('projects')
-        .select('id')
-        .eq('owner_id', user.id)
-        .eq('is_free', true);
+        .select('*', { count: 'exact', head: true })
+        .eq('owner_id', user.id);
         
-      if (checkError) throw checkError;
+      if (checkProjError) throw checkProjError;
+
+      const { count: paymentsCount, error: checkPayError } = await supabase
+        .from('payments')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('status', 'confirmed');
+        
+      if (checkPayError) throw checkPayError;
       
-      const requiresPayment = freeProjects && freeProjects.length > 0;
+      const allowedSlots = 1 + (paymentsCount || 0);
+      const currentProjects = projectsCount || 0;
+      
+      const requiresPayment = currentProjects >= allowedSlots;
 
       if (requiresPayment) {
         // Create payment flow
@@ -213,7 +243,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
             <div className="p-6">
               {!showPayment ? (
                 <form onSubmit={handleSubmit(handleCreate)} className="space-y-5">
-                  {hasFreeProject && (
+                  {requiresPayment && (
                     <motion.div 
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -244,7 +274,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                     />
                   </div>
 
-                  {hasFreeProject && (
+                  {requiresPayment && (
                     <div>
                       <label className="block text-sm font-bold text-foreground mb-2">Forma de pagamento</label>
                       <div className="flex gap-4">
@@ -269,7 +299,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                       disabled={isLoading}
                       className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary-hover shadow-md hover:shadow-lg transition-all font-bold text-sm flex items-center justify-center min-w-[120px] active:scale-95"
                     >
-                      {isLoading ? <Loader2 size={18} className="animate-spin" /> : (hasFreeProject ? 'Pagar R$ 5,00' : 'Criar Projeto')}
+                      {isLoading ? <Loader2 size={18} className="animate-spin" /> : (requiresPayment ? 'Pagar R$ 5,00' : 'Criar Projeto')}
                     </button>
                   </div>
                 </form>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Share2, Search, Filter, Bell, Menu, Pencil, Check, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Share2, Search, Filter, Bell, Menu, Pencil, Check, X, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { Project as ProjectType, ProjectPermission } from '@/types/database';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -33,6 +34,9 @@ export function ProjectHeader({
   const [isSavingName, setIsSavingName] = useState(false);
   const [currentName, setCurrentName] = useState(project.name);
   const [nameChanged, setNameChanged] = useState(project.name_changed);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const navigate = useNavigate();
 
   const handleSaveName = async () => {
     if (!newName.trim() || newName.trim() === currentName) {
@@ -57,6 +61,24 @@ export function ProjectHeader({
       toast.error('Erro ao atualizar nome: ' + error.message);
     } finally {
       setIsSavingName(false);
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', project.id);
+
+      if (error) throw error;
+      
+      toast.success('Projeto excluído permanentemente.');
+      navigate('/dashboard');
+    } catch (error: any) {
+      toast.error('Erro ao excluir projeto: ' + error.message);
+      setIsDeleting(false);
     }
   };
 
@@ -148,10 +170,73 @@ export function ProjectHeader({
           <Share2 size={16} />
           <span className="hidden sm:inline">Compartilhar</span>
         </button>
+
+        {userPermission === 'owner' && (
+          <button 
+            onClick={() => setShowDeleteConfirm(true)}
+            className="flex items-center gap-2 px-3 py-2 text-destructive border border-destructive/20 hover:bg-destructive hover:text-destructive-foreground font-medium rounded-lg transition-colors text-sm whitespace-nowrap"
+            title="Apagar Projeto"
+          >
+            <Trash2 size={16} />
+          </button>
+        )}
         
         <div className="w-px h-6 bg-border mx-1"></div>
         <UserProfileButton />
       </div>
+
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60"
+              onClick={() => !isDeleting && setShowDeleteConfirm(false)}
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-card w-full max-w-md rounded-2xl shadow-xl border border-border overflow-hidden relative z-10 p-6"
+            >
+              <div className="flex items-center gap-3 text-destructive mb-4">
+                <AlertTriangle size={24} />
+                <h2 className="text-xl font-bold">Apagar Projeto</h2>
+              </div>
+              
+              <p className="text-muted-foreground mb-4">
+                Tem certeza que deseja apagar o projeto <strong>{currentName}</strong>? Esta ação é irreversível e todas as tarefas serão perdidas.
+              </p>
+              
+              <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl mb-6">
+                <p className="text-sm text-primary/90 font-medium">
+                  💡 Como você apagou um projeto, o seu limite de projetos simultâneos será ajustado, liberando uma vaga para você criar outro no lugar!
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button 
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                  className="px-5 py-2.5 rounded-xl text-muted-foreground hover:bg-muted transition-colors font-bold text-sm"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleDeleteProject}
+                  disabled={isDeleting}
+                  className="px-5 py-2.5 bg-destructive text-destructive-foreground rounded-xl hover:bg-destructive/90 transition-colors font-bold text-sm flex items-center gap-2"
+                >
+                  {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                  Sim, quero apagar
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
