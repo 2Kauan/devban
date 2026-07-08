@@ -171,7 +171,12 @@ export function KanbanBoard({
                 onMoveCardMobile={(cardId, direction) => {
                   const destIdx = direction === 'left' ? idx - 1 : idx + 1;
                   if (destIdx >= 0 && destIdx < columns.length) {
-                    onCardMove?.(cardId, col.id, columns[destIdx].id);
+                    const destColId = columns[destIdx].id;
+                    const newCards = cards.map(c => 
+                      c.id === cardId ? { ...c, column_id: destColId } : c
+                    );
+                    onCardsChange(newCards);
+                    onCardMove?.(cardId, col.id, destColId);
                   }
                 }}
                 isFirstColumn={idx === 0}

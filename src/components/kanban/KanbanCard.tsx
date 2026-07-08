@@ -2,7 +2,7 @@ import { forwardRef, memo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { KanbanCardType } from '@/types/kanban';
-import { MessageSquare, Clock, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MessageSquare, Clock, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle, ChevronLeft, ChevronRight, GripHorizontal } from 'lucide-react';
 
 interface KanbanCardProps {
   card: KanbanCardType;
@@ -81,6 +81,9 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
         {...attributes}
         {...listeners}
       >
+        <div className="flex justify-center mb-1 -mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="w-8 h-1 bg-border/50 rounded-full" />
+        </div>
         <div className="flex justify-between items-start mb-2 mt-1">
           <div className="flex gap-2 items-center flex-wrap">
             <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${priorityColors[card.priority]}`}>
@@ -97,6 +100,7 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
               </span>
             ))}
           </div>
+          <GripHorizontal size={14} className="text-muted-foreground/30 ml-2 shrink-0 hidden md:block" />
         </div>
 
         <h4 className="font-semibold text-foreground text-sm leading-tight mb-2 line-clamp-2">

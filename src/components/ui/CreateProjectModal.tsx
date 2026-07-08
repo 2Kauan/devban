@@ -19,10 +19,9 @@ interface CreateProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  hasFreeProject: boolean;
 }
 
-export function CreateProjectModal({ isOpen, onClose, onSuccess, hasFreeProject }: CreateProjectModalProps) {
+export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProjectModalProps) {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
@@ -39,9 +38,19 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess, hasFreeProject 
     if (!user) return;
     setIsLoading(true);
 
-    if (hasFreeProject) {
-      // Create payment flow
-      try {
+    try {
+      const { data: freeProjects, error: checkError } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('owner_id', user.id)
+        .eq('is_free', true);
+        
+      if (checkError) throw checkError;
+      
+      const requiresPayment = freeProjects && freeProjects.length > 0;
+
+      if (requiresPayment) {
+        // Create payment flow
         // Step 1: Create a pending payment record in Supabase
         const { data: paymentRecord, error: paymentError } = await supabase
           .from('payments')
@@ -85,14 +94,8 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess, hasFreeProject 
         // Save project data to be created after payment confirmation
         localStorage.setItem(`pending_project_${paymentRecord.id}`, JSON.stringify(data));
 
-      } catch (error: any) {
-        toast.error('Erro ao processar pagamento: ' + error.message);
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      // Create free project directly
-      try {
+      } else {
+        // Create free project directly
         const { data: newProject, error } = await supabase.from('projects').insert({
           owner_id: user.id,
           name: data.name,
@@ -116,11 +119,11 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess, hasFreeProject 
         reset();
         onSuccess();
         onClose();
-      } catch (error: any) {
-        toast.error('Erro ao criar projeto: ' + error.message);
-      } finally {
-        setIsLoading(false);
       }
+    } catch (error: any) {
+      toast.error('Erro ao processar criação: ' + error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 

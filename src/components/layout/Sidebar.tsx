@@ -125,7 +125,6 @@ export function Sidebar({ projects, onProjectCreated, isOpen, onClose }: Sidebar
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={onProjectCreated}
-        hasFreeProject={projects.some(p => p.is_free)}
       />
     </>
   );
