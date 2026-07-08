@@ -122,8 +122,7 @@ export function ShareModal({ isOpen, onClose, project, onUpdate }: ShareModalPro
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[500px] bg-card border border-border shadow-xl rounded-2xl z-50 overflow-hidden flex flex-col"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-[500px] bg-card border border-border shadow-xl rounded-2xl z-50 flex flex-col max-h-[90vh]"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-6 pb-2">
@@ -136,7 +135,7 @@ export function ShareModal({ isOpen, onClose, project, onUpdate }: ShareModalPro
               </button>
             </div>
 
-            <div className="p-6 pt-2 overflow-y-auto custom-scrollbar flex-1">
+            <div className="p-6 pt-2 overflow-y-auto custom-scrollbar flex-1 min-h-[350px]">
               
               {/* Pessoas com acesso */}
               <div className="mb-6">
@@ -292,19 +291,20 @@ export function ShareModal({ isOpen, onClose, project, onUpdate }: ShareModalPro
             </div>
 
             {/* Footer */}
-            <div className="p-4 bg-muted/30 border-t border-border flex items-center justify-between gap-3">
+            <div className="p-4 bg-muted/30 border-t border-border flex items-center justify-between gap-3 rounded-b-2xl flex-wrap">
               <button
                 onClick={handleCopyLink}
                 disabled={!shareEnabled && !isOwner}
                 className="flex items-center gap-2 px-4 py-2 bg-background border border-border hover:bg-muted rounded-full font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed text-primary"
               >
                 {isCopied ? <Check size={16} /> : <Copy size={16} />}
-                Copiar link
+                <span className="hidden sm:inline">Copiar link</span>
+                <span className="inline sm:hidden">Copiar</span>
               </button>
               
               <button
                 onClick={onClose}
-                className="px-6 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-medium transition-colors text-sm"
+                className="px-6 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-medium transition-colors text-sm flex-1 sm:flex-none text-center"
               >
                 Concluído
               </button>

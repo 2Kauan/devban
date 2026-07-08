@@ -4,6 +4,13 @@ import { supabase } from '@/lib/supabase';
 import type { Project as ProjectType, Category, ProjectPermission } from '@/types/database';
 import type { KanbanColumnType, KanbanCardType } from '@/types/kanban';
 import { useAuth } from '@/contexts/AuthContext';
+import type { Profile } from '@/types/database';
+
+export interface ProjectMember {
+  permission: ProjectPermission;
+  job_title: string | null;
+  profiles: Profile;
+}
 
 export interface ProjectData {
   project: ProjectType;
@@ -12,6 +19,7 @@ export interface ProjectData {
   projectCategories: Category[];
   userPermission: ProjectPermission;
   pendingRequestsCount: number;
+  projectMembers: ProjectMember[];
 }
 
 export function useProjectQuery(projectId: string | undefined) {
@@ -56,6 +64,38 @@ export function useProjectQuery(projectId: string | undefined) {
             perm = memberData.permission;
           }
         }
+      }
+
+      // Fetch all project members
+      const { data: allMembersData, error: allMemError } = await supabase
+        .from('project_members')
+        .select('permission, job_title, profiles(*)')
+        .eq('project_id', projectId);
+      
+      let projectMembers: ProjectMember[] = [];
+      if (!allMemError && allMembersData) {
+        projectMembers = allMembersData
+          .filter(m => m.profiles)
+          .map(m => ({
+            permission: m.permission as ProjectPermission,
+            job_title: m.job_title,
+            profiles: m.profiles as unknown as Profile
+          }));
+      }
+      
+      // Also, we need to include the owner as a member if they are not explicitly in project_members
+      if (projectData.owner_id) {
+         const ownerInMembers = projectMembers.find(m => m.profiles.id === projectData.owner_id);
+         if (!ownerInMembers) {
+            const { data: ownerProfile } = await supabase.from('profiles').select('*').eq('id', projectData.owner_id).single();
+            if (ownerProfile) {
+               projectMembers.push({
+                 permission: 'owner',
+                 job_title: 'Dono do Projeto',
+                 profiles: ownerProfile
+               });
+            }
+         }
       }
 
       // Fetch columns
@@ -106,25 +146,41 @@ export function useProjectQuery(projectId: string | undefined) {
       if (catError) throw catError;
       const projectCategories = catData || [];
 
-      // Fetch card_categories
+      // Fetch card_assignees
       let enrichedCards = cardsData || [];
       if (cardsData && cardsData.length > 0) {
         const cardIds = cardsData.map(c => c.id);
+        
+        // Fetch categories
         const { data: cardCatData, error: cardCatError } = await supabase
           .from('card_categories')
           .select('*')
           .in('card_id', cardIds);
+          
+        // Fetch assignees
+        const { data: cardAssigneesData, error: assigneesError } = await supabase
+          .from('card_assignees')
+          .select('card_id, profiles(*)')
+          .in('card_id', cardIds);
         
-        if (!cardCatError && cardCatData) {
-          enrichedCards = cardsData.map(card => {
+        enrichedCards = cardsData.map(card => {
+          let cardCategories: Category[] = [];
+          if (!cardCatError && cardCatData) {
             const cardCatRelations = cardCatData.filter(cc => cc.card_id === card.id);
-            const cardCategories = cardCatRelations
+            cardCategories = cardCatRelations
               .map(cc => projectCategories.find(c => c.id === cc.category_id))
               .filter(Boolean) as Category[];
-            
-            return { ...card, categories: cardCategories };
-          });
-        }
+          }
+          
+          let cardAssignees: Profile[] = [];
+          if (!assigneesError && cardAssigneesData) {
+            cardAssignees = cardAssigneesData
+              .filter(ca => ca.card_id === card.id && ca.profiles)
+              .map(ca => ca.profiles as unknown as Profile);
+          }
+          
+          return { ...card, categories: cardCategories, assignees: cardAssignees };
+        });
       }
 
       return {
@@ -133,7 +189,8 @@ export function useProjectQuery(projectId: string | undefined) {
         cards: enrichedCards,
         projectCategories,
         userPermission: perm,
-        pendingRequestsCount: pendingCount
+        pendingRequestsCount: pendingCount,
+        projectMembers
       };
     },
     enabled: !!projectId,

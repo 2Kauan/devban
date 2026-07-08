@@ -1,4 +1,4 @@
-import type { Category } from './database';
+import type { Category, Profile } from './database';
 
 export interface KanbanColumnType {
   id: string;
@@ -20,6 +20,6 @@ export interface KanbanCardType {
   border_color: string | null;
   position: number;
   created_by: string | null;
-  assigned_to: string | null;
+  assignees?: Profile[];
   categories?: Category[];
 }

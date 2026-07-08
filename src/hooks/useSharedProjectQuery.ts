@@ -18,38 +18,22 @@ export function useSharedProjectQuery(token: string | undefined) {
     queryFn: async () => {
       if (!token) throw new Error('No token');
 
-      // Fetch project
-      const { data: projectData, error: projError } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('share_token', token)
-        .eq('share_enabled', true)
-        .single();
+      // Fetch project, columns and cards using the secure RPC
+      const { data: result, error } = await supabase
+        .rpc('get_shared_project_data', { p_token: token });
       
-      if (projError) throw projError;
+      if (error) throw error;
+      if (!result) throw new Error('Projeto não encontrado ou indisponível.');
 
-      // Fetch columns
-      const { data: colsData, error: colsError } = await supabase
-        .from('columns')
-        .select('*')
-        .eq('project_id', projectData.id)
-        .order('position', { ascending: true });
-      
-      if (colsError) throw colsError;
-
-      // Fetch cards
-      const { data: cardsData, error: cardsError } = await supabase
-        .from('cards')
-        .select('*')
-        .eq('project_id', projectData.id)
-        .order('position', { ascending: true });
-      
-      if (cardsError) throw cardsError;
+      // Transform result
+      const projectData = result.project as ProjectType;
+      const colsData = result.columns as KanbanColumnType[];
+      const cardsData = result.cards as KanbanCardType[];
 
       return {
         project: projectData,
-        columns: colsData || [],
-        cards: cardsData || [],
+        columns: colsData.sort((a, b) => a.position - b.position),
+        cards: cardsData.sort((a, b) => a.position - b.position),
       };
     },
     enabled: !!token,

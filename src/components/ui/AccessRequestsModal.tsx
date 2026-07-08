@@ -25,6 +25,7 @@ export function AccessRequestsModal({ isOpen, onClose, projectId }: AccessReques
   const [requests, setRequests] = useState<RequestType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [selectedRole, setSelectedRole] = useState<{ [key: string]: { permission: string, job_title: string } }>({});
 
   useEffect(() => {
     if (isOpen) {
@@ -52,7 +53,17 @@ export function AccessRequestsModal({ isOpen, onClose, projectId }: AccessReques
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setRequests((data as unknown as RequestType[]) || []);
+      
+      const reqs = (data as unknown as RequestType[]) || [];
+      setRequests(reqs);
+      
+      // Init roles state
+      const rolesInit: { [key: string]: { permission: string, job_title: string } } = {};
+      reqs.forEach(r => {
+        rolesInit[r.id] = { permission: 'viewer', job_title: '' };
+      });
+      setSelectedRole(rolesInit);
+      
     } catch (error: any) {
       toast.error('Erro ao carregar solicitações');
     } finally {
@@ -71,14 +82,16 @@ export function AccessRequestsModal({ isOpen, onClose, projectId }: AccessReques
 
       if (updateError) throw updateError;
 
-      // Se aprovado, insere o usuário na equipe como editor
+      // Se aprovado, insere o usuário na equipe
       if (action === 'approved') {
+        const roleData = selectedRole[requestId] || { permission: 'viewer', job_title: '' };
         const { error: memberError } = await supabase
           .from('project_members')
           .insert({
             project_id: projectId,
             user_id: userId,
-            permission: 'editor' // Poderia ser customizável, mas 'editor' é o padrão
+            permission: roleData.permission,
+            job_title: roleData.job_title || null
           });
         
         if (memberError) throw memberError;
@@ -135,12 +148,32 @@ export function AccessRequestsModal({ isOpen, onClose, projectId }: AccessReques
               ) : (
                 <div className="space-y-4">
                   {requests.map((req) => (
-                    <div key={req.id} className="flex items-center justify-between p-4 bg-muted/30 border border-border rounded-xl">
-                      <div>
+                    <div key={req.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-muted/30 border border-border rounded-xl gap-4">
+                      <div className="flex-1">
                         <p className="font-semibold">{req.profiles?.name || 'Usuário Sem Nome'}</p>
-                        <p className="text-sm text-muted-foreground">{req.profiles?.email}</p>
+                        <p className="text-sm text-muted-foreground mb-2">{req.profiles?.email}</p>
+                        
+                        <div className="flex flex-col sm:flex-row gap-2 mt-2">
+                          <select 
+                            value={selectedRole[req.id]?.permission || 'viewer'}
+                            onChange={(e) => setSelectedRole(prev => ({...prev, [req.id]: { ...prev[req.id], permission: e.target.value }}))}
+                            className="text-xs bg-background border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary"
+                          >
+                            <option value="viewer">Leitor</option>
+                            <option value="editor">Editor</option>
+                            <option value="admin">Administrador</option>
+                            <option value="client">Cliente</option>
+                          </select>
+                          <input 
+                            type="text" 
+                            placeholder="Cargo (ex: QA, Dev)"
+                            value={selectedRole[req.id]?.job_title || ''}
+                            onChange={(e) => setSelectedRole(prev => ({...prev, [req.id]: { ...prev[req.id], job_title: e.target.value }}))}
+                            className="text-xs bg-background border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary flex-1"
+                          />
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 justify-end sm:justify-start">
                         <button
                           onClick={() => handleAction(req.id, req.user_id, 'approved')}
                           disabled={processingId === req.id}

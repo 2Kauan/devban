@@ -120,7 +120,7 @@ serve(async (req) => {
 
     if (dbError) throw dbError;
 
-    return new Response(JSON.stringify(mockAsaasResponse), {
+    return new Response(JSON.stringify(finalResponse), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });

@@ -3,7 +3,7 @@ export type SharePermission = 'view' | 'edit';
 export type CardPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type PaymentMethod = 'pix' | 'credit_card';
 export type PaymentStatus = 'pending' | 'confirmed' | 'failed';
-export type ProjectPermission = 'owner' | 'editor' | 'viewer';
+export type ProjectPermission = 'owner' | 'editor' | 'viewer' | 'admin' | 'client';
 
 export interface Profile {
   id: string;

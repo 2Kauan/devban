@@ -24,6 +24,7 @@ export default function ProjectPage() {
   const projectCategories = data?.projectCategories || [];
   const userPermission = data?.userPermission || 'viewer';
   const pendingRequestsCount = data?.pendingRequestsCount || 0;
+  const projectMembers = data?.projectMembers || [];
 
   // States for modals
   const [activeCard, setActiveCard] = useState<KanbanCardType | null>(null);
@@ -115,6 +116,7 @@ export default function ProjectPage() {
         onClose={() => setIsCardModalOpen(false)} 
         onUpdate={() => refetch()}
         projectCategories={projectCategories}
+        projectMembers={projectMembers}
         projectId={project?.id || ''}
         canEdit={userPermission === 'owner' || userPermission === 'editor'}
       />

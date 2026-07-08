@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/lib/supabase';
 import type { KanbanCardType } from '@/types/kanban';
-import { X, AlignLeft, CheckSquare, Clock, Tag, Flag, Loader2, Plus, Trash2, ChevronDown, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle } from 'lucide-react';
+import { X, AlignLeft, CheckSquare, Clock, Tag, Flag, Loader2, Plus, Trash2, ChevronDown, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 import { TagSelector } from '@/components/ui/TagSelector';
-import type { Category } from '@/types/database';
+import type { Category, Profile } from '@/types/database';
+import type { ProjectMember } from '@/hooks/useProjectQuery';
 
 interface CardModalProps {
   card: KanbanCardType | null;
@@ -16,6 +17,7 @@ interface CardModalProps {
   onClose: () => void;
   onUpdate: () => void;
   projectCategories?: Category[];
+  projectMembers?: ProjectMember[];
   projectId?: string;
   canEdit?: boolean;
 }
@@ -33,12 +35,14 @@ interface Checklist {
   items: ChecklistItem[];
 }
 
-export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories = [], projectId, canEdit = true }: CardModalProps) {
+export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories = [], projectMembers = [], projectId, canEdit = true }: CardModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const [localTags, setLocalTags] = useState<Category[]>([]);
+  const [localAssignees, setLocalAssignees] = useState<Profile[]>([]);
   const [newItemText, setNewItemText] = useState('');
   const [isPriorityOpen, setIsPriorityOpen] = useState(false);
+  const [isAssigneeOpen, setIsAssigneeOpen] = useState(false);
   const [confirmConfig, setConfirmConfig] = useState<{
     isOpen: boolean;
     title: string;
@@ -85,6 +89,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
         border_color: card.border_color || '',
       });
       setLocalTags(card.categories || []);
+      setLocalAssignees(card.assignees || []);
       fetchChecklists();
     }
   }, [card, reset]);
@@ -266,6 +271,33 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
       onUpdate(); // Reload to get updated tags on background
     } catch (error) {
       toast.error('Erro ao atualizar etiqueta');
+    }
+  };
+
+  const handleToggleAssignee = async (profile: Profile) => {
+    if (!card) return;
+    try {
+      const isSelected = localAssignees.some(a => a.id === profile.id);
+      
+      if (isSelected) {
+        setLocalAssignees(prev => prev.filter(a => a.id !== profile.id));
+        await supabase
+          .from('card_assignees')
+          .delete()
+          .eq('card_id', card.id)
+          .eq('user_id', profile.id);
+      } else {
+        setLocalAssignees(prev => [...prev, profile]);
+        await supabase
+          .from('card_assignees')
+          .insert({
+            card_id: card.id,
+            user_id: profile.id
+          });
+      }
+      onUpdate();
+    } catch (error) {
+      toast.error('Erro ao atualizar responsável');
     }
   };
 
@@ -501,6 +533,70 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                             >
                               <AlertCircle size={16} className="text-destructive" /> Urgente
                             </button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                    
+                    {/* Responsáveis */}
+                    <div className="relative">
+                      <label className="flex items-center gap-2 text-xs font-semibold text-foreground mb-2">
+                        <Users size={14} className="text-muted-foreground" />
+                        RESPONSÁVEIS
+                      </label>
+                      <button
+                        type="button"
+                        disabled={!canEdit}
+                        onClick={() => setIsAssigneeOpen(!isAssigneeOpen)}
+                        className={`w-full bg-background border border-border rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all flex items-center justify-between shadow-sm min-h-[42px] ${!canEdit ? 'opacity-70 cursor-default' : ''}`}
+                      >
+                        <div className="flex flex-wrap gap-1">
+                          {localAssignees.length === 0 ? (
+                            <span className="text-muted-foreground font-normal">Nenhum</span>
+                          ) : (
+                            localAssignees.map(a => (
+                              <img key={a.id} src={a.avatar_url || `https://ui-avatars.com/api/?name=${a.name}`} alt={a.name} className="w-6 h-6 rounded-full border border-border" title={a.name} />
+                            ))
+                          )}
+                        </div>
+                        <ChevronDown size={16} className="text-muted-foreground ml-2" />
+                      </button>
+
+                      <AnimatePresence>
+                        {isAssigneeOpen && (
+                          <motion.div 
+                            initial={{ opacity: 0, y: -5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -5 }}
+                            className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-xl overflow-hidden z-20 max-h-[250px] overflow-y-auto custom-scrollbar"
+                          >
+                            {projectMembers.map(member => {
+                              const isSelected = localAssignees.some(a => a.id === member.profiles.id);
+                              return (
+                                <button
+                                  key={member.profiles.id}
+                                  type="button"
+                                  onClick={() => handleToggleAssignee(member.profiles)}
+                                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-muted transition-colors text-left"
+                                >
+                                  <div className="relative">
+                                    <img src={member.profiles.avatar_url || `https://ui-avatars.com/api/?name=${member.profiles.name}`} className="w-8 h-8 rounded-full" />
+                                    {isSelected && (
+                                      <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-0.5">
+                                        <CheckSquare size={10} />
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className="font-semibold text-foreground">{member.profiles.name}</span>
+                                    <span className="text-xs text-muted-foreground">{member.job_title || member.permission}</span>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                            {projectMembers.length === 0 && (
+                               <div className="p-3 text-sm text-muted-foreground text-center">Nenhum membro no projeto</div>
+                            )}
                           </motion.div>
                         )}
                       </AnimatePresence>
