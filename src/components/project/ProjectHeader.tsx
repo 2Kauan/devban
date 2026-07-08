@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Share2, Search, Filter, Bell, Menu } from 'lucide-react';
+import { ArrowLeft, Share2, Search, Filter, Bell, Menu, Pencil, Check, X } from 'lucide-react';
 import type { Project as ProjectType, ProjectPermission } from '@/types/database';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 import { UserProfileButton } from '@/components/ui/UserProfileButton';
 
@@ -25,6 +28,38 @@ export function ProjectHeader({
   onOpenShare,
   onOpenSidebar
 }: ProjectHeaderProps) {
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [newName, setNewName] = useState(project.name);
+  const [isSavingName, setIsSavingName] = useState(false);
+  const [currentName, setCurrentName] = useState(project.name);
+  const [nameChanged, setNameChanged] = useState(project.name_changed);
+
+  const handleSaveName = async () => {
+    if (!newName.trim() || newName.trim() === currentName) {
+      setIsEditingName(false);
+      return;
+    }
+
+    setIsSavingName(true);
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update({ name: newName.trim(), name_changed: true })
+        .eq('id', project.id);
+
+      if (error) throw error;
+
+      setCurrentName(newName.trim());
+      setNameChanged(true);
+      toast.success('Nome do projeto atualizado com sucesso!');
+      setIsEditingName(false);
+    } catch (error: any) {
+      toast.error('Erro ao atualizar nome: ' + error.message);
+    } finally {
+      setIsSavingName(false);
+    }
+  };
+
   return (
     <header className="bg-card border-b border-border p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
       <div className="flex items-center gap-4">
@@ -35,7 +70,44 @@ export function ProjectHeader({
           <ArrowLeft size={18} />
         </Link>
         <div>
-          <h1 className="text-xl font-bold text-foreground leading-tight">{project.name}</h1>
+          {isEditingName ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                disabled={isSavingName}
+                autoFocus
+                className="text-xl font-bold text-foreground bg-background border border-border rounded px-2 py-1 outline-none focus:border-primary"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveName();
+                  if (e.key === 'Escape') setIsEditingName(false);
+                }}
+              />
+              <button onClick={handleSaveName} disabled={isSavingName} className="p-1.5 text-green-600 hover:bg-green-100 rounded">
+                <Check size={16} />
+              </button>
+              <button onClick={() => setIsEditingName(false)} disabled={isSavingName} className="p-1.5 text-destructive hover:bg-destructive/10 rounded">
+                <X size={16} />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 group">
+              <h1 className="text-xl font-bold text-foreground leading-tight">{currentName}</h1>
+              {userPermission === 'owner' && !nameChanged && (
+                <button
+                  onClick={() => {
+                    setNewName(currentName);
+                    setIsEditingName(true);
+                  }}
+                  className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-foreground transition-opacity"
+                  title="Alterar nome (Apenas uma vez)"
+                >
+                  <Pencil size={14} />
+                </button>
+              )}
+            </div>
+          )}
           <div className="flex items-center gap-3 text-sm text-muted-foreground mt-0.5">
             <span>{columnsCount} colunas</span>
             <span className="w-1 h-1 bg-border rounded-full"></span>

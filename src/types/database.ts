@@ -22,6 +22,7 @@ export interface Project {
   name: string;
   description: string | null;
   is_free: boolean;
+  name_changed?: boolean;
   payment_id: string | null;
   share_token: string;
   share_permission: SharePermission;
