@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Share2, Search, Filter, Bell } from 'lucide-react';
 import type { Project as ProjectType, ProjectPermission } from '@/types/database';
 
+import { UserProfileButton } from '@/components/ui/UserProfileButton';
+
 interface ProjectHeaderProps {
   project: ProjectType;
   columnsCount: number;
@@ -10,6 +12,7 @@ interface ProjectHeaderProps {
   pendingRequestsCount: number;
   onOpenAccessRequests: () => void;
   onOpenShare: () => void;
+  onOpenSidebar: () => void;
 }
 
 export function ProjectHeader({
@@ -19,12 +22,16 @@ export function ProjectHeader({
   userPermission,
   pendingRequestsCount,
   onOpenAccessRequests,
-  onOpenShare
+  onOpenShare,
+  onOpenSidebar
 }: ProjectHeaderProps) {
   return (
     <header className="bg-card border-b border-border p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
       <div className="flex items-center gap-4">
-        <Link to="/dashboard" className="w-8 h-8 flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg transition-colors">
+        <button className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground" onClick={onOpenSidebar}>
+          <Menu size={24} />
+        </button>
+        <Link to="/dashboard" className="w-8 h-8 hidden md:flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg transition-colors">
           <ArrowLeft size={18} />
         </Link>
         <div>
@@ -37,7 +44,7 @@ export function ProjectHeader({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 w-full sm:w-auto">
+      <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
         {userPermission === 'owner' && (
           <button
             onClick={onOpenAccessRequests}
@@ -50,7 +57,7 @@ export function ProjectHeader({
             )}
           </button>
         )}
-        <div className="relative flex-1 sm:w-64">
+        <div className="relative flex-1 min-w-[150px] sm:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
           <input 
             type="text" 
@@ -64,11 +71,14 @@ export function ProjectHeader({
         <div className="w-px h-6 bg-border mx-1"></div>
         <button 
           onClick={onOpenShare}
-          className="flex items-center gap-2 px-3 py-2 bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-primary-foreground font-medium rounded-lg transition-colors text-sm"
+          className="flex items-center gap-2 px-3 py-2 bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-primary-foreground font-medium rounded-lg transition-colors text-sm whitespace-nowrap"
         >
           <Share2 size={16} />
-          Compartilhar
+          <span className="hidden sm:inline">Compartilhar</span>
         </button>
+        
+        <div className="w-px h-6 bg-border mx-1"></div>
+        <UserProfileButton />
       </div>
     </header>
   );

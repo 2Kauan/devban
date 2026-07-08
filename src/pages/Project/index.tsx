@@ -6,6 +6,7 @@ import { CardModal } from '@/components/ui/CardModal';
 import { ShareModal } from '@/components/ui/ShareModal';
 import { AccessRequestsModal } from '@/components/ui/AccessRequestsModal';
 import { ProjectHeader } from '@/components/project/ProjectHeader';
+import { Sidebar } from '@/components/layout/Sidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEvent } from '@/hooks/useEvent';
 import { useKanbanModals } from '@/hooks/useKanbanModals';
@@ -31,6 +32,7 @@ export default function ProjectPage() {
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isAccessRequestsOpen, setIsAccessRequestsOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   const { openPrompt, openConfirm, KanbanModals } = useKanbanModals();
   
@@ -81,16 +83,23 @@ export default function ProjectPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-muted/10 overflow-hidden">
-      {/* Project Header */}
-      <ProjectHeader 
-        project={project}
+    <div className="flex h-[calc(100vh-4rem)] md:h-screen w-full bg-background overflow-hidden">
+      {/* Opcional: Para ter o Sidebar ao lado (layout desktop), descomente a Sidebar.
+          Porém, em mobile o Sidebar ficará fixo por cima da tela. 
+          Como na página de projeto o Sidebar não é fixo lado a lado, usamos ele apenas como gaveta. */}
+      <Sidebar projects={[]} onProjectCreated={() => {}} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+
+      <div className="flex-1 flex flex-col h-full bg-muted/10 overflow-hidden min-w-0">
+        {/* Project Header */}
+        <ProjectHeader 
+          project={project}
         columnsCount={columns.length}
         cardsCount={cards.length}
         userPermission={userPermission}
         pendingRequestsCount={pendingRequestsCount}
         onOpenAccessRequests={() => setIsAccessRequestsOpen(true)}
         onOpenShare={handleShare}
+        onOpenSidebar={() => setIsSidebarOpen(true)}
       />
 
       {/* Kanban Area */}
@@ -136,6 +145,7 @@ export default function ProjectPage() {
       />
       
       {KanbanModals}
+      </div>
     </div>
   );
 }

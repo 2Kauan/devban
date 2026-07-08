@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { Users, History, Menu } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { UserProfileButton } from '@/components/ui/UserProfileButton';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale/pt-BR';
 
@@ -113,6 +114,7 @@ export default function TeamPage() {
               <p className="text-sm text-muted-foreground hidden sm:block">Acompanhe o que está acontecendo nos seus projetos</p>
             </div>
           </div>
+          <UserProfileButton />
         </header>
 
         <div className="flex-1 overflow-hidden flex flex-col">

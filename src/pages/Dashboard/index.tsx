@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { UserProfileButton } from '@/components/ui/UserProfileButton';
 import type { Project } from '@/types/database';
 import { toast } from 'sonner';
 
@@ -60,6 +61,7 @@ export default function Dashboard() {
               <p className="text-sm text-muted-foreground hidden sm:block">Bem-vindo, {profile?.name || user?.email}</p>
             </div>
           </div>
+          
           <div className="flex items-center gap-4">
             <div className="relative hidden sm:block">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -71,14 +73,29 @@ export default function Dashboard() {
                 className="h-9 w-64 rounded-md border border-input bg-background px-9 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
               />
             </div>
-            <button className="relative p-2 text-muted-foreground hover:text-foreground transition-colors">
+            <button className="relative p-2 text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
               <Bell className="h-5 w-5" />
             </button>
-            <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-primary to-secondary shadow-sm flex items-center justify-center text-primary-foreground font-bold text-sm">
-              {profile?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
-            </div>
+            <UserProfileButton />
           </div>
         </header>
+
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
+          <div className="sm:hidden mb-4 flex items-center gap-2 w-full">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <input 
+                type="text" 
+                placeholder="Buscar projetos..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-9 w-full rounded-md border border-input bg-background px-9 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+              />
+            </div>
+            <button className="relative p-2 text-muted-foreground hover:text-foreground transition-colors shrink-0">
+              <Bell className="h-5 w-5" />
+            </button>
+          </div>
 
         <div className="flex-1 overflow-y-auto p-6">
           {isLoading ? (
