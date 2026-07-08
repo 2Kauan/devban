@@ -17,9 +17,11 @@ serve(async (req) => {
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 401,
+        status: 200,
       });
     }
+
+    const token = authHeader.replace('Bearer ', '');
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -34,7 +36,7 @@ serve(async (req) => {
     const {
       data: { user },
       error: userError
-    } = await supabaseClient.auth.getUser();
+    } = await supabaseClient.auth.getUser(token);
 
     if (userError || !user) {
       return new Response(JSON.stringify({ error: `Unauthorized - getUser failed: ${userError?.message || 'No user'}` }), {
