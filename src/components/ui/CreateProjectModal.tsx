@@ -72,8 +72,9 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
         });
 
         if (funcError || funcData?.error) {
-          console.warn("Edge Function falhou:", funcError || funcData?.error);
-          toast.warning("Modo de Teste: Usando PIX de demonstração.");
+          const errorMessage = funcData?.error || funcError?.message || "Erro desconhecido";
+          console.warn("Edge Function falhou:", errorMessage);
+          toast.warning(`Erro: ${errorMessage}. Usando PIX de demonstração.`);
           // Valid CRC16 format for a mock PIX of R$ 5.00
           asaasData = {
             pixQrCode: "00020126580014br.gov.bcb.pix0136123e4567-e89b-12d3-a456-42665544000052040000530398654045.005802BR5913Kauan Batista6009SAO PAULO62070503***6304E6BC",
