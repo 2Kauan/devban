@@ -77,25 +77,26 @@ export default function TeamPage() {
   };
 
   const renderActionText = (log: ActivityLog) => {
-    const userName = log.profiles?.name || 'Alguém';
+    const fullName = log.profiles?.name || 'Alguém';
+    const userName = fullName.split(' ')[0]; // First name only
     const cardTitle = log.cards?.title || 'uma tarefa excluída';
-    const projectName = log.projects?.name || 'um projeto excluído';
+    const projectName = log.projects?.name || 'projeto excluído';
 
     switch (log.action) {
       case 'created_card':
         return (
-          <span>
-            <strong className="text-foreground">{userName}</strong> adicionou a tarefa <strong className="text-foreground">"{cardTitle}"</strong> em <span className="text-primary">{projectName}</span>
+          <span className="leading-tight">
+            <strong className="text-foreground">{userName}</strong> criou <strong className="text-foreground">"{cardTitle}"</strong> em <span className="text-primary truncate max-w-[100px] inline-flex align-bottom">{projectName}</span>
           </span>
         );
       case 'moved_card':
         return (
-          <span>
-            <strong className="text-foreground">{userName}</strong> moveu <strong className="text-foreground">"{cardTitle}"</strong> de <span className="text-muted-foreground">{log.old_value?.column_title}</span> para <span className="text-foreground font-medium">{log.new_value?.column_title}</span> em <span className="text-primary">{projectName}</span>
+          <span className="leading-tight">
+            <strong className="text-foreground">{userName}</strong> moveu <strong className="text-foreground truncate max-w-[120px] inline-flex align-bottom">"{cardTitle}"</strong> para <span className="text-foreground font-medium">{log.new_value?.column_title}</span>
           </span>
         );
       default:
-        return <span><strong className="text-foreground">{userName}</strong> atualizou <strong className="text-foreground">"{cardTitle}"</strong></span>;
+        return <span className="leading-tight"><strong className="text-foreground">{userName}</strong> atualizou <strong className="text-foreground">"{cardTitle}"</strong></span>;
     }
   };
 

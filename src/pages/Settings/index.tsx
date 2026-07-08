@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { useAuth } from '@/contexts/AuthContext';
-import { Menu, Save, User, Mail, UploadCloud, Loader2, Camera } from 'lucide-react';
+import { Menu, Save, User, Mail, Loader2, Camera } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { ImageCropModal } from '@/components/ui/ImageCropModal';

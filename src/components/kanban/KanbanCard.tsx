@@ -2,16 +2,19 @@ import { forwardRef, memo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { KanbanCardType } from '@/types/kanban';
-import { MessageSquare, Clock, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle } from 'lucide-react';
+import { MessageSquare, Clock, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface KanbanCardProps {
   card: KanbanCardType;
   onClick: (card: KanbanCardType) => void;
   isOverlay?: boolean;
+  onMoveMobile?: (cardId: string, direction: 'left' | 'right') => void;
+  canMoveLeft?: boolean;
+  canMoveRight?: boolean;
 }
 
 export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
-  ({ card, onClick, isOverlay }, ref) => {
+  ({ card, onClick, isOverlay, onMoveMobile, canMoveLeft, canMoveRight }, ref) => {
     const {
       attributes,
       listeners,
@@ -135,6 +138,28 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
             )}
           </div>
         </div>
+
+        {onMoveMobile && !isOverlay && (
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50 md:hidden">
+            <button
+              type="button"
+              disabled={!canMoveLeft}
+              onClick={(e) => { e.stopPropagation(); onMoveMobile(card.id, 'left'); }}
+              className="p-1.5 rounded-lg bg-muted/50 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Mover</span>
+            <button
+              type="button"
+              disabled={!canMoveRight}
+              onClick={(e) => { e.stopPropagation(); onMoveMobile(card.id, 'right'); }}
+              className="p-1.5 rounded-lg bg-muted/50 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        )}
       </div>
     );
   }

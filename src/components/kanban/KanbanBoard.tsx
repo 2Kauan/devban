@@ -158,7 +158,7 @@ export function KanbanBoard({
       >
         <div className="flex gap-6 h-full px-2">
           <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
-            {columns.map((col) => (
+            {columns.map((col, idx) => (
               <KanbanColumn
                 key={col.id}
                 column={col}
@@ -168,6 +168,14 @@ export function KanbanBoard({
                 onUpdateColumn={onUpdateColumn}
                 onDeleteColumn={onDeleteColumn}
                 canEdit={canEdit}
+                onMoveCardMobile={(cardId, direction) => {
+                  const destIdx = direction === 'left' ? idx - 1 : idx + 1;
+                  if (destIdx >= 0 && destIdx < columns.length) {
+                    onCardMove?.(cardId, col.id, columns[destIdx].id);
+                  }
+                }}
+                isFirstColumn={idx === 0}
+                isLastColumn={idx === columns.length - 1}
               />
             ))}
           </SortableContext>

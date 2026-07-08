@@ -232,10 +232,10 @@ export function ShareModal({ isOpen, onClose, project, onUpdate }: ShareModalPro
                       )}
                     </div>
 
-                    <p className="text-xs text-muted-foreground mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5 ml-1">
                       {shareEnabled 
-                        ? 'Qualquer pessoa na internet com o link pode entrar na equipe' 
-                        : 'Apenas pessoas adicionadas podem abrir este link'}
+                        ? 'Quem tiver o link pode acessar' 
+                        : 'Apenas convidados podem acessar'}
                     </p>
                   </div>
 

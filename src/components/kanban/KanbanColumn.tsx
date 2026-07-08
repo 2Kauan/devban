@@ -13,9 +13,12 @@ interface KanbanColumnProps {
   onUpdateColumn?: (columnId: string, updates: Partial<KanbanColumnType>) => void;
   onDeleteColumn?: (columnId: string) => void;
   canEdit?: boolean;
+  onMoveCardMobile?: (cardId: string, direction: 'left' | 'right') => void;
+  isFirstColumn?: boolean;
+  isLastColumn?: boolean;
 }
 
-export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpdateColumn, onDeleteColumn, canEdit = true }: KanbanColumnProps) => {
+export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpdateColumn, onDeleteColumn, canEdit = true, onMoveCardMobile, isFirstColumn, isLastColumn }: KanbanColumnProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(column.title);
   const [editColor, setEditColor] = useState(column.color || '');
@@ -166,7 +169,14 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
       <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 custom-scrollbar flex flex-col gap-2">
         <SortableContext items={cardIds}>
           {cards.map((card) => (
-            <KanbanCard key={card.id} card={card} onClick={onCardClick} />
+            <KanbanCard 
+              key={card.id} 
+              card={card} 
+              onClick={onCardClick} 
+              onMoveMobile={canEdit ? onMoveCardMobile : undefined}
+              canMoveLeft={!isFirstColumn}
+              canMoveRight={!isLastColumn}
+            />
           ))}
         </SortableContext>
       </div>

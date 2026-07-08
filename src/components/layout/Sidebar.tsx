@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Plus, LayoutDashboard, FolderKanban, Users, Settings, LogOut, ShieldAlert, X } from 'lucide-react';
+import { Plus, LayoutDashboard, FolderKanban, Users, Settings, LogOut, ShieldAlert, X, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { CreateProjectModal } from '@/components/ui/CreateProjectModal';
@@ -85,6 +85,13 @@ export function Sidebar({ projects, onProjectCreated, isOpen, onClose }: Sidebar
           >
             <Users className="h-5 w-5" />
             Equipe
+          </Link>
+          <Link 
+            to="/reports" 
+            className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive('/reports') ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}`}
+          >
+            <BarChart3 className="h-5 w-5" />
+            Relatórios
           </Link>
           {profile?.role === 'admin' && (
             <Link 

@@ -165,6 +165,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
           const { error } = await supabase.from('cards').delete().eq('id', card.id);
           if (error) throw error;
           toast.success('Cartão excluído!');
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
           onUpdate();
           onClose();
         } catch (error: any) {
