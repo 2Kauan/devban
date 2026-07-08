@@ -12,24 +12,34 @@ serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
+    
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
       {
         global: {
-          headers: { Authorization: req.headers.get("Authorization")! },
+          headers: { Authorization: authHeader },
         },
       }
     );
 
     const {
       data: { user },
+      error: userError
     } = await supabaseClient.auth.getUser();
 
-    if (!user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: `Unauthorized - getUser failed: ${userError?.message || 'No user'}` }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 401,
+        status: 400,
       });
     }
 
