@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { useAuth } from '@/contexts/AuthContext';
-import { Menu, Save, User, Mail, UploadCloud, Loader2 } from 'lucide-react';
+import { Menu, Save, User, Mail, UploadCloud, Loader2, Camera } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { ImageCropModal } from '@/components/ui/ImageCropModal';
 
 export default function Settings() {
   const { user, profile } = useAuth();
@@ -12,6 +13,9 @@ export default function Settings() {
   const [name, setName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  
+  const [isCropOpen, setIsCropOpen] = useState(false);
+  const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
 
   useEffect(() => {
     if (profile) {
@@ -47,6 +51,43 @@ export default function Settings() {
     }
   };
 
+  const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const imageDataUrl = await readFile(file);
+      setSelectedImageSrc(imageDataUrl);
+      setIsCropOpen(true);
+      // Reset input so the same file can be selected again
+      e.target.value = '';
+    }
+  };
+
+  const readFile = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.addEventListener('load', () => resolve(reader.result as string), false);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleCropComplete = async (croppedImageBlob: Blob) => {
+    try {
+      // Convert Blob to Base64 to save directly in the profile avatar_url
+      // For a production app with many large files, Supabase Storage should be used.
+      // Since it's just a small 256x256 avatar, Base64 is fine.
+      const reader = new FileReader();
+      reader.readAsDataURL(croppedImageBlob);
+      reader.onloadend = () => {
+        const base64data = reader.result as string;
+        setAvatarUrl(base64data);
+        setIsCropOpen(false);
+        setSelectedImageSrc(null);
+      };
+    } catch (e) {
+      toast.error('Erro ao processar imagem.');
+    }
+  };
+
   return (
     <div className="flex h-[calc(100vh-4rem)] md:h-screen w-full bg-background overflow-hidden">
       <Sidebar projects={[]} onProjectCreated={() => {}} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
@@ -74,27 +115,30 @@ export default function Settings() {
               </h2>
               
               <form onSubmit={handleSave} className="space-y-4">
-                <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
-                  <div className="relative w-24 h-24 rounded-full bg-muted border-2 border-border/60 overflow-hidden flex items-center justify-center shrink-0">
+                <div className="flex flex-col sm:flex-row gap-6 items-center">
+                  <div className="relative w-24 h-24 rounded-full bg-muted border-2 border-border/60 overflow-hidden flex items-center justify-center shrink-0 group">
                     {avatarUrl ? (
                       <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
                       <User size={40} className="text-muted-foreground/50" />
                     )}
-                    <label className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity text-white text-xs font-bold">
-                      <UploadCloud size={16} className="mb-1" />
+                    <label className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-white">
+                      <Camera size={20} className="mb-1" />
+                      <span className="text-[10px] font-bold">Alterar</span>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={onFileChange}
+                      />
                     </label>
                   </div>
-                  <div className="flex-1 w-full">
-                    <label className="block text-sm font-semibold text-foreground mb-1">URL da Imagem do Perfil</label>
-                    <input 
-                      type="url" 
-                      value={avatarUrl}
-                      onChange={(e) => setAvatarUrl(e.target.value)}
-                      placeholder="https://exemplo.com/avatar.jpg"
-                      className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">Insira um link para sua foto de perfil.</p>
+                  <div className="flex-1 w-full text-center sm:text-left">
+                    <h3 className="font-semibold text-foreground mb-1">Foto de Perfil</h3>
+                    <p className="text-xs text-muted-foreground max-w-sm">
+                      Clique na imagem ao lado para fazer o upload de uma nova foto. 
+                      Formatos aceitos: JPG, PNG, GIF.
+                    </p>
                   </div>
                 </div>
 
@@ -135,6 +179,18 @@ export default function Settings() {
           </div>
         </div>
       </main>
+
+      {selectedImageSrc && (
+        <ImageCropModal
+          isOpen={isCropOpen}
+          onClose={() => {
+            setIsCropOpen(false);
+            setSelectedImageSrc(null);
+          }}
+          imageSrc={selectedImageSrc}
+          onCropCompleteAction={handleCropComplete}
+        />
+      )}
     </div>
   );
 }

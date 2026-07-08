@@ -42,15 +42,6 @@ export default function Landing() {
         </div>
 
         <div className="container relative z-10 mx-auto text-center flex flex-col items-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 mb-8"
-          >
-            <span className="flex h-2 w-2 rounded-full bg-primary animate-ping" />
-            <span className="text-sm font-medium">O novo padrão em produtividade</span>
-          </motion.div>
 
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
