@@ -96,8 +96,6 @@ export default function Dashboard() {
               <Bell className="h-5 w-5" />
             </button>
           </div>
-
-        <div className="flex-1 overflow-y-auto p-6">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
