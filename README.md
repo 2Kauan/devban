@@ -66,5 +66,5 @@ A magia por trás da cortina é construída usando as ferramentas mais modernas 
 <br/>
 
 <div align="center">
-  <p>Feito com ❤️ para times que amam codar e entregar resultados.</p>
+  <p>Feito para times que gostam de codar e entregar resultados.</p>
 </div>
