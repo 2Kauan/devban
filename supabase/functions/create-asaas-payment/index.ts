@@ -35,12 +35,13 @@ serve(async (req) => {
 
     const { method, paymentId } = await req.json();
 
-    const asaasApiKey = Deno.env.get('ASAAS_API_KEY');
+    const asaasApiKey = Deno.env.get('ASAAS_API_KEY') || Deno.env.get('VITE_ASAAS_API_KEY');
     if (!asaasApiKey) {
       throw new Error('Chave de API do Asaas não configurada no servidor (ASAAS_API_KEY).');
     }
 
-    const asaasBaseUrl = asaasApiKey.startsWith('$aact_YTU5') ? 'https://sandbox.asaas.com/api/v3' : 'https://api.asaas.com/v3';
+    const customUrl = Deno.env.get('ASAAS_API_URL') || Deno.env.get('VITE_ASAAS_API_URL');
+    const asaasBaseUrl = customUrl ? customUrl : (asaasApiKey.startsWith('$aact_YTU5') ? 'https://sandbox.asaas.com/api/v3' : 'https://api.asaas.com/v3');
 
     // 1. Check or Create Customer in Asaas
     let customerId = '';

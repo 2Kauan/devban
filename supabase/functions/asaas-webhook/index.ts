@@ -11,7 +11,7 @@ serve(async (req) => {
     const payload = await req.json();
     
     // Validar token do webhook (se configurado no Asaas)
-    const asaasWebhookSecret = Deno.env.get("ASAAS_WEBHOOK_SECRET");
+    const asaasWebhookSecret = Deno.env.get("ASAAS_WEBHOOK_SECRET") || Deno.env.get("VITE_ASAAS_WEBHOOK_SECRET");
     const receivedSecret = req.headers.get("asaas-access-token");
     
     if (asaasWebhookSecret && receivedSecret !== asaasWebhookSecret) {
