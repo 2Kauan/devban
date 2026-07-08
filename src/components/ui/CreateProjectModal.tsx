@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const projectSchema = z.object({
   name: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres'),
   description: z.string().optional(),
+  cpf: z.string().optional(),
 });
 
 type ProjectForm = z.infer<typeof projectSchema>;
@@ -80,6 +81,12 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
       const requiresPayment = currentProjects >= allowedSlots;
 
       if (requiresPayment) {
+        if (!data.cpf || data.cpf.replace(/\D/g, '').length !== 11) {
+          toast.error('Por favor, informe um CPF válido para gerar a cobrança.');
+          setIsLoading(false);
+          return;
+        }
+
         // Create payment flow
         // Step 1: Create a pending payment record in Supabase
         const { data: paymentRecord, error: paymentError } = await supabase
@@ -98,7 +105,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
         // Step 2: Call Edge Function to create Asaas charge
         let asaasData = null;
         const { data: funcData, error: funcError } = await supabase.functions.invoke('create-asaas-payment', {
-          body: { paymentId: paymentRecord.id, method: paymentMethod, projectName: data.name }
+          body: { paymentId: paymentRecord.id, method: paymentMethod, projectName: data.name, cpfCnpj: data.cpf }
         });
 
         if (funcError || funcData?.error) {
@@ -273,6 +280,31 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                       placeholder="Descreva o objetivo do projeto..."
                     />
                   </div>
+
+                  {requiresPayment && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                    >
+                      <label className="block text-sm font-bold text-foreground mb-1.5">CPF (para emissão da cobrança)</label>
+                      <input
+                        type="text"
+                        {...register('cpf')}
+                        maxLength={14}
+                        className="w-full px-4 py-3 bg-background border-2 border-border/60 hover:border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-muted-foreground/60 text-foreground font-medium"
+                        placeholder="000.000.000-00"
+                        onChange={(e) => {
+                          let value = e.target.value.replace(/\D/g, '');
+                          if (value.length > 11) value = value.slice(0, 11);
+                          value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                          value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                          value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                          e.target.value = value;
+                        }}
+                      />
+                      {errors.cpf && <p className="text-destructive text-sm mt-1.5 font-medium">{errors.cpf.message}</p>}
+                    </motion.div>
+                  )}
 
                   {requiresPayment && (
                     <div>

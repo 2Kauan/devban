@@ -45,7 +45,7 @@ serve(async (req) => {
       });
     }
 
-    const { method, paymentId, projectName } = await req.json();
+    const { method, paymentId, projectName, cpfCnpj } = await req.json();
 
     const asaasApiKey = Deno.env.get('ASAAS_API_KEY') || Deno.env.get('VITE_ASAAS_API_KEY');
     if (!asaasApiKey) {
@@ -64,6 +64,17 @@ serve(async (req) => {
     
     if (customerSearch.data && customerSearch.data.length > 0) {
       customerId = customerSearch.data[0].id;
+      
+      // Update customer with CPF if we have it and they might not
+      if (cpfCnpj) {
+        await fetch(`${asaasBaseUrl}/customers/${customerId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'access_token': asaasApiKey },
+          body: JSON.stringify({
+            cpfCnpj: cpfCnpj.replace(/\D/g, '')
+          })
+        });
+      }
     } else {
       const customerCreateRes = await fetch(`${asaasBaseUrl}/customers`, {
         method: 'POST',
@@ -71,6 +82,7 @@ serve(async (req) => {
         body: JSON.stringify({
           name: user.user_metadata?.full_name || user.email,
           email: user.email,
+          cpfCnpj: cpfCnpj ? cpfCnpj.replace(/\D/g, '') : undefined,
         })
       });
       const customerCreate = await customerCreateRes.json();
