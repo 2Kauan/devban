@@ -21,6 +21,8 @@ export default function SharedProject() {
   const project = data?.project;
   const columns = data?.columns || [];
   const cards = data?.cards || [];
+  const projectCategories = data?.projectCategories || [];
+  const projectMembers = data?.projectMembers || [];
   const [activeCard, setActiveCard] = useState<KanbanCardType | null>(null);
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const { openPrompt, openConfirm, KanbanModals } = useKanbanModals();
@@ -120,6 +122,8 @@ export default function SharedProject() {
         isOpen={isCardModalOpen} 
         onClose={() => setIsCardModalOpen(false)} 
         onUpdate={() => refetch()}
+        projectCategories={projectCategories}
+        projectMembers={projectMembers}
         projectId={project?.id || ''}
         canEdit={project.share_permission === 'edit'}
       />
