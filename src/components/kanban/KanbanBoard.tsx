@@ -181,6 +181,8 @@ export function KanbanBoard({
                 }}
                 isFirstColumn={idx === 0}
                 isLastColumn={idx === columns.length - 1}
+                allCards={cards}
+                allColumns={columns}
               />
             ))}
           </SortableContext>
@@ -207,6 +209,8 @@ export function KanbanBoard({
                 onUpdateColumn={onUpdateColumn}
                 onDeleteColumn={onDeleteColumn}
                 canEdit={canEdit}
+                allCards={cards}
+                allColumns={columns}
               />
             )}
             {activeCard && (

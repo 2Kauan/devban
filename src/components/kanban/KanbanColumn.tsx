@@ -16,9 +16,11 @@ interface KanbanColumnProps {
   onMoveCardMobile?: (cardId: string, direction: 'left' | 'right') => void;
   isFirstColumn?: boolean;
   isLastColumn?: boolean;
+  allCards?: KanbanCardType[];
+  allColumns?: KanbanColumnType[];
 }
 
-export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpdateColumn, onDeleteColumn, canEdit = true, onMoveCardMobile, isFirstColumn, isLastColumn }: KanbanColumnProps) => {
+export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpdateColumn, onDeleteColumn, canEdit = true, onMoveCardMobile, isFirstColumn, isLastColumn, allCards = [], allColumns = [] }: KanbanColumnProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(column.title);
   const [editColor, setEditColor] = useState(column.color || '');
@@ -182,18 +184,31 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
 
       <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 custom-scrollbar flex flex-col gap-2">
         <SortableContext items={cardIds}>
-          {cards.map((card) => (
-            <KanbanCard 
-              key={card.id} 
-              card={card} 
-              onClick={onCardClick} 
-              onMoveMobile={canEdit ? onMoveCardMobile : undefined}
-              canMoveLeft={canEdit && !isFirstColumn}
-              canMoveRight={canEdit && !isLastColumn}
-              columnColor={column.color}
-              isCompleted={column.is_completed}
-            />
-          ))}
+          {cards.map((card) => {
+            const subtasks = allCards.filter(c => c.parent_id === card.id);
+            let subtasksProgress = undefined;
+            if (subtasks.length > 0) {
+              const completed = subtasks.filter(st => {
+                const col = allColumns.find(c => c.id === st.column_id);
+                return col?.is_completed;
+              });
+              subtasksProgress = (completed.length / subtasks.length) * 100;
+            }
+
+            return (
+              <KanbanCard 
+                key={card.id} 
+                card={card} 
+                onClick={onCardClick} 
+                onMoveMobile={canEdit ? onMoveCardMobile : undefined}
+                canMoveLeft={canEdit && !isFirstColumn}
+                canMoveRight={canEdit && !isLastColumn}
+                columnColor={column.color}
+                isCompleted={column.is_completed}
+                subtasksProgress={subtasksProgress}
+              />
+            );
+          })}
         </SortableContext>
       </div>
 

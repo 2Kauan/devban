@@ -13,10 +13,11 @@ interface KanbanCardProps {
   canMoveRight?: boolean;
   columnColor?: string | null;
   isCompleted?: boolean;
+  subtasksProgress?: number;
 }
 
 export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
-  ({ card, onClick, isOverlay, onMoveMobile, canMoveLeft, canMoveRight, columnColor, isCompleted }, ref) => {
+  ({ card, onClick, isOverlay, onMoveMobile, canMoveLeft, canMoveRight, columnColor, isCompleted, subtasksProgress }, ref) => {
     const localRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -197,6 +198,17 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
             )}
           </div>
         </div>
+
+        {subtasksProgress !== undefined && (
+          <div className="mt-2">
+            <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-primary transition-all duration-300"
+                style={{ width: `${subtasksProgress}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         {onMoveMobile && !isOverlay && (
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50 md:hidden">

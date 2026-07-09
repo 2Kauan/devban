@@ -126,6 +126,8 @@ export default function SharedProject() {
         projectMembers={projectMembers}
         projectId={project?.id || ''}
         canEdit={project.share_permission === 'edit'}
+        allCards={cards}
+        columns={columns}
       />
       
       {KanbanModals}

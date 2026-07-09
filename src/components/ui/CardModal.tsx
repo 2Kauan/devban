@@ -20,6 +20,8 @@ interface CardModalProps {
   projectMembers?: ProjectMember[];
   projectId?: string;
   canEdit?: boolean;
+  allCards?: KanbanCardType[];
+  columns?: any[];
 }
 
 interface ChecklistItem {
@@ -35,12 +37,13 @@ interface Checklist {
   items: ChecklistItem[];
 }
 
-export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories = [], projectMembers = [], projectId, canEdit = true }: CardModalProps) {
+export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories = [], projectMembers = [], projectId, canEdit = true, allCards = [], columns = [] }: CardModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const [localTags, setLocalTags] = useState<Category[]>([]);
   const [localAssignees, setLocalAssignees] = useState<Profile[]>([]);
   const [newItemText, setNewItemText] = useState('');
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [isPriorityOpen, setIsPriorityOpen] = useState(false);
   const [isAssigneeOpen, setIsAssigneeOpen] = useState(false);
   const [confirmConfig, setConfirmConfig] = useState<{
@@ -113,6 +116,36 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
       }
     } catch (error: any) {
       console.error('Error fetching checklists:', error);
+    }
+  };
+
+  // Subtasks calculation
+  const subtasks = allCards?.filter(c => c.parent_id === card?.id) || [];
+  const completedSubtasks = subtasks.filter(st => {
+    const col = columns?.find(c => c.id === st.column_id);
+    return col?.is_completed;
+  });
+  const subtasksProgress = subtasks.length > 0 ? (completedSubtasks.length / subtasks.length) * 100 : 0;
+
+  const handleCreateSubtask = async () => {
+    if (!newSubtaskTitle.trim() || !card || !columns?.length) return;
+    try {
+      setIsLoading(true);
+      const firstCol = columns[0];
+      const { error } = await supabase.from('cards').insert({
+        project_id: projectId,
+        column_id: firstCol.id,
+        parent_id: card.id,
+        title: newSubtaskTitle.trim(),
+        position: 1000
+      });
+      if (error) throw error;
+      setNewSubtaskTitle('');
+      onUpdate();
+    } catch (error: any) {
+      toast.error('Erro ao criar sub-tarefa');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -455,6 +488,76 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                           )}
                         </div>
                       ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Sub-tarefas */}
+                <div className="mt-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2 text-foreground font-semibold">
+                      <CheckSquare size={18} className="text-primary" />
+                      <h3 className="text-lg">Sub-tarefas (Cartões Filhos)</h3>
+                    </div>
+                  </div>
+                  
+                  {subtasks.length > 0 && (
+                    <div className="mb-4">
+                      <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                        <span>Progresso</span>
+                        <span>{Math.round(subtasksProgress)}%</span>
+                      </div>
+                      <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-primary transition-all duration-300"
+                          style={{ width: `${subtasksProgress}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    {subtasks.map(st => {
+                      const col = columns.find(c => c.id === st.column_id);
+                      const isStCompleted = col?.is_completed;
+                      return (
+                        <div key={st.id} className="flex items-center gap-3 p-3 bg-muted rounded-lg border border-border">
+                          <input 
+                            type="checkbox"
+                            checked={isStCompleted || false}
+                            readOnly
+                            className="w-4 h-4 rounded border-border text-primary cursor-default"
+                          />
+                          <span className={`text-sm flex-1 ${isStCompleted ? 'line-through text-muted-foreground' : 'text-foreground font-medium'}`}>
+                            {st.title}
+                          </span>
+                          <span className="text-xs px-2 py-1 bg-background rounded text-muted-foreground">
+                            {col?.title}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {canEdit && (
+                    <div className="flex items-center gap-2 mt-4">
+                      <input 
+                        type="text"
+                        value={newSubtaskTitle}
+                        onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleCreateSubtask();
+                        }}
+                        placeholder="Nome do novo cartão filho..."
+                        className="flex-1 text-sm bg-background border border-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                      />
+                      <button 
+                        onClick={handleCreateSubtask}
+                        disabled={!newSubtaskTitle.trim() || isLoading}
+                        className="p-2.5 bg-primary text-primary-foreground hover:bg-primary-hover rounded-lg disabled:opacity-50 transition-colors"
+                      >
+                        <Plus size={16} />
+                      </button>
                     </div>
                   )}
                 </div>

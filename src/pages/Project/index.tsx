@@ -128,6 +128,8 @@ export default function ProjectPage() {
         projectMembers={projectMembers}
         projectId={project?.id || ''}
         canEdit={userPermission === 'owner' || userPermission === 'editor'}
+        allCards={cards}
+        columns={columns}
       />
       <ShareModal
         isOpen={isShareModalOpen}

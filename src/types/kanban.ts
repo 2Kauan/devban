@@ -14,6 +14,7 @@ export interface KanbanCardType {
   id: string;
   project_id: string;
   column_id: string;
+  parent_id?: string | null;
   title: string;
   description: string | null;
   due_date: string | null;
