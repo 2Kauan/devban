@@ -51,6 +51,35 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
     checkSlots();
   }, [isOpen, user]);
 
+  // Escuta atualizações do webhook em tempo real
+  useEffect(() => {
+    if (!showPayment || !paymentData?.id) return;
+
+    const channel = supabase
+      .channel(`payment_${paymentData.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'payments',
+          filter: `id=eq.${paymentData.id}`
+        },
+        (payload) => {
+          if (payload.new && payload.new.status === 'confirmed') {
+            // O webhook atualizou o status para confirmed!
+            // Chamamos a função que verifica e cria o projeto
+            handleCheckPaymentStatus();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [showPayment, paymentData?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!isOpen) return null;
 
   const handleCreate = async (data: ProjectForm) => {
