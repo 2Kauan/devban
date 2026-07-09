@@ -198,15 +198,15 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
     if (!paymentData) return;
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('payments')
-        .select('status')
-        .eq('id', paymentData.id)
-        .single();
+      // Chama a edge function que verifica o status direto no Asaas
+      const { data: checkData, error: checkError } = await supabase.functions.invoke('check-asaas-payment', {
+        body: { paymentId: paymentData.id }
+      });
       
-      if (error) throw error;
+      if (checkError) throw checkError;
+      if (checkData?.error) throw new Error(checkData.error);
       
-      let currentStatus = data.status;
+      let currentStatus = checkData?.status || 'pending';
 
       if (currentStatus === 'confirmed') {
         const pendingProject = JSON.parse(localStorage.getItem(`pending_project_${paymentData.id}`) || '{}');
