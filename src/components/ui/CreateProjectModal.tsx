@@ -122,7 +122,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
           .from('payments')
           .insert({
             user_id: user.id,
-            value: 1.00,
+            value: 5.00,
             method: paymentMethod,
             status: 'pending',
           })
@@ -141,9 +141,9 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
           const errorMessage = funcData?.error || funcError?.message || "Erro desconhecido";
           console.warn("Edge Function falhou:", errorMessage);
           toast.warning(`Erro: ${errorMessage}. Usando PIX de demonstração.`);
-          // Valid CRC16 format for a mock PIX of R$ 1.00
+          // Valid CRC16 format for a mock PIX of R$ 5.00
           asaasData = {
-            pixQrCode: "00020126580014br.gov.bcb.pix0136123e4567-e89b-12d3-a456-42665544000052040000530398654041.005802BR5913Kauan Batista6009SAO PAULO62070503***6304E6BC",
+            pixQrCode: "00020126580014br.gov.bcb.pix0136123e4567-e89b-12d3-a456-42665544000052040000530398654045.005802BR5913Kauan Batista6009SAO PAULO62070503***6304E6BC",
             invoiceUrl: "https://sandbox.asaas.com/i/mock-fatura"
           };
         } else {
@@ -286,7 +286,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                       className="p-4 bg-primary/10 border border-primary/20 rounded-xl mb-4"
                     >
                       <h3 className="font-bold text-primary mb-1">Projeto Premium</h3>
-                      <p className="text-sm text-primary/90 leading-relaxed">Você já utilizou seu projeto gratuito. Um novo projeto tem o custo único de <strong className="font-black">R$ 1,00</strong>.</p>
+                      <p className="text-sm text-primary/90 leading-relaxed">Você já utilizou seu projeto gratuito. Um novo projeto tem o custo único de <strong className="font-black">R$ 5,00</strong>.</p>
                     </motion.div>
                   )}
 
@@ -360,7 +360,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                       disabled={isLoading}
                       className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary-hover shadow-md hover:shadow-lg transition-all font-bold text-sm flex items-center justify-center min-w-[120px] active:scale-95"
                     >
-                      {isLoading ? <Loader2 size={18} className="animate-spin" /> : (requiresPayment ? 'Pagar R$ 1,00' : 'Criar Projeto')}
+                      {isLoading ? <Loader2 size={18} className="animate-spin" /> : (requiresPayment ? 'Pagar R$ 5,00' : 'Criar Projeto')}
                     </button>
                   </div>
                 </form>
@@ -407,7 +407,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                       </>
                     ) : (
                       <div className="text-left space-y-4">
-                        <p className="text-sm text-muted-foreground mb-4 text-center">Insira os dados do seu cartão para concluir a compra de R$ 1,00.</p>
+                        <p className="text-sm text-muted-foreground mb-4 text-center">Insira os dados do seu cartão para concluir a compra de R$ 5,00.</p>
                         
                         <div>
                           <label className="block text-xs font-bold text-foreground mb-1.5">Número do Cartão</label>
@@ -458,7 +458,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                       disabled={isLoading}
                       className="w-full px-6 py-3.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/20 transition-all font-bold flex items-center justify-center text-sm active:scale-95 select-none"
                     >
-                      {isLoading ? <Loader2 size={18} className="animate-spin" /> : (paymentMethod === 'credit_card' ? 'Processar Pagamento de R$ 1,00' : 'Já paguei, confirmar!')}
+                      {isLoading ? <Loader2 size={18} className="animate-spin" /> : (paymentMethod === 'credit_card' ? 'Processar Pagamento de R$ 5,00' : 'Já paguei, confirmar!')}
                     </button>
 
                     <button
