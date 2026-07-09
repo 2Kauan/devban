@@ -72,7 +72,7 @@ export function useKanbanActions({
       const { error } = await supabase.from('cards').upsert(updates);
       if (error) throw error;
     } catch (error: any) {
-      toast.error('Erro ao salvar posição do cartão');
+      toast.error('Erro ao salvar posição: ' + error?.message);
       refetch();
     }
   });

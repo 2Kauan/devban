@@ -188,7 +188,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
       if (error) throw error;
       setChecklists([...checklists, { ...data, items: [] }]);
     } catch (error: any) {
-      toast.error('Erro ao criar checklist');
+      toast.error('Erro ao criar checklist: ' + error?.message);
     }
   };
 
@@ -331,8 +331,8 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
         
       toast.success('Etiqueta criada!');
       onUpdate(); // Reload project data
-    } catch (error) {
-      toast.error('Erro ao criar etiqueta');
+    } catch (error: any) {
+      toast.error('Erro ao criar etiqueta: ' + error?.message);
     }
   };
 
