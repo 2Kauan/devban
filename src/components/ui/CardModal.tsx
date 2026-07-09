@@ -638,28 +638,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                       />
                     </div>
                     
-                    {/* Cor do Cartão */}
-                    <div>
-                      <label className="flex items-center gap-2 text-xs font-semibold text-foreground mb-2">
-                        <div className="w-3.5 h-3.5 rounded-full border border-border" style={{ backgroundColor: borderColorValue || 'transparent' }}></div>
-                        COR DO CARTÃO
-                      </label>
-                      <div className="flex flex-wrap gap-2">
-                        {CARD_COLORS.map(color => (
-                          <button
-                            key={color.value}
-                            type="button"
-                            disabled={!canEdit}
-                            onClick={() => setValue('border_color', color.value, { shouldDirty: true })}
-                            className={`w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center ${borderColorValue === color.value ? 'border-primary scale-110 shadow-sm' : 'border-transparent hover:scale-110'} ${!canEdit ? 'pointer-events-none' : ''}`}
-                            style={{ backgroundColor: color.value || 'var(--card)' }}
-                            title={color.label}
-                          >
-                            {!color.value && <X size={12} className="text-muted-foreground" />}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+
                   </div>
                 </div>
                 
