@@ -33,12 +33,12 @@ export function Sidebar({ onProjectCreated, isOpen, onClose }: SidebarProps) {
         />
       )}
       
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 border-r border-border/50 bg-background md:bg-muted/20 flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full hidden md:flex'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 h-full border-r border-border/50 bg-background md:bg-muted/20 flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full hidden md:flex'}`}>
         <div className="p-4 flex items-center justify-between md:hidden border-b border-border/50">
           <span className="font-bold text-lg">Menu</span>
           <button onClick={onClose} className="p-2 text-muted-foreground hover:text-foreground bg-muted/50 rounded-lg"><X size={20} /></button>
         </div>
-        <div className="p-6">
+        <div className="p-6 shrink-0">
           <button 
             onClick={() => setIsCreateModalOpen(true)}
             className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors shadow-sm"
@@ -47,7 +47,7 @@ export function Sidebar({ onProjectCreated, isOpen, onClose }: SidebarProps) {
             Novo Projeto
           </button>
         </div>
-        <nav className="flex-1 px-4 space-y-2">
+        <nav className="flex-1 px-4 space-y-2 overflow-y-auto custom-scrollbar">
           <Link 
             to="/dashboard" 
             className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive('/dashboard') ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}`}
@@ -84,7 +84,7 @@ export function Sidebar({ onProjectCreated, isOpen, onClose }: SidebarProps) {
             </Link>
           )}
         </nav>
-        <div className="p-4 border-t border-border/50 space-y-2">
+        <div className="p-4 border-t border-border/50 space-y-2 mt-auto shrink-0 bg-background md:bg-transparent">
           <Link 
             to="/settings" 
             className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive('/settings') ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}`}
