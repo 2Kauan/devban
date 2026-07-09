@@ -101,7 +101,7 @@ serve(async (req) => {
       body: JSON.stringify({
         customer: customerId,
         billingType: method === 'pix' ? 'PIX' : 'CREDIT_CARD', // Ou 'UNDEFINED'
-        value: 5.00,
+        value: 1.00,
         dueDate: dueDate,
         description: projectName ? `DevBan: Criação do Projeto '${projectName}'` : 'Projeto Adicional - Kanban Premium',
         externalReference: paymentId
