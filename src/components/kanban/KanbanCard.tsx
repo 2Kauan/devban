@@ -1,4 +1,4 @@
-import { forwardRef, memo } from 'react';
+import { forwardRef, memo, useEffect, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { KanbanCardType } from '@/types/kanban';
@@ -16,6 +16,47 @@ interface KanbanCardProps {
 
 export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
   ({ card, onClick, isOverlay, onMoveMobile, canMoveLeft, canMoveRight, columnColor }, ref) => {
+    const localRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+      if (!isOverlay) return;
+      let frame: number;
+      let currentRotate = 0;
+      let lastX = 0;
+      let lastTime = 0;
+
+      const loop = (time: number) => {
+        if (localRef.current) {
+          const rect = localRef.current.getBoundingClientRect();
+          if (lastTime > 0) {
+            const dt = time - lastTime;
+            if (dt > 0) {
+              const dx = rect.x - lastX;
+              const velocity = dx / dt; // px per ms
+              
+              // Target rotation: multiply velocity by a factor. Max 15 degrees.
+              const targetRotate = Math.max(-15, Math.min(15, velocity * 15));
+              
+              // Smooth approach to target
+              currentRotate += (targetRotate - currentRotate) * 0.15;
+              
+              // Apply transform (keeping the scale-105 effect)
+              localRef.current.style.transform = `rotate(${currentRotate}deg) scale(1.05)`;
+            }
+          } else {
+             // Initial frame setup
+             localRef.current.style.transform = `rotate(0deg) scale(1.05)`;
+          }
+          lastX = rect.x;
+          lastTime = time;
+        }
+        frame = requestAnimationFrame(loop);
+      };
+      
+      frame = requestAnimationFrame(loop);
+      return () => cancelAnimationFrame(frame);
+    }, [isOverlay]);
+
     const {
       attributes,
       listeners,
@@ -69,7 +110,15 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
 
     return (
       <div
-        ref={isOverlay ? ref : setNodeRef}
+        ref={(node) => {
+          localRef.current = node;
+          if (isOverlay) {
+            if (typeof ref === 'function') ref(node);
+            else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+          } else {
+            setNodeRef(node);
+          }
+        }}
         style={{
           ...style,
           borderColor: card.border_color || columnColor || undefined,
@@ -77,7 +126,7 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
         }}
         onClick={() => onClick(card)}
         className={`bg-card p-4 rounded-xl border border-border shadow-sm mb-3 cursor-grab active:cursor-grabbing group hover:border-primary/50 transition-colors relative overflow-hidden ${
-          isOverlay ? 'rotate-2 scale-105 shadow-xl' : ''
+          isOverlay ? 'shadow-xl' : ''
         }`}
         {...attributes}
         {...listeners}
