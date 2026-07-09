@@ -26,10 +26,24 @@ interface ActivityLog {
   };
 }
 
+interface TeamMember {
+  user_id: string;
+  role: string;
+  created_at: string;
+  profiles: {
+    name: string;
+    avatar_url: string;
+  };
+  projects: {
+    name: string;
+  };
+}
+
 export default function TeamPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'activity' | 'members'>('activity');
   const [logs, setLogs] = useState<ActivityLog[]>([]);
+  const [members, setMembers] = useState<TeamMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string>('all');
@@ -46,6 +60,7 @@ export default function TeamPage() {
   useEffect(() => {
     if (user) {
       fetchLogs();
+      fetchMembers();
     }
   }, [user, selectedProjectId]);
 
@@ -87,6 +102,30 @@ export default function TeamPage() {
       console.error('Error fetching logs', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchMembers = async () => {
+    try {
+      let query = supabase
+        .from('project_members')
+        .select(`
+          user_id, role, created_at,
+          profiles (name, avatar_url),
+          projects (name)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (selectedProjectId && selectedProjectId !== 'all') {
+        query = query.eq('project_id', selectedProjectId);
+      }
+
+      const { data: membersData, error } = await query;
+      if (error) throw error;
+
+      setMembers((membersData as any) || []);
+    } catch (error) {
+      console.error('Error fetching members', error);
     }
   };
 
@@ -155,7 +194,7 @@ export default function TeamPage() {
               </button>
             </div>
             
-            {activeTab === 'activity' && projects.length > 0 && (
+            {projects.length > 0 && (
               <div className="py-3 mt-1 border-t border-border/30 flex items-center gap-3">
                 <span className="text-sm font-medium text-muted-foreground">Filtrar por projeto:</span>
                 <select 
@@ -218,15 +257,57 @@ export default function TeamPage() {
                 )}
               </div>
             ) : (
-              <div className="max-w-4xl mx-auto">
-                <div className="bg-card border border-border/60 rounded-xl p-8 text-center shadow-sm">
-                  <Users className="h-12 w-12 text-primary/30 mx-auto mb-4" />
+              <div className="max-w-3xl mx-auto">
+                <div className="bg-card border border-border/60 rounded-xl p-8 text-center shadow-sm mb-6">
                   <h3 className="text-lg font-bold mb-2">Gerenciamento de Membros</h3>
-                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                    Para convidar novas pessoas para sua equipe, entre no projeto desejado e clique em <strong>Compartilhar</strong>. Envie o link para elas entrarem na sua equipe!
+                  <p className="text-muted-foreground text-sm max-w-md mx-auto">
+                    Para convidar novas pessoas, entre no projeto desejado e clique em <strong>Compartilhar</strong>.
                   </p>
-                  <p className="text-sm text-muted-foreground/80">A listagem detalhada de permissões por usuário estará disponível em breve.</p>
                 </div>
+
+                {members.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Users className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+                    <h3 className="text-lg font-bold">Nenhum membro encontrado</h3>
+                    <p className="text-muted-foreground">Este projeto ainda não possui convidados.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {members.map((member, idx) => (
+                      <motion.div 
+                        key={`${member.user_id}-${idx}`}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="bg-card border border-border/60 rounded-xl p-4 shadow-sm flex items-center justify-between hover:border-border transition-colors"
+                      >
+                        <div className="flex items-center gap-4">
+                          {member.profiles?.avatar_url ? (
+                            <img src={member.profiles.avatar_url} alt="" className="w-10 h-10 rounded-full border border-border" />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-bold border border-primary/20">
+                              {member.profiles?.name?.charAt(0) || 'U'}
+                            </div>
+                          )}
+                          <div>
+                            <h4 className="font-bold text-foreground">{member.profiles?.name || 'Usuário Desconhecido'}</h4>
+                            <p className="text-xs text-muted-foreground">
+                              Acesso concedido em {new Date(member.created_at).toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
+                            {member.role === 'owner' ? 'Proprietário' : 'Convidado'}
+                          </span>
+                          <p className="text-[10px] text-muted-foreground mt-1 truncate max-w-[120px]">
+                            {member.projects?.name}
+                          </p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
