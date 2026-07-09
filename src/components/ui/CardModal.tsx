@@ -333,14 +333,29 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
             card_id: st.id,
             user_id: profile.id
           }));
-          await supabase
+          const { error: upsertError } = await supabase
             .from('card_assignees')
             .upsert(subtaskInserts, { onConflict: 'card_id,user_id' });
+            
+          if (upsertError) {
+            console.error("Upsert subtasks assignees error:", upsertError);
+            // Fallback: try inserting one by one and ignoring conflicts
+            for (const st of subtasks) {
+              const { error: insertError } = await supabase.from('card_assignees').insert({
+                card_id: st.id,
+                user_id: profile.id
+              });
+              if (insertError && insertError.code !== '23505') {
+                 console.error("Insert subtask assignee error:", insertError);
+              }
+            }
+          }
         }
       }
       onUpdate();
-    } catch (error) {
-      toast.error('Erro ao atualizar responsável');
+    } catch (error: any) {
+      console.error(error);
+      toast.error('Erro ao atualizar responsável: ' + (error?.message || ''));
     }
   };
 
