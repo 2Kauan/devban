@@ -205,13 +205,16 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
         </div>
 
         {subtasksProgress !== undefined && (
-          <div className="mt-2">
-            <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+          <div className="mt-3 flex items-center gap-2">
+            <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
               <div 
                 className="h-full bg-primary transition-all duration-300"
                 style={{ width: `${subtasksProgress}%` }}
               />
             </div>
+            <span className="text-[10px] text-muted-foreground font-semibold w-7 text-right leading-none">
+              {Math.round(subtasksProgress)}%
+            </span>
           </div>
         )}
 
