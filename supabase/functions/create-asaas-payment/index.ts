@@ -57,7 +57,8 @@ serve(async (req) => {
 
     // 1. Check or Create Customer in Asaas
     let customerId = '';
-    const customerSearchRes = await fetch(`${asaasBaseUrl}/customers?email=${user.email}`, {
+    // Procuramos o cliente pelo ID do usuário no Supabase para não misturar com clientes de outros projetos
+    const customerSearchRes = await fetch(`${asaasBaseUrl}/customers?externalReference=${user.id}`, {
       headers: { 'access_token': asaasApiKey }
     });
     const customerSearch = await customerSearchRes.json();
@@ -83,6 +84,8 @@ serve(async (req) => {
           name: user.user_metadata?.full_name || user.email,
           email: user.email,
           cpfCnpj: cpfCnpj ? cpfCnpj.replace(/\D/g, '') : undefined,
+          externalReference: user.id,
+          observations: "Cliente criado pelo DevBan"
         })
       });
       const customerCreate = await customerCreateRes.json();
