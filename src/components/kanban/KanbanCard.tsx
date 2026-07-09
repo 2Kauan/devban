@@ -22,6 +22,7 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
       if (!isOverlay) return;
       let frame: number;
       let currentRotate = 0;
+      let smoothVelocity = 0;
       let lastX = 0;
       let lastTime = 0;
 
@@ -32,15 +33,18 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
             const dt = time - lastTime;
             if (dt > 0) {
               const dx = rect.x - lastX;
-              const velocity = dx / dt; // px per ms
+              const rawVelocity = dx / dt; // px per ms
               
-              // Target rotation: multiply velocity by a factor. Max 15 degrees.
-              const targetRotate = Math.max(-15, Math.min(15, velocity * 15));
+              // Low-pass filter on velocity to remove spikes and add "weight"
+              smoothVelocity += (rawVelocity - smoothVelocity) * 0.15;
               
-              // Smooth approach to target
-              currentRotate += (targetRotate - currentRotate) * 0.15;
+              // Target rotation based on smooth velocity. Max 18 degrees.
+              const targetRotate = Math.max(-18, Math.min(18, smoothVelocity * 12));
               
-              // Apply transform (keeping the scale-105 effect)
+              // Smooth approach to target rotation (springy feel)
+              currentRotate += (targetRotate - currentRotate) * 0.2;
+              
+              // Apply transform with a slight scale bump
               localRef.current.style.transform = `rotate(${currentRotate}deg) scale(1.05)`;
             }
           } else {
