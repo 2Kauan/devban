@@ -82,6 +82,8 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
       });
       setLocalTags(card.categories || []);
       setLocalAssignees(card.assignees || []);
+      setIsAssigneeOpen(false);
+      setIsPriorityOpen(false);
       fetchChecklists();
     }
   }, [card, reset]);
