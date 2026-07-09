@@ -309,6 +309,14 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
           .delete()
           .eq('card_id', card.id)
           .eq('user_id', profile.id);
+          
+        if (subtasks.length > 0) {
+          await supabase
+            .from('card_assignees')
+            .delete()
+            .in('card_id', subtasks.map(st => st.id))
+            .eq('user_id', profile.id);
+        }
       } else {
         setLocalAssignees(prev => [...prev, profile]);
         await supabase
@@ -317,6 +325,16 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
             card_id: card.id,
             user_id: profile.id
           });
+          
+        if (subtasks.length > 0) {
+          const subtaskInserts = subtasks.map(st => ({
+            card_id: st.id,
+            user_id: profile.id
+          }));
+          await supabase
+            .from('card_assignees')
+            .upsert(subtaskInserts, { onConflict: 'card_id,user_id' });
+        }
       }
       onUpdate();
     } catch (error) {
