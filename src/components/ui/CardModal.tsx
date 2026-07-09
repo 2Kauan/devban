@@ -664,9 +664,10 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                   </div>
                 </div>
               </div>
+            </div>
               
-              {/* Sub-tarefas (Full Width Bottom) */}
-              <div className="w-full mt-2 pt-6 border-t border-border/50">
+            {/* Sub-tarefas (Full Width Bottom) */}
+            <div className="w-full mt-2 pt-6 border-t border-border/50">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-2 text-foreground font-semibold">
                     <ListTree size={20} className="text-primary" />
