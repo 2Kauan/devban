@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/lib/supabase';
 import type { KanbanCardType } from '@/types/kanban';
-import { X, AlignLeft, CheckSquare, Clock, Tag, Flag, Loader2, Plus, Trash2, ChevronDown, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle, Users } from 'lucide-react';
+import { X, AlignLeft, CheckSquare, Clock, Tag, Flag, Loader2, Plus, Trash2, ChevronDown, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle, Users, ListTree } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
@@ -391,9 +391,10 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar flex flex-col md:flex-row gap-10">
-              {/* Coluna Principal */}
-              <div className="flex-1 space-y-8">
+            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar flex flex-col gap-8">
+              <div className="flex flex-col md:flex-row gap-10">
+                {/* Coluna Principal */}
+                <div className="flex-1 space-y-8">
                 {/* Descrição */}
                 <div>
                   <div className="flex items-center gap-2 mb-3 text-foreground font-semibold">
@@ -488,76 +489,6 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                           )}
                         </div>
                       ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Sub-tarefas */}
-                <div className="mt-8">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2 text-foreground font-semibold">
-                      <CheckSquare size={18} className="text-primary" />
-                      <h3 className="text-lg">Sub-tarefas (Cartões Filhos)</h3>
-                    </div>
-                  </div>
-                  
-                  {subtasks.length > 0 && (
-                    <div className="mb-4">
-                      <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                        <span>Progresso</span>
-                        <span>{Math.round(subtasksProgress)}%</span>
-                      </div>
-                      <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-primary transition-all duration-300"
-                          style={{ width: `${subtasksProgress}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    {subtasks.map(st => {
-                      const col = columns.find(c => c.id === st.column_id);
-                      const isStCompleted = col?.is_completed;
-                      return (
-                        <div key={st.id} className="flex items-center gap-3 p-3 bg-muted rounded-lg border border-border">
-                          <input 
-                            type="checkbox"
-                            checked={isStCompleted || false}
-                            readOnly
-                            className="w-4 h-4 rounded border-border text-primary cursor-default"
-                          />
-                          <span className={`text-sm flex-1 ${isStCompleted ? 'line-through text-muted-foreground' : 'text-foreground font-medium'}`}>
-                            {st.title}
-                          </span>
-                          <span className="text-xs px-2 py-1 bg-background rounded text-muted-foreground">
-                            {col?.title}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {canEdit && (
-                    <div className="flex items-center gap-2 mt-4">
-                      <input 
-                        type="text"
-                        value={newSubtaskTitle}
-                        onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleCreateSubtask();
-                        }}
-                        placeholder="Nome do novo cartão filho..."
-                        className="flex-1 text-sm bg-background border border-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-                      />
-                      <button 
-                        onClick={handleCreateSubtask}
-                        disabled={!newSubtaskTitle.trim() || isLoading}
-                        className="p-2.5 bg-primary text-primary-foreground hover:bg-primary-hover rounded-lg disabled:opacity-50 transition-colors"
-                      >
-                        <Plus size={16} />
-                      </button>
                     </div>
                   )}
                 </div>
@@ -732,6 +663,78 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
 
                   </div>
                 </div>
+              </div>
+              
+              {/* Sub-tarefas (Full Width Bottom) */}
+              <div className="w-full mt-2 pt-6 border-t border-border/50">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2 text-foreground font-semibold">
+                    <ListTree size={20} className="text-primary" />
+                    <h3 className="text-lg">Sub-tarefas (Cartões Filhos)</h3>
+                  </div>
+                </div>
+                
+                {subtasks.length > 0 && (
+                  <div className="mb-6 max-w-2xl">
+                    <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                      <span>Progresso ({completedSubtasks.length}/{subtasks.length})</span>
+                      <span>{Math.round(subtasksProgress)}%</span>
+                    </div>
+                    <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden shadow-inner">
+                      <div 
+                        className="h-full bg-primary transition-all duration-500 ease-out"
+                        style={{ width: `${subtasksProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+                  {subtasks.map(st => {
+                    const col = columns.find(c => c.id === st.column_id);
+                    const isStCompleted = col?.is_completed;
+                    return (
+                      <div key={st.id} className="flex items-start gap-3 p-3.5 bg-card rounded-xl border border-border shadow-sm hover:shadow-md hover:border-primary/30 transition-all group">
+                        <input 
+                          type="checkbox"
+                          checked={isStCompleted || false}
+                          readOnly
+                          className="w-4 h-4 mt-0.5 rounded border-border text-primary cursor-default"
+                        />
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span className={`text-sm leading-tight truncate ${isStCompleted ? 'line-through text-muted-foreground' : 'text-foreground font-medium'}`} title={st.title}>
+                            {st.title}
+                          </span>
+                          <span className="text-[10px] mt-1.5 px-2 py-0.5 bg-muted rounded-md text-muted-foreground w-fit font-medium">
+                            {col?.title}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {canEdit && (
+                  <div className="flex items-center gap-2 max-w-2xl mt-4">
+                    <input 
+                      type="text"
+                      value={newSubtaskTitle}
+                      onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleCreateSubtask();
+                      }}
+                      placeholder="Adicionar um novo cartão filho..."
+                      className="flex-1 text-sm bg-muted/50 hover:bg-background border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:bg-background transition-all shadow-sm"
+                    />
+                    <button 
+                      onClick={handleCreateSubtask}
+                      disabled={!newSubtaskTitle.trim() || isLoading}
+                      className="p-3 bg-primary text-primary-foreground hover:bg-primary-hover rounded-xl shadow-sm disabled:opacity-50 transition-colors active:scale-95"
+                    >
+                      <Plus size={18} />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
             
