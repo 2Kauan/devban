@@ -486,7 +486,10 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                       <button
                         type="button"
                         disabled={!canEdit}
-                        onClick={() => setIsPriorityOpen(!isPriorityOpen)}
+                        onClick={() => {
+                          setIsPriorityOpen(!isPriorityOpen);
+                          setIsAssigneeOpen(false);
+                        }}
                         className={`w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all flex items-center justify-between shadow-sm ${!canEdit ? 'opacity-70 cursor-default' : ''}`}
                       >
                         <div className="flex items-center gap-2">
@@ -548,8 +551,11 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                       <button
                         type="button"
                         disabled={!canEdit}
-                        onClick={() => setIsAssigneeOpen(!isAssigneeOpen)}
-                        className={`w-full bg-background border border-border rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all flex items-center justify-between shadow-sm min-h-[42px] ${!canEdit ? 'opacity-70 cursor-default' : ''}`}
+                        onClick={() => {
+                          setIsAssigneeOpen(!isAssigneeOpen);
+                          setIsPriorityOpen(false);
+                        }}
+                        className={`w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all flex items-center justify-between shadow-sm min-h-[42px] ${!canEdit ? 'opacity-70 cursor-default' : ''}`}
                       >
                         <div className="flex flex-wrap gap-1">
                           {localAssignees.length === 0 ? (
