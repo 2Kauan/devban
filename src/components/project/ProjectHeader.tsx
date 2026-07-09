@@ -44,6 +44,14 @@ export function ProjectHeader({
       return;
     }
 
+    const confirmChange = window.confirm(
+      "Atenção: Você só poderá alterar o nome do projeto uma única vez. Tem certeza que deseja usar este nome?"
+    );
+    
+    if (!confirmChange) {
+      return;
+    }
+
     setIsSavingName(true);
     try {
       const { error } = await supabase
