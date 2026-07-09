@@ -142,15 +142,21 @@ serve(async (req) => {
       pixEncodedImage: pixEncodedImage
     };
 
+    // Initialize admin client to update DB securely, bypassing RLS
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
     // Update payment record in database
-    const { error: dbError } = await supabaseClient
+    const { error: dbError } = await supabaseAdmin
       .from("payments")
       .update({
         asaas_payment_id: paymentData.id,
         status: "pending",
         invoice_url: paymentData.invoiceUrl,
         pix_qr_code: pixQrCode,
-        pix_copy_paste: pixQrCode // You might have a column for copy paste
+        pix_copy_paste: pixQrCode
       })
       .eq("id", paymentId)
       .eq("user_id", user.id);

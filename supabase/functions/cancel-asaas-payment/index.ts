@@ -91,8 +91,14 @@ serve(async (req) => {
       }
     }
 
+    // Initialize admin client to update DB securely, bypassing RLS
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
     // 3. Mark payment as cancelled in Supabase
-    const { error: updateError } = await supabaseClient
+    const { error: updateError } = await supabaseAdmin
       .from('payments')
       .update({ status: 'cancelled' })
       .eq('id', paymentId)
