@@ -2,7 +2,7 @@ import { forwardRef, memo, useEffect, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { KanbanCardType } from '@/types/kanban';
-import { MessageSquare, Clock, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle, ChevronLeft, ChevronRight, GripHorizontal } from 'lucide-react';
+import { MessageSquare, Clock, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle, ChevronLeft, ChevronRight, GripHorizontal, ListTree } from 'lucide-react';
 
 interface KanbanCardProps {
   card: KanbanCardType;
@@ -159,8 +159,11 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
           <GripHorizontal size={14} className="text-muted-foreground/30 ml-2 shrink-0 hidden md:block" />
         </div>
 
-        <h4 className="font-semibold text-foreground text-sm leading-tight mb-2 line-clamp-2">
-          {card.title}
+        <h4 className="font-semibold text-foreground text-sm leading-tight mb-2 line-clamp-2 flex items-start gap-1.5">
+          {card.parent_id && (
+            <ListTree size={15} className="text-muted-foreground shrink-0 mt-0.5" title="Sub-tarefa" />
+          )}
+          <span>{card.title}</span>
         </h4>
 
         {card.description && (
