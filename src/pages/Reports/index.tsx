@@ -41,16 +41,48 @@ export default function Reports() {
   const fetchReports = async () => {
     try {
       setIsLoading(true);
-      // Fetch all projects user has access to
-      const { data: projectsData } = await supabase
+      // Fetch projects user owns
+      const { data: ownedData, error: ownedError } = await supabase
+        .from('projects')
+        .select('id, name')
+        .eq('owner_id', user?.id);
+
+      // Fetch projects user is member of
+      const { data: memberData, error: memberError } = await supabase
         .from('project_members')
         .select('projects(id, name)')
         .eq('user_id', user?.id);
 
-      const projects = (projectsData || []).map(p => p.projects).filter(Boolean) as any[];
+      const ownedProjects = ownedData || [];
+      const memberProjects = (memberData || []).map(p => p.projects).filter(Boolean) as any[];
+
+      // Merge and deduplicate
+      const allProjectsMap = new Map();
+      ownedProjects.forEach(p => allProjectsMap.set(p.id, p));
+      memberProjects.forEach(p => allProjectsMap.set(p.id, p));
+
+      const projects = Array.from(allProjectsMap.values());
       const projectIds = projects.map(p => p.id);
 
       if (projectIds.length > 0) {
+        // Fetch Columns to find the last column (highest order) for each project
+        const { data: columnsData } = await supabase
+          .from('columns')
+          .select('id, project_id, order')
+          .in('project_id', projectIds);
+
+        const columns = columnsData || [];
+        
+        // Map project_id to its last column's id
+        const lastColumnMap = new Map<string, string>();
+        projects.forEach(p => {
+          const projectColumns = columns.filter(c => c.project_id === p.id);
+          if (projectColumns.length > 0) {
+            const lastCol = projectColumns.reduce((prev, current) => (prev.order > current.order) ? prev : current);
+            lastColumnMap.set(p.id, lastCol.id);
+          }
+        });
+
         // Fetch Cards
         const { data: cardsData } = await supabase
           .from('cards')
@@ -59,21 +91,38 @@ export default function Reports() {
           
         const cards = cardsData || [];
         
-        // Let's assume the last column (or a column containing 'Concluído', 'Done', etc.) is completed.
-        // For simplicity, we just count cards.
+        let completedCardsCount = 0;
+        cards.forEach(card => {
+          const lastColId = lastColumnMap.get(card.project_id);
+          if (lastColId && card.column_id === lastColId) {
+            completedCardsCount++;
+          }
+        });
         
         // Fetch Activities
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
         const { count: activitiesCount } = await supabase
           .from('activity_logs')
-          .select('id', { count: 'exact' })
+          .select('id', { count: 'exact', head: true })
           .in('project_id', projectIds)
-          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()); // Last 30 days
+          .gte('created_at', thirtyDaysAgo);
           
-        // Fetch Members
-        const { count: membersCount } = await supabase
+        // Fetch Members (deduplicate unique user_ids)
+        const { data: membersData } = await supabase
           .from('project_members')
-          .select('user_id', { count: 'exact', head: true })
+          .select('user_id')
           .in('project_id', projectIds);
+          
+        const memberIds = new Set((membersData || []).map(m => m.user_id));
+        // Also add the owners of these projects to the unique member count
+        const { data: ownersData } = await supabase
+          .from('projects')
+          .select('owner_id')
+          .in('id', projectIds);
+        
+        (ownersData || []).forEach(o => {
+          if (o.owner_id) memberIds.add(o.owner_id);
+        });
 
         // Project Breakdown
         const pStats = projects.map(p => ({
@@ -87,8 +136,8 @@ export default function Reports() {
         setStats({
           totalProjects: projects.length,
           totalCards: cards.length,
-          cardsCompleted: Math.floor(cards.length * 0.3), // Mocking completed since we don't know exact column names
-          activeMembers: membersCount || 0,
+          cardsCompleted: completedCardsCount,
+          activeMembers: memberIds.size,
           recentActivities: activitiesCount || 0
         });
       }

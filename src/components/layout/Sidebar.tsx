@@ -55,25 +55,6 @@ export function Sidebar({ projects, onProjectCreated, isOpen, onClose }: Sidebar
             <LayoutDashboard className="h-5 w-5" />
             Visão Geral
           </Link>
-          
-          <div className="pt-4 pb-2">
-            <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Projetos Recentes
-            </p>
-          </div>
-          <div className="space-y-1">
-            {projects.slice(0, 3).map(p => (
-              <Link 
-                key={p.id}
-                to={`/project/${p.id}`} 
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive(`/project/${p.id}`) ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}`}
-              >
-                <FolderKanban className="h-4 w-4" />
-                <span className="truncate">{p.name}</span>
-              </Link>
-            ))}
-          </div>
-
           <div className="pt-4 pb-2">
             <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Geral

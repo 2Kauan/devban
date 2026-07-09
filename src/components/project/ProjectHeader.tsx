@@ -138,7 +138,7 @@ export function ProjectHeader({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
+      <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto overflow-y-hidden custom-scrollbar pb-1 sm:pb-0 shrink-0">
         {userPermission === 'owner' && (
           <button
             onClick={onOpenAccessRequests}
@@ -174,14 +174,14 @@ export function ProjectHeader({
         {userPermission === 'owner' && (
           <button 
             onClick={() => setShowDeleteConfirm(true)}
-            className="flex items-center gap-2 px-3 py-2 text-destructive border border-destructive/20 hover:bg-destructive hover:text-destructive-foreground font-medium rounded-lg transition-colors text-sm whitespace-nowrap"
+            className="flex items-center gap-2 px-3 py-2 text-destructive border border-destructive/20 hover:bg-destructive hover:text-destructive-foreground font-medium rounded-lg transition-colors text-sm whitespace-nowrap shrink-0"
             title="Apagar Projeto"
           >
             <Trash2 size={16} />
           </button>
         )}
         
-        <div className="w-px h-6 bg-border mx-1"></div>
+        <div className="w-px h-6 bg-border mx-1 shrink-0"></div>
         <UserProfileButton />
       </div>
 
