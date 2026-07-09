@@ -83,7 +83,7 @@ export default function ProjectPage() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] md:h-screen w-full bg-background overflow-hidden">
+    <div className="flex h-screen w-full bg-background overflow-hidden">
       {/* Opcional: Para ter o Sidebar ao lado (layout desktop), descomente a Sidebar.
           Porém, em mobile o Sidebar ficará fixo por cima da tela. 
           Como na página de projeto o Sidebar não é fixo lado a lado, usamos ele apenas como gaveta. */}

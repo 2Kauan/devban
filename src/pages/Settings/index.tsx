@@ -89,7 +89,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] md:h-screen w-full bg-background overflow-hidden">
+    <div className="flex h-screen w-full bg-background overflow-hidden">
       <Sidebar projects={[]} onProjectCreated={() => {}} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-muted/10">
