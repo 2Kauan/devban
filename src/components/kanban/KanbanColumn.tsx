@@ -176,6 +176,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
               onMoveMobile={canEdit ? onMoveCardMobile : undefined}
               canMoveLeft={!isFirstColumn}
               canMoveRight={!isLastColumn}
+              columnColor={column.color}
             />
           ))}
         </SortableContext>

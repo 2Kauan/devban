@@ -11,10 +11,11 @@ interface KanbanCardProps {
   onMoveMobile?: (cardId: string, direction: 'left' | 'right') => void;
   canMoveLeft?: boolean;
   canMoveRight?: boolean;
+  columnColor?: string | null;
 }
 
 export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
-  ({ card, onClick, isOverlay, onMoveMobile, canMoveLeft, canMoveRight }, ref) => {
+  ({ card, onClick, isOverlay, onMoveMobile, canMoveLeft, canMoveRight, columnColor }, ref) => {
     const {
       attributes,
       listeners,
@@ -71,8 +72,8 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
         ref={isOverlay ? ref : setNodeRef}
         style={{
           ...style,
-          borderColor: card.border_color || undefined,
-          borderWidth: card.border_color ? '2px' : '1px'
+          borderColor: card.border_color || columnColor || undefined,
+          borderWidth: card.border_color || columnColor ? '2px' : '1px'
         }}
         onClick={() => onClick(card)}
         className={`bg-card p-4 rounded-xl border border-border shadow-sm mb-3 cursor-grab active:cursor-grabbing group hover:border-primary/50 transition-colors relative overflow-hidden ${

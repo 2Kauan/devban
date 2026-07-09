@@ -214,6 +214,7 @@ export function KanbanBoard({
                 card={activeCard}
                 onClick={onCardClick}
                 isOverlay
+                columnColor={columns.find(c => c.id === activeCard.column_id)?.color}
               />
             )}
           </DragOverlay>,

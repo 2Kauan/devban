@@ -222,11 +222,11 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
         if (projError) throw projError;
         
         const defaultColumns = [
-          { project_id: newProject.id, title: 'Ideias', position: 1000 },
-          { project_id: newProject.id, title: 'A Fazer', position: 2000 },
-          { project_id: newProject.id, title: 'Fazendo', position: 3000 },
-          { project_id: newProject.id, title: 'Revisão', position: 4000 },
-          { project_id: newProject.id, title: 'Concluído', position: 5000 },
+          { project_id: newProject.id, title: 'Ideias', position: 1000, color: '#94a3b8' },
+          { project_id: newProject.id, title: 'A Fazer', position: 2000, color: '#3b82f6' },
+          { project_id: newProject.id, title: 'Fazendo', position: 3000, color: '#eab308' },
+          { project_id: newProject.id, title: 'Revisão', position: 4000, color: '#a855f7' },
+          { project_id: newProject.id, title: 'Concluído', position: 5000, color: '#22c55e' },
         ];
         
         await supabase.from('columns').insert(defaultColumns);
