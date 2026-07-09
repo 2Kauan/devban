@@ -69,10 +69,10 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
 
   if (isDragging) {
     return (
-      <div
+      <div 
         ref={setNodeRef}
         style={style}
-        className="bg-muted border-2 border-primary/20 opacity-40 rounded-2xl w-[320px] h-full min-h-[500px] flex-shrink-0"
+        className={`group flex flex-col bg-muted/30 border border-border/50 rounded-2xl flex-shrink-0 w-[85vw] md:w-[320px] max-h-full transition-all ${isDragging ? 'opacity-30' : ''}`}
       ></div>
     );
   }
@@ -85,7 +85,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
         borderTopWidth: column.color ? '4px' : '1px',
         borderTopColor: column.color || undefined,
       }}
-      className="bg-muted/50 rounded-2xl w-[320px] flex-shrink-0 flex flex-col max-h-full border border-border/50 shadow-sm relative"
+      className="bg-muted/50 rounded-2xl w-[85vw] md:w-[320px] flex-shrink-0 flex flex-col max-h-full border border-border/50 shadow-sm relative"
     >
       <div 
         className="p-4 flex items-center justify-between border-b border-border/50 bg-card rounded-t-xl group"

@@ -7,6 +7,7 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { UserProfileButton } from '@/components/ui/UserProfileButton';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale/pt-BR';
+import { ShareModal } from '@/components/ui/ShareModal';
 
 interface ActivityLog {
   id: string;
@@ -47,6 +48,7 @@ export default function TeamPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string>('all');
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // We need to fetch the projects the user has access to for the sidebar
   const [projects, setProjects] = useState<any[]>([]);
@@ -116,14 +118,45 @@ export default function TeamPage() {
         `)
         .order('created_at', { ascending: false });
 
+      let projectsQuery = supabase
+        .from('projects')
+        .select(`
+          id, owner_id, name, created_at,
+          profiles!projects_owner_id_fkey (name, avatar_url)
+        `);
+
       if (selectedProjectId && selectedProjectId !== 'all') {
         query = query.eq('project_id', selectedProjectId);
+        projectsQuery = projectsQuery.eq('id', selectedProjectId);
       }
 
-      const { data: membersData, error } = await query;
+      const [{ data: membersData, error }, { data: projectsData, error: projError }] = await Promise.all([query, projectsQuery]);
+      
       if (error) throw error;
+      if (projError) throw projError;
 
-      setMembers((membersData as any) || []);
+      const owners = projectsData?.map(p => ({
+        user_id: p.owner_id,
+        role: 'owner',
+        created_at: p.created_at,
+        profiles: p.profiles,
+        projects: { name: p.name }
+      })) || [];
+
+      // Combine owners and invited members, then deduplicate by user_id
+      const allMembers = [...owners, ...(membersData as any || [])];
+      
+      // Remove duplicates (e.g. if an owner is somehow in project_members)
+      const uniqueMembers = Array.from(new Map(allMembers.map(m => [m.user_id, m])).values());
+
+      // Sort by role (owner first) then created_at
+      uniqueMembers.sort((a, b) => {
+        if (a.role === 'owner' && b.role !== 'owner') return -1;
+        if (b.role === 'owner' && a.role !== 'owner') return 1;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+
+      setMembers(uniqueMembers);
     } catch (error) {
       console.error('Error fetching members', error);
     }
@@ -258,11 +291,19 @@ export default function TeamPage() {
               </div>
             ) : (
               <div className="max-w-3xl mx-auto">
-                <div className="bg-card border border-border/60 rounded-xl p-8 text-center shadow-sm mb-6">
+                <div className="bg-card border border-border/60 rounded-xl p-8 text-center shadow-sm mb-6 flex flex-col items-center">
                   <h3 className="text-lg font-bold mb-2">Gerenciamento de Membros</h3>
-                  <p className="text-muted-foreground text-sm max-w-md mx-auto">
-                    Para convidar novas pessoas, entre no projeto desejado e clique em <strong>Compartilhar</strong>.
+                  <p className="text-muted-foreground text-sm max-w-md mx-auto mb-4">
+                    Selecione um projeto específico no filtro acima para convidar novos membros, ou entre diretamente no quadro Kanban e clique em Compartilhar.
                   </p>
+                  {selectedProjectId !== 'all' && (
+                    <button 
+                      onClick={() => setIsShareModalOpen(true)}
+                      className="bg-primary text-primary-foreground font-semibold px-5 py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-sm"
+                    >
+                      Convidar Membro
+                    </button>
+                  )}
                 </div>
 
                 {members.length === 0 ? (
@@ -313,6 +354,15 @@ export default function TeamPage() {
           </div>
         </div>
       </main>
+      
+      {selectedProjectId !== 'all' && (
+        <ShareModal 
+          isOpen={isShareModalOpen} 
+          onClose={() => setIsShareModalOpen(false)} 
+          project={projects.find(p => p.id === selectedProjectId)} 
+          onUpdate={fetchMembers}
+        />
+      )}
     </div>
   );
 }
