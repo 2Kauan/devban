@@ -626,37 +626,31 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                         canEdit={canEdit}
                       />
                     </div>
-                    
 
                   </div>
                 </div>
-                
-                
-                {canEdit && (
-                  <>
-                    <hr className="border-border" />
-
-                    <div>
-                      <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-4">Ações</h4>
-                      <button 
-                        onClick={handleSubmit(onSubmit)}
-                        disabled={isLoading}
-                        className="w-full bg-primary text-primary-foreground font-semibold rounded-lg px-4 py-3 text-sm hover:bg-primary-hover shadow-md transition-all flex items-center justify-center gap-2 mb-3 active:scale-95"
-                      >
-                        {isLoading ? <Loader2 size={16} className="animate-spin" /> : 'Salvar Alterações'}
-                      </button>
-                      <button 
-                        onClick={handleDelete}
-                        disabled={isLoading}
-                        className="w-full bg-destructive text-destructive-foreground hover:bg-red-700 font-semibold rounded-lg px-4 py-2.5 text-sm transition-all active:scale-95 shadow-md"
-                      >
-                        Excluir Cartão
-                      </button>
-                    </div>
-                  </>
-                )}
               </div>
             </div>
+            
+            {/* Ações (Sticky Footer) */}
+            {canEdit && (
+              <div className="px-6 py-4 border-t border-border/50 bg-card flex flex-col sm:flex-row justify-end gap-3 shrink-0">
+                <button 
+                  onClick={handleDelete}
+                  disabled={isLoading}
+                  className="bg-destructive text-destructive-foreground hover:bg-red-700 font-semibold rounded-lg px-6 py-2.5 text-sm transition-all active:scale-95 shadow-md w-full sm:w-auto"
+                >
+                  Excluir Cartão
+                </button>
+                <button 
+                  onClick={handleSubmit(onSubmit)}
+                  disabled={isLoading}
+                  className="bg-primary text-primary-foreground font-semibold rounded-lg px-8 py-2.5 text-sm hover:bg-primary-hover shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 w-full sm:w-auto"
+                >
+                  {isLoading ? <Loader2 size={16} className="animate-spin" /> : 'Salvar Alterações'}
+                </button>
+              </div>
+            )}
           </motion.div>
           <ConfirmModal
             isOpen={confirmConfig.isOpen}
