@@ -84,13 +84,21 @@ serve(async (req) => {
        throw new Error("Asaas payment ID not found.");
     }
 
-    const asaasApiKey = Deno.env.get('ASAAS_API_KEY') || Deno.env.get('VITE_ASAAS_API_KEY');
-    if (!asaasApiKey) {
-      throw new Error('Asaas API key is not configured.');
+    const mode = Deno.env.get('ASAAS_MODE') === 'production' ? 'production' : 'sandbox';
+    let asaasApiKey = '';
+    let asaasBaseUrl = '';
+
+    if (mode === 'production') {
+      asaasApiKey = Deno.env.get('ASAAS_PROD_API_KEY') || Deno.env.get('ASAAS_API_KEY') || '';
+      asaasBaseUrl = 'https://api.asaas.com/v3';
+    } else {
+      asaasApiKey = Deno.env.get('ASAAS_SANDBOX_API_KEY') || Deno.env.get('ASAAS_API_KEY') || '';
+      asaasBaseUrl = 'https://sandbox.asaas.com/api/v3';
     }
 
-    const customUrl = Deno.env.get('ASAAS_API_URL') || Deno.env.get('VITE_ASAAS_API_URL');
-    const asaasBaseUrl = customUrl ? customUrl : (asaasApiKey.startsWith('$aact_YTU5') ? 'https://sandbox.asaas.com/api/v3' : 'https://api.asaas.com/v3');
+    if (!asaasApiKey) {
+      throw new Error(`Chave de API do Asaas não configurada para o ambiente: ${mode}.`);
+    }
 
     // Call Asaas to check payment status
     const asaasRes = await fetch(`${asaasBaseUrl}/payments/${payment.asaas_payment_id}`, {
