@@ -161,7 +161,9 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
 
         <h4 className="font-semibold text-foreground text-sm leading-tight mb-2 line-clamp-2 flex items-start gap-1.5">
           {card.parent_id && (
-            <ListTree size={15} className="text-muted-foreground shrink-0 mt-0.5" title="Sub-tarefa" />
+            <span title="Sub-tarefa" className="shrink-0 mt-0.5 flex">
+              <ListTree size={15} className="text-muted-foreground" />
+            </span>
           )}
           <span>{card.title}</span>
         </h4>
