@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { Menu, BarChart3, TrendingUp, CheckSquare, Layers, Users, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import type { Profile } from '@/types/database';
 
 interface ReportStats {
@@ -49,13 +49,13 @@ export default function Reports() {
     try {
       setIsLoading(true);
       // Fetch projects user owns
-      const { data: ownedData, error: ownedError } = await supabase
+      const { data: ownedData } = await supabase
         .from('projects')
         .select('id, name')
         .eq('owner_id', user?.id);
 
       // Fetch projects user is member of
-      const { data: memberData, error: memberError } = await supabase
+      const { data: memberData } = await supabase
         .from('project_members')
         .select('projects(id, name)')
         .eq('user_id', user?.id);
@@ -333,7 +333,7 @@ export default function Reports() {
                                 itemStyle={{ color: 'hsl(var(--foreground))' }}
                               />
                               <Bar dataKey="cardCount" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
-                                {projectsStats.map((entry, index) => (
+                                {projectsStats.map((_, index) => (
                                   <Cell key={`cell-${index}`} fill={`hsl(var(--primary) / ${0.5 + (index * 0.1 % 0.5)})`} />
                                 ))}
                               </Bar>

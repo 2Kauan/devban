@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Plus, LayoutDashboard, FolderKanban, Users, Settings, LogOut, ShieldAlert, X, BarChart3 } from 'lucide-react';
+import { Plus, LayoutDashboard, Users, Settings, LogOut, ShieldAlert, X, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { CreateProjectModal } from '@/components/ui/CreateProjectModal';
@@ -12,7 +12,7 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-export function Sidebar({ projects, onProjectCreated, isOpen, onClose }: SidebarProps) {
+export function Sidebar({ onProjectCreated, isOpen, onClose }: SidebarProps) {
   const location = useLocation();
   const { signOut, profile } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
