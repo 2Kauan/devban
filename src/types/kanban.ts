@@ -7,6 +7,7 @@ export interface KanbanColumnType {
   description: string | null;
   color?: string | null;
   position: number;
+  is_completed?: boolean;
 }
 
 export interface KanbanCardType {

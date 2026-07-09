@@ -22,6 +22,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(column.title);
   const [editColor, setEditColor] = useState(column.color || '');
+  const [editIsCompleted, setEditIsCompleted] = useState(column.is_completed || false);
 
   const COLUMN_COLORS = [
     { value: '', label: 'Padrão' },
@@ -58,8 +59,8 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
   const cardIds = useMemo(() => cards.map((c) => c.id), [cards]);
 
   const handleSaveEdit = () => {
-    if (editTitle.trim() && (editTitle !== column.title || editColor !== (column.color || '')) && onUpdateColumn) {
-      onUpdateColumn(column.id, { title: editTitle.trim(), color: editColor || null });
+    if (editTitle.trim() && (editTitle !== column.title || editColor !== (column.color || '') || editIsCompleted !== (column.is_completed || false)) && onUpdateColumn) {
+      onUpdateColumn(column.id, { title: editTitle.trim(), color: editColor || null, is_completed: editIsCompleted });
     }
     setIsEditing(false);
   };
@@ -100,6 +101,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
                   if (e.key === 'Escape') {
                     setEditTitle(column.title);
                     setEditColor(column.color || '');
+                    setEditIsCompleted(column.is_completed || false);
                     setIsEditing(false);
                   }
                 }}
@@ -118,8 +120,19 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
                   />
                 ))}
               </div>
+              <div className="flex flex-col gap-2 mt-2">
+                <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={editIsCompleted} 
+                    onChange={(e) => setEditIsCompleted(e.target.checked)} 
+                    className="rounded border-border text-primary focus:ring-primary"
+                  />
+                  Coluna de Concluídos (oculta cartões)
+                </label>
+              </div>
               <div className="flex justify-end gap-2 mt-1">
-                <button onClick={() => { setEditTitle(column.title); setEditColor(column.color || ''); setIsEditing(false); }} className="px-3 py-1 text-xs font-medium bg-muted rounded-md hover:bg-border">Cancelar</button>
+                <button onClick={() => { setEditTitle(column.title); setEditColor(column.color || ''); setEditIsCompleted(column.is_completed || false); setIsEditing(false); }} className="px-3 py-1 text-xs font-medium bg-muted rounded-md hover:bg-border">Cancelar</button>
                 <button onClick={handleSaveEdit} className="px-3 py-1 text-xs font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary-hover">Salvar</button>
               </div>
             </div>
@@ -133,6 +146,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
                     if (canEdit) {
                       setEditTitle(column.title);
                       setEditColor(column.color || '');
+                      setEditIsCompleted(column.is_completed || false);
                       setIsEditing(true);
                     }
                   }}
@@ -174,9 +188,10 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
               card={card} 
               onClick={onCardClick} 
               onMoveMobile={canEdit ? onMoveCardMobile : undefined}
-              canMoveLeft={!isFirstColumn}
-              canMoveRight={!isLastColumn}
+              canMoveLeft={canEdit && !isFirstColumn}
+              canMoveRight={canEdit && !isLastColumn}
               columnColor={column.color}
+              isCompleted={column.is_completed}
             />
           ))}
         </SortableContext>
