@@ -404,32 +404,60 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                     )}
                   </div>
 
-                  <button
-                    onClick={async () => {
-                      if (paymentMethod === 'credit_card') {
-                        setIsLoading(true);
-                        // Mock processing delay for credit card
-                        await new Promise(resolve => setTimeout(resolve, 1500));
-                        // Force confirm for the demo
-                        if (paymentData?.id) {
-                          await supabase.from('payments').update({ status: 'confirmed' }).eq('id', paymentData.id);
+                  <div className="flex flex-col gap-3">
+                    <button
+                      onClick={async () => {
+                        if (paymentMethod === 'credit_card') {
+                          setIsLoading(true);
+                          // Mock processing delay for credit card
+                          await new Promise(resolve => setTimeout(resolve, 1500));
+                          // Force confirm for the demo
+                          if (paymentData?.id) {
+                            await supabase.from('payments').update({ status: 'confirmed' }).eq('id', paymentData.id);
+                          }
                         }
-                      }
-                      handleCheckPaymentStatus();
-                    }}
-                    onDoubleClick={async () => {
-                      // Secret trick to bypass PIX!
-                      if (paymentData?.id) {
-                        setIsLoading(true);
-                        await supabase.from('payments').update({ status: 'confirmed' }).eq('id', paymentData.id);
                         handleCheckPaymentStatus();
-                      }
-                    }}
-                    disabled={isLoading}
-                    className="w-full px-6 py-3.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/20 transition-all font-bold flex items-center justify-center text-sm active:scale-95 select-none"
-                  >
-                    {isLoading ? <Loader2 size={18} className="animate-spin" /> : (paymentMethod === 'credit_card' ? 'Processar Pagamento de R$ 5,00' : 'Já paguei, confirmar!')}
-                  </button>
+                      }}
+                      onDoubleClick={async () => {
+                        // Secret trick to bypass PIX!
+                        if (paymentData?.id) {
+                          setIsLoading(true);
+                          await supabase.from('payments').update({ status: 'confirmed' }).eq('id', paymentData.id);
+                          handleCheckPaymentStatus();
+                        }
+                      }}
+                      disabled={isLoading}
+                      className="w-full px-6 py-3.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/20 transition-all font-bold flex items-center justify-center text-sm active:scale-95 select-none"
+                    >
+                      {isLoading ? <Loader2 size={18} className="animate-spin" /> : (paymentMethod === 'credit_card' ? 'Processar Pagamento de R$ 5,00' : 'Já paguei, confirmar!')}
+                    </button>
+
+                    <button
+                      onClick={async () => {
+                        setIsLoading(true);
+                        try {
+                          if (paymentData?.id) {
+                            const { error } = await supabase.functions.invoke('cancel-asaas-payment', {
+                              body: { paymentId: paymentData.id }
+                            });
+                            if (error) throw error;
+                          }
+                          toast.success('Cobrança cancelada com sucesso.');
+                          setShowPayment(false);
+                          setPaymentData(null);
+                          reset();
+                        } catch (error: any) {
+                          toast.error('Erro ao cancelar: ' + error.message);
+                        } finally {
+                          setIsLoading(false);
+                        }
+                      }}
+                      disabled={isLoading}
+                      className="w-full px-6 py-3 bg-transparent text-muted-foreground border-2 border-border/60 hover:bg-muted hover:text-foreground rounded-xl transition-all font-bold flex items-center justify-center text-sm active:scale-95"
+                    >
+                      Cancelar Pagamento
+                    </button>
+                  </div>
                 </motion.div>
               )}
             </div>
