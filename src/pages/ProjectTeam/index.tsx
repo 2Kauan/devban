@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 
 interface Member {
   user_id: string;
-  role: string;
+  permission: string;
   created_at: string;
   profiles: {
     name: string;
@@ -37,7 +37,7 @@ export default function ProjectTeam() {
         .from('project_members')
         .select(`
           user_id,
-          role,
+          permission,
           created_at,
           profiles (
             name,
@@ -64,7 +64,7 @@ export default function ProjectTeam() {
       if (!hasOwner && ownerData) {
         memberList.unshift({
           user_id: project.owner_id,
-          role: 'owner',
+          permission: 'owner',
           created_at: project.created_at,
           profiles: {
             name: ownerData.name,
@@ -193,9 +193,9 @@ export default function ProjectTeam() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-muted-foreground capitalize">
-                        {member.role === 'owner' ? (
+                        {member.permission === 'owner' ? (
                           <><Settings size={14} /> Administrador</>
-                        ) : member.role === 'editor' ? (
+                        ) : member.permission === 'editor' ? (
                           <><Settings size={14} /> Editor</>
                         ) : (
                           <><Settings size={14} /> Leitor</>

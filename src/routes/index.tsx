@@ -19,7 +19,6 @@ import Projects from '@/pages/Projects';
 import ProjectDashboard from '@/pages/ProjectDashboard';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import ProjectTeam from '@/pages/ProjectTeam';
-import ProjectFiles from '@/pages/ProjectFiles';
 import ProjectActivity from '@/pages/ProjectActivity';
 import ProjectSettings from '@/pages/ProjectSettings';
 
@@ -52,7 +51,6 @@ export function AppRoutes() {
               <Route index element={<ProjectDashboard />} />
               <Route path="kanban" element={<Project />} />
               <Route path="team" element={<ProjectTeam />} />
-              <Route path="files" element={<ProjectFiles />} />
               <Route path="activity" element={<ProjectActivity />} />
               <Route path="settings" element={<ProjectSettings />} />
             </Route>

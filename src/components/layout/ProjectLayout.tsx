@@ -3,7 +3,7 @@ import { Outlet, useParams, Link, useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { ChevronRight, LayoutDashboard, Layout, Users, FileText, Activity, Settings, Menu } from 'lucide-react';
+import { ChevronRight, LayoutDashboard, Layout, Users, Activity, Settings, Menu } from 'lucide-react';
 import type { Project } from '@/types/database';
 import { toast } from 'sonner';
 
@@ -52,7 +52,6 @@ export function ProjectLayout() {
     { name: 'Resumo', path: `/project/${id}`, icon: LayoutDashboard },
     { name: 'Kanban', path: `/project/${id}/kanban`, icon: Layout },
     { name: 'Equipe', path: `/project/${id}/team`, icon: Users },
-    { name: 'Arquivos', path: `/project/${id}/files`, icon: FileText },
     { name: 'Atividades', path: `/project/${id}/activity`, icon: Activity },
     { name: 'Configurações', path: `/project/${id}/settings`, icon: Settings },
   ];
