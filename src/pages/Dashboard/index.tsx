@@ -51,9 +51,7 @@ export default function Dashboard() {
               <Menu size={20} />
             </button>
             <div className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground font-medium">Dashboard</span>
-              <span className="text-muted-foreground/40">/</span>
-              <span className="font-semibold text-foreground">Projetos</span>
+              <span className="font-semibold text-foreground">Dashboard</span>
             </div>
           </div>
           

@@ -71,8 +71,7 @@ export function ProjectLayout() {
           </button>
           
           <nav className="flex text-sm font-medium text-muted-foreground space-x-1 sm:space-x-2 truncate">
-            <Link to="/dashboard" className="hover:text-foreground transition-colors">Dashboard</Link>
-            <ChevronRight size={16} className="shrink-0" />
+
             <Link to="/projects" className="hover:text-foreground transition-colors">Projetos</Link>
             <ChevronRight size={16} className="shrink-0" />
             <span className="text-foreground truncate max-w-[120px] sm:max-w-[200px]">{project?.name || 'Carregando...'}</span>
