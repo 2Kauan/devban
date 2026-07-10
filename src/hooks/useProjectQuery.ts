@@ -62,8 +62,13 @@ export function useProjectQuery(projectId: string | undefined) {
             .maybeSingle();
           if (memberData) {
             perm = memberData.permission;
+          } else if (projectData.share_enabled && projectData.share_permission === 'edit') {
+            // Guest via public edit link
+            perm = 'editor';
           }
         }
+      } else if (projectData.share_enabled && projectData.share_permission === 'edit') {
+        perm = 'editor';
       }
 
       // Fetch all project members
@@ -93,6 +98,21 @@ export function useProjectQuery(projectId: string | undefined) {
                  permission: 'owner',
                  job_title: 'Dono do Projeto',
                  profiles: ownerProfile
+               });
+            }
+         }
+      }
+
+      // If user is authenticated and has access via public link, include them in projectMembers so they can assign themselves
+      if (user && perm === 'editor' && projectData.owner_id !== user.id) {
+         const userInMembers = projectMembers.find(m => m.profiles.id === user.id);
+         if (!userInMembers) {
+            const { data: userProfile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+            if (userProfile) {
+               projectMembers.push({
+                 permission: 'editor',
+                 job_title: 'Convidado (Link)',
+                 profiles: userProfile
                });
             }
          }
