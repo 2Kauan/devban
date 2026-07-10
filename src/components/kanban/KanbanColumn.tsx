@@ -3,7 +3,7 @@ import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { KanbanColumnType, KanbanCardType } from '@/types/kanban';
 import { KanbanCard } from './KanbanCard';
-import { GripVertical, Plus, Trash2, Edit2, MoreHorizontal, Pencil, CheckCircle2 } from 'lucide-react';
+import { GripVertical, Plus, Pencil, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface KanbanColumnProps {

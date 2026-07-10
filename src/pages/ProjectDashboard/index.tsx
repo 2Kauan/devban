@@ -5,7 +5,7 @@ import type { Project } from '@/types/database';
 import type { KanbanColumnType, KanbanCardType } from '@/types/kanban';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  PieChart, Pie, Cell, LineChart, Line, AreaChart, Area
+  AreaChart, Area, PieChart, Pie, Cell
 } from 'recharts';
 import { Layers, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';

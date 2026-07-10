@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Link } from 'react-router-dom';
-import { Plus, MoreVertical, LayoutDashboard, Clock, Folder, Star, Users, CheckCircle2, Menu } from 'lucide-react';
+import { Plus, MoreVertical, Folder, Star, Users, CheckCircle2, Menu } from 'lucide-react';
 import type { Project } from '@/types/database';
 import { toast } from 'sonner';
 

@@ -1,8 +1,8 @@
-import { forwardRef, memo, useEffect, useRef } from 'react';
+import { forwardRef, useEffect, useRef, memo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { KanbanCardType } from '@/types/kanban';
-import { MessageSquare, Clock, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle, ChevronLeft, ChevronRight, GripVertical, ListTree } from 'lucide-react';
+import { Clock, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle, ChevronLeft, ChevronRight, ListTree } from 'lucide-react';
 
 interface KanbanCardProps {
   card: KanbanCardType;
@@ -226,7 +226,7 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
 );
 KanbanCardInner.displayName = 'KanbanCardInner';
 
-export const KanbanCard = memo(KanbanCardInner, (prev, next) => {
+export const KanbanCard = memo(KanbanCardInner, (prev: KanbanCardProps, next: KanbanCardProps) => {
   return prev.card === next.card && 
          prev.isOverlay === next.isOverlay &&
          prev.onClick === next.onClick;

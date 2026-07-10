@@ -37,7 +37,7 @@ const isValidCPF = (cpf: string) => {
   return true;
 };
 
-export function CreateProjectModal({ isOpen, onClose, onSuccess, initialPlan = 'free' }: CreateProjectModalProps) {
+export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProjectModalProps) {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPayment, setShowPayment] = useState(false);

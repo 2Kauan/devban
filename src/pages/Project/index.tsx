@@ -32,7 +32,6 @@ export default function ProjectPage() {
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isAccessRequestsOpen, setIsAccessRequestsOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   const { openPrompt, openConfirm, KanbanModals } = useKanbanModals();
   

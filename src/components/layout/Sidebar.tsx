@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Plus, LayoutDashboard, Users, Settings, LogOut, ShieldAlert, X, BarChart3, FolderKanban, Star, Calendar, Bell } from 'lucide-react';
+import { Plus, LayoutDashboard, Users, Settings, LogOut, ShieldAlert, X, FolderKanban, Star, Calendar, Bell } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { CreateProjectModal } from '@/components/ui/CreateProjectModal';
@@ -8,13 +8,13 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 interface SidebarProps {
-  projects: Project[];
+  projects?: Project[]; // Make it optional so parents passing it won't break
   onProjectCreated: () => void;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function Sidebar({ projects, onProjectCreated, isOpen, onClose }: SidebarProps) {
+export function Sidebar({ onProjectCreated, isOpen, onClose }: SidebarProps) {
   const location = useLocation();
   const { signOut, profile, user } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);

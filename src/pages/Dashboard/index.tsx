@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Search, Bell, FolderKanban, Menu, Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Search, Bell, Menu, Plus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -11,8 +9,7 @@ import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
 export default function Dashboard() {
-  const { user, profile } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,12 +38,6 @@ export default function Dashboard() {
       setIsLoading(false);
     }
   };
-
-  const filteredProjects = projects.filter(p => 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       <Sidebar projects={projects} onProjectCreated={fetchProjects} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />

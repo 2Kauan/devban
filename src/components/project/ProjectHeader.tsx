@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Share2, Search, Filter, Bell, Menu, Pencil, Check, X, Trash2, AlertTriangle, Loader2, Lightbulb } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Share2, Search, Filter, Bell, Pencil, Check, X, Trash2, Loader2, Lightbulb } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Project as ProjectType, ProjectPermission } from '@/types/database';
 import { supabase } from '@/lib/supabase';
@@ -16,7 +16,7 @@ interface ProjectHeaderProps {
   pendingRequestsCount: number;
   onOpenAccessRequests: () => void;
   onOpenShare: () => void;
-  onOpenSidebar: () => void;
+  onOpenSidebar?: () => void;
 }
 
 export function ProjectHeader({
@@ -26,8 +26,8 @@ export function ProjectHeader({
   userPermission,
   pendingRequestsCount,
   onOpenAccessRequests,
-  onOpenShare,
-  onOpenSidebar
+  onOpenShare
+
 }: ProjectHeaderProps) {
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState(project.name);
