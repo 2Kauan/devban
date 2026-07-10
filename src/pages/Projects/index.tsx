@@ -213,7 +213,7 @@ export default function Projects({ favoritesOnly = false }: ProjectsProps) {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
               <h1 className="text-3xl font-bold text-foreground tracking-tight flex items-center gap-3">
-                {favoritesOnly ? <Star className="text-yellow-500" fill="currentColor" size={28} /> : null}
+                {favoritesOnly ? <Star className="text-yellow-500" size={28} /> : null}
                 {favoritesOnly ? 'Favoritos' : 'Meus Projetos'}
               </h1>
               <p className="text-muted-foreground mt-1">

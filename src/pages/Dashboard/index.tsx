@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Bell, Menu, Plus } from 'lucide-react';
+import { Bell, Menu, Plus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -56,16 +56,7 @@ export default function Dashboard() {
           </div>
           
           <div className="flex items-center gap-3">
-            <button className="hidden sm:flex items-center gap-2 h-8 px-3 rounded-md bg-muted/30 border border-border/50 text-xs font-medium text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-all group w-48 justify-between">
-              <div className="flex items-center gap-2">
-                <Search className="h-3.5 w-3.5" />
-                <span>Buscar...</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <kbd className="font-mono text-[10px] bg-background border border-border/50 rounded px-1 group-hover:border-border transition-colors">⌘</kbd>
-                <kbd className="font-mono text-[10px] bg-background border border-border/50 rounded px-1 group-hover:border-border transition-colors">K</kbd>
-              </div>
-            </button>
+
             <button className="relative p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-md transition-colors hidden sm:block">
               <Bell className="h-4 w-4" />
             </button>
