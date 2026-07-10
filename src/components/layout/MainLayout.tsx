@@ -3,12 +3,13 @@ import { Header } from './Header';
 
 export function MainLayout() {
   const location = useLocation();
-  const isLanding = location.pathname === '/' || location.pathname === '/preview';
+  // We only want the old Header for /preview, since / now has its own Navbar.
+  const hasPublicHeader = location.pathname === '/preview';
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
-      {isLanding && <Header />}
-      <main className={`flex-1 flex flex-col w-full h-full ${isLanding ? 'pt-16' : ''}`}>
+      {hasPublicHeader && <Header />}
+      <main className={`flex-1 flex flex-col w-full h-full ${hasPublicHeader ? 'pt-16' : ''}`}>
         <Outlet />
       </main>
     </div>
