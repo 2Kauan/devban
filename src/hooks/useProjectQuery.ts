@@ -136,7 +136,7 @@ export function useProjectQuery(projectId: string | undefined) {
           { project_id: projectId, title: 'A Fazer', position: 2000 },
           { project_id: projectId, title: 'Fazendo', position: 3000 },
           { project_id: projectId, title: 'Revisão', position: 4000 },
-          { project_id: projectId, title: 'Concluído', position: 5000 },
+          { project_id: projectId, title: 'Concluído', position: 5000, is_completed: true },
         ];
         const { data: insertedCols, error: insertError } = await supabase
           .from('columns')
