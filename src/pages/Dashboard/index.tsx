@@ -57,7 +57,7 @@ export default function Dashboard() {
           
           <div className="flex items-center gap-3">
 
-            <button className="relative p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-md transition-colors hidden sm:block">
+            <button className="relative p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-md transition-colors">
               <Bell className="h-4 w-4" />
             </button>
             <UserProfileButton />
@@ -66,22 +66,6 @@ export default function Dashboard() {
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar">
           
-          <div className="sm:hidden mb-6 flex items-center gap-2 w-full">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <input 
-                type="text" 
-                placeholder="Buscar projetos..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-9 w-full rounded-md border border-input bg-background px-9 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
-              />
-            </div>
-            <button className="relative p-2 text-muted-foreground hover:text-foreground transition-colors shrink-0">
-              <Bell className="h-5 w-5" />
-            </button>
-          </div>
-
           <div className="mb-8 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Visão Geral</h1>
