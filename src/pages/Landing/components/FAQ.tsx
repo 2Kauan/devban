@@ -4,20 +4,24 @@ import { ChevronDown } from 'lucide-react';
 
 const faqs = [
   {
-    question: 'O DevBan é totalmente gratuito?',
-    answer: 'Sim! Atualmente estamos em fase de expansão e todos os recursos principais, incluindo colaboração em tempo real, estão disponíveis gratuitamente.'
+    question: "Como funciona o projeto gratuito?",
+    answer: "Ao criar sua conta, você recebe automaticamente 1 projeto completo, com todos os recursos liberados (sem limite de cards ou membros). Você pode usá-lo para sempre sem pagar nada."
   },
   {
-    question: 'Posso convidar outras pessoas para o meu projeto?',
-    answer: 'Com certeza. Você pode convidar membros por email, compartilhar links de acesso público (somente leitura ou edição) e gerenciar permissões (Dono, Admin, Editor ou Leitor).'
+    question: "Como convidar pessoas para minha equipe?",
+    answer: "Basta acessar as configurações do seu projeto e gerar um link de convite. Você pode definir se a pessoa será Administrador, Editor ou apenas Visualizador."
   },
   {
-    question: 'Meus dados estão seguros?',
-    answer: 'Levamos segurança a sério. Utilizamos Row Level Security (RLS) no Supabase, garantindo que apenas usuários autorizados tenham acesso aos dados do seu projeto.'
+    question: "Como funciona o pagamento dos projetos extras?",
+    answer: "Não cobramos assinaturas mensais! Se você precisar de mais de um projeto simultâneo, cada projeto adicional custa apenas R$ 5,00 em um pagamento único. Você pode pagar via PIX ou Cartão de Crédito."
   },
   {
-    question: 'Como funciona o limite de cards?',
-    answer: 'Não há limite de cards! Você pode criar quantos projetos e cards forem necessários para organizar o fluxo do seu time.'
+    question: "Posso usar no celular? Existe APK?",
+    answer: "Sim! A plataforma é 100% responsiva e funciona perfeitamente no navegador do seu celular. O aplicativo nativo (APK Android) já está em desenvolvimento e será lançado em breve."
+  },
+  {
+    question: "Meus dados estão seguros?",
+    answer: "Completamente. Utilizamos criptografia de ponta a ponta e políticas de acesso granulares (RLS) no banco de dados para garantir que apenas pessoas autorizadas vejam seus quadros."
   }
 ];
 

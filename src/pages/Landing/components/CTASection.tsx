@@ -16,17 +16,15 @@ export function CTASection() {
           transition={{ duration: 0.5 }}
           className="bg-muted/30 border border-border/50 rounded-[3rem] p-12 md:p-16 shadow-2xl backdrop-blur-sm"
         >
-          <h2 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight text-foreground">
-            Pronto para focar no que importa?
-          </h2>
-          <p className="text-xl text-muted-foreground mb-10">
-            Abandone ferramentas desajeitadas. Junte-se a equipes que já migraram para o fluxo contínuo do DevBan.
+          <h2 className="text-4xl md:text-5xl font-extrabold mb-6 text-foreground tracking-tight">Pronto para elevar o nível da sua equipe?</h2>
+          <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
+            Junte-se a milhares de profissionais que já abandonaram as ferramentas antigas. Comece agora, sem custo.
           </p>
-          <Link
-            to="/register"
-            className="inline-flex items-center gap-2 px-10 py-5 bg-primary text-primary-foreground rounded-xl text-lg font-bold hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(192,132,252,0.3)]"
+          <Link 
+            to="/register" 
+            className="inline-flex items-center gap-2 px-10 py-5 bg-foreground text-background rounded-xl text-lg font-bold hover:bg-foreground/90 transition-all hover:scale-105 active:scale-95 shadow-2xl"
           >
-            Criar conta gratuita
+            Criar meu Projeto Gratuitamente
             <ArrowRight className="h-5 w-5" />
           </Link>
           <p className="mt-6 text-sm text-muted-foreground">

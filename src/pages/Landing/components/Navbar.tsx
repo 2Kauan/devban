@@ -1,14 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
-  const { scrollY } = useScroll();
 
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    setIsScrolled(latest > 50);
-  });
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <motion.nav
@@ -22,32 +23,43 @@ export function Navbar() {
       }`}
     >
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        {/* Logo */}
         <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center group-hover:scale-105 transition-transform">
-            <span className="text-primary-foreground font-bold text-lg">D</span>
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+            <span className="text-primary-foreground font-bold text-lg leading-none">D</span>
           </div>
-          <span className="font-bold text-lg tracking-tight">DevBan</span>
+          <span className="font-bold text-xl tracking-tight">DevBan</span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-          <a href="#features" className="hover:text-foreground transition-colors">Recursos</a>
-          <a href="#stats" className="hover:text-foreground transition-colors">Resultados</a>
-          <a href="#testimonials" className="hover:text-foreground transition-colors">Depoimentos</a>
-          <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
-        </div>
+        {/* Navigation */}
+        <nav className="hidden md:flex items-center gap-8">
+          <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            Recursos
+          </a>
+          <a href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            Como Funciona
+          </a>
+          <a href="#teams" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            Equipes
+          </a>
+          <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            Preços
+          </a>
+          <a href="#faq" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            FAQ
+          </a>
+        </nav>
 
-        <div className="flex items-center gap-3">
-          <Link 
-            to="/login" 
-            className="hidden sm:inline-flex px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
+        {/* CTA */}
+        <div className="flex items-center gap-4">
+          <Link to="/login" className="text-sm font-medium hover:text-primary transition-colors">
             Entrar
           </Link>
           <Link 
             to="/register" 
-            className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-md hover:bg-primary/90 transition-all shadow-sm hover:shadow-primary/20 hover:-translate-y-0.5 active:translate-y-0"
+            className="text-sm font-medium bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors shadow-sm"
           >
-            Começar Agora
+            Começar Gratuitamente
           </Link>
         </div>
       </div>

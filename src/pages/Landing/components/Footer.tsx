@@ -23,9 +23,9 @@ export function Footer() {
             <h4 className="font-bold mb-4 text-foreground">Produto</h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li><a href="#features" className="hover:text-primary transition-colors">Recursos</a></li>
-              <li><a href="#stats" className="hover:text-primary transition-colors">Performance</a></li>
-              <li><a href="#faq" className="hover:text-primary transition-colors">Perguntas</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Changelog</a></li>
+              <li><a href="#how-it-works" className="hover:text-primary transition-colors">Como Funciona</a></li>
+              <li><a href="#teams" className="hover:text-primary transition-colors">Equipes</a></li>
+              <li><a href="#pricing" className="hover:text-primary transition-colors">Preços</a></li>
             </ul>
           </div>
 

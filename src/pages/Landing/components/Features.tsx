@@ -1,35 +1,53 @@
 import { motion } from 'framer-motion';
-import { LayoutList, Zap, Shield, BarChart3, Users } from 'lucide-react';
+import { LayoutList, Zap, Shield, CheckSquare, Smartphone, Moon, CreditCard, MessageSquare } from 'lucide-react';
 
 const features = [
   {
     icon: <LayoutList className="h-6 w-6 text-primary" />,
-    title: 'Quadros Intuitivos',
-    description: 'Arraste e solte tarefas em um kanban fluido e totalmente personalizável. Projetado para reduzir a fricção visual.',
+    title: 'Kanban Inteligente',
+    description: 'Arraste e solte tarefas em um kanban fluido. Controle de categorias e prioridades.',
     colSpan: 'md:col-span-2',
   },
   {
     icon: <Zap className="h-6 w-6 text-primary" />,
-    title: 'Rápido como um raio',
-    description: 'Sem telas de carregamento. Atualizações instantâneas focadas na performance.',
+    title: 'Tempo Real',
+    description: 'Colaboração instantânea, sem telas de carregamento.',
     colSpan: 'md:col-span-1',
   },
   {
-    icon: <Users className="h-6 w-6 text-primary" />,
-    title: 'Colaboração Real',
-    description: 'Veja as atualizações da sua equipe instantaneamente.',
+    icon: <CheckSquare className="h-6 w-6 text-primary" />,
+    title: 'Checklist e Anexos',
+    description: 'Subtarefas e arquivos diretamente nos cards do projeto.',
     colSpan: 'md:col-span-1',
   },
   {
-    icon: <BarChart3 className="h-6 w-6 text-primary" />,
-    title: 'Relatórios Avançados',
-    description: 'Métricas e gráficos detalhados sobre a produtividade do time.',
+    icon: <MessageSquare className="h-6 w-6 text-primary" />,
+    title: 'Equipe e Comentários',
+    description: 'Comunique-se no contexto da tarefa.',
     colSpan: 'md:col-span-1',
   },
   {
     icon: <Shield className="h-6 w-6 text-primary" />,
-    title: 'Segurança de Dados',
-    description: 'Criptografia e controle de acesso granular com RLS no banco de dados.',
+    title: 'Controle de Acesso',
+    description: 'Permissões granulares para Administrador, Editor e Visualizador.',
+    colSpan: 'md:col-span-1',
+  },
+  {
+    icon: <CreditCard className="h-6 w-6 text-primary" />,
+    title: 'Pagamento Integrado',
+    description: 'Compre projetos adicionais rapidamente via PIX ou Cartão.',
+    colSpan: 'md:col-span-1',
+  },
+  {
+    icon: <Smartphone className="h-6 w-6 text-primary" />,
+    title: 'Mobile First & APK',
+    description: 'Acesse em qualquer dispositivo. Em breve, APK Android.',
+    colSpan: 'md:col-span-1',
+  },
+  {
+    icon: <Moon className="h-6 w-6 text-primary" />,
+    title: 'Modo Escuro Nativo',
+    description: 'Foco no trabalho com uma interface premium e amigável aos olhos.',
     colSpan: 'md:col-span-1',
   },
 ];

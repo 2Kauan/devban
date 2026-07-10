@@ -2,7 +2,9 @@ import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { SocialProof } from './components/SocialProof';
 import { Features } from './components/Features';
-import { Stats } from './components/Stats';
+import { HowItWorks } from './components/HowItWorks';
+import { TeamsSection } from './components/TeamsSection';
+import { Pricing } from './components/Pricing';
 import { Testimonials } from './components/Testimonials';
 import { FAQ } from './components/FAQ';
 import { CTASection } from './components/CTASection';
@@ -15,7 +17,9 @@ export default function Landing() {
       <Hero />
       <SocialProof />
       <Features />
-      <Stats />
+      <HowItWorks />
+      <TeamsSection />
+      <Pricing />
       <Testimonials />
       <FAQ />
       <CTASection />

@@ -50,7 +50,7 @@ export function Hero() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="text-5xl md:text-7xl font-extrabold tracking-tight text-foreground max-w-4xl leading-[1.1] mb-6"
         >
-          O fim do caos na gestão dos seus projetos
+          Organize ideias. Entregue resultados.
         </motion.h1>
 
         <motion.p
@@ -59,7 +59,7 @@ export function Hero() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-10"
         >
-          A plataforma definitiva que combina o poder do Kanban com uma interface premium e minimalista. Velocidade absurda, sem telas de carregamento.
+          O DevBan organiza seus projetos com um Kanban poderoso e intuitivo. A plataforma definitiva com uma interface premium e minimalista.
         </motion.p>
 
         <motion.div
@@ -72,14 +72,14 @@ export function Hero() {
             to="/register"
             className="flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground rounded-lg text-lg font-semibold hover:bg-primary/90 transition-all hover:scale-105 shadow-[0_0_40px_rgba(192,132,252,0.4)]"
           >
-            Começar Agora
+            Começar Gratuitamente
             <ArrowRight className="h-5 w-5" />
           </Link>
           <a
-            href="#features"
+            href="#demo"
             className="flex items-center gap-2 px-8 py-4 bg-transparent border border-border text-foreground rounded-lg text-lg font-medium hover:bg-muted transition-all"
           >
-            Conhecer Recursos
+            Assistir Demonstração
           </a>
         </motion.div>
 
