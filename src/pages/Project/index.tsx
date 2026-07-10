@@ -63,8 +63,22 @@ export default function ProjectPage() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex h-screen w-full bg-background overflow-hidden">
+        <Sidebar projects={[]} onProjectCreated={() => {}} isOpen={false} onClose={() => {}} />
+        <div className="flex-1 flex flex-col h-full bg-background min-w-0">
+          <div className="h-14 border-b border-border/40 px-6 flex items-center shrink-0">
+            <div className="h-6 w-48 bg-muted/40 rounded-md animate-pulse" />
+          </div>
+          <div className="flex-1 p-6 flex gap-6 overflow-hidden">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="w-[300px] shrink-0 h-full flex flex-col gap-3">
+                <div className="h-12 w-full bg-muted/20 rounded-xl animate-pulse" />
+                <div className="h-24 w-full bg-muted/20 rounded-xl animate-pulse" />
+                <div className="h-32 w-full bg-muted/20 rounded-xl animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -83,24 +97,18 @@ export default function ProjectPage() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-background overflow-hidden">
-      {/* Opcional: Para ter o Sidebar ao lado (layout desktop), descomente a Sidebar.
-          Porém, em mobile o Sidebar ficará fixo por cima da tela. 
-          Como na página de projeto o Sidebar não é fixo lado a lado, usamos ele apenas como gaveta. */}
-      <Sidebar projects={[]} onProjectCreated={() => {}} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-
-      <div className="flex-1 flex flex-col h-full bg-muted/10 overflow-hidden min-w-0">
+    <div className="flex-1 flex flex-col h-full bg-muted/10 overflow-hidden min-w-0">
         {/* Project Header */}
         <ProjectHeader 
           project={project}
-        columnsCount={columns.length}
-        cardsCount={cards.length}
-        userPermission={userPermission}
-        pendingRequestsCount={pendingRequestsCount}
-        onOpenAccessRequests={() => setIsAccessRequestsOpen(true)}
-        onOpenShare={handleShare}
-        onOpenSidebar={() => setIsSidebarOpen(true)}
-      />
+          columnsCount={columns.length}
+          cardsCount={cards.length}
+          userPermission={userPermission}
+          pendingRequestsCount={pendingRequestsCount}
+          onOpenAccessRequests={() => setIsAccessRequestsOpen(true)}
+          onOpenShare={handleShare}
+          onOpenSidebar={() => {}}
+        />
 
       {/* Kanban Area */}
       <div className="flex-1 overflow-hidden p-6">
@@ -147,7 +155,6 @@ export default function ProjectPage() {
       />
       
       {KanbanModals}
-      </div>
     </div>
   );
 }

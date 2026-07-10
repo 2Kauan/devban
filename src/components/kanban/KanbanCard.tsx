@@ -2,7 +2,7 @@ import { forwardRef, memo, useEffect, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { KanbanCardType } from '@/types/kanban';
-import { MessageSquare, Clock, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle, ChevronLeft, ChevronRight, GripHorizontal, ListTree } from 'lucide-react';
+import { MessageSquare, Clock, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle, ChevronLeft, ChevronRight, GripVertical, ListTree } from 'lucide-react';
 
 interface KanbanCardProps {
   card: KanbanCardType;
@@ -35,23 +35,14 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
             const dt = time - lastTime;
             if (dt > 0) {
               const dx = rect.x - lastX;
-              const rawVelocity = dx / dt; // px per ms
-              
-              // Low-pass filter on velocity to remove spikes and add "weight"
+              const rawVelocity = dx / dt;
               smoothVelocity += (rawVelocity - smoothVelocity) * 0.15;
-              
-              // Target rotation based on smooth velocity. Max 18 degrees.
-              const targetRotate = Math.max(-18, Math.min(18, smoothVelocity * 12));
-              
-              // Smooth approach to target rotation (springy feel)
+              const targetRotate = Math.max(-8, Math.min(8, smoothVelocity * 8));
               currentRotate += (targetRotate - currentRotate) * 0.2;
-              
-              // Apply transform with a slight scale bump
-              localRef.current.style.transform = `rotate(${currentRotate}deg) scale(1.05)`;
+              localRef.current.style.transform = `rotate(${currentRotate}deg) scale(1.02)`;
             }
           } else {
-             // Initial frame setup
-             localRef.current.style.transform = `rotate(0deg) scale(1.05)`;
+             localRef.current.style.transform = `rotate(0deg) scale(1.02)`;
           }
           lastX = rect.x;
           lastTime = time;
@@ -88,23 +79,16 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
         <div
           ref={setNodeRef}
           style={style}
-          className="bg-primary/5 border-2 border-primary/20 rounded-xl h-[120px] mb-3 opacity-50"
+          className="bg-primary/5 border border-primary/20 rounded-lg h-[90px] mb-2 opacity-50"
         />
       );
     }
 
     const priorityColors = {
-      low: 'bg-green-100 text-green-700',
-      medium: 'bg-blue-100 text-blue-700',
-      high: 'bg-amber-100 text-amber-700',
-      urgent: 'bg-destructive/10 text-destructive',
-    };
-
-    const priorityLabels = {
-      low: 'Baixa',
-      medium: 'Média',
-      high: 'Alta',
-      urgent: 'Urgente',
+      low: 'text-muted-foreground',
+      medium: 'text-blue-500',
+      high: 'text-amber-500',
+      urgent: 'text-destructive',
     };
 
     const PriorityIcon = {
@@ -127,115 +111,112 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
         }}
         style={{
           ...style,
-          borderColor: card.border_color || columnColor || undefined,
-          borderWidth: card.border_color || columnColor ? '2px' : '1px'
         }}
         onClick={() => onClick(card)}
-        className={`bg-card p-4 rounded-xl border border-border shadow-sm mb-3 cursor-grab active:cursor-grabbing group hover:border-primary/50 transition-colors relative overflow-hidden ${
-          isOverlay ? 'shadow-xl' : ''
-        } ${isCompleted && !isOverlay ? 'opacity-60 grayscale-[0.3]' : ''}`}
-        {...attributes}
+        {...attributes} 
         {...listeners}
+        className={`group bg-card hover:bg-muted/30 p-3 rounded-lg border border-border/60 shadow-sm mb-2 cursor-grab active:cursor-grabbing transition-colors relative overflow-hidden flex flex-col gap-2 ${
+          isOverlay ? 'shadow-xl ring-1 ring-primary/20' : ''
+        } ${isCompleted && !isOverlay ? 'opacity-50' : ''}`}
       >
-        <div className="flex justify-center mb-1 -mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="w-8 h-1 bg-border/50 rounded-full" />
-        </div>
-        <div className="flex justify-between items-start mb-2 mt-1">
-          <div className="flex gap-2 items-center flex-wrap">
-            <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${priorityColors[card.priority]}`}>
-              <PriorityIcon size={12} />
-              {priorityLabels[card.priority]}
-            </span>
-            {card.categories?.map(tag => (
-              <span 
-                key={tag.id}
-                className="px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-sm"
-                style={{ backgroundColor: tag.color }}
-              >
-                {tag.name}
-              </span>
-            ))}
-          </div>
-          <GripHorizontal size={14} className="text-muted-foreground/30 ml-2 shrink-0 hidden md:block" />
-        </div>
-
-        <h4 className="font-semibold text-foreground text-sm leading-tight mb-2 line-clamp-2 flex items-start gap-1.5">
-          {card.parent_id && (
-            <span title="Sub-tarefa" className="shrink-0 mt-0.5 flex">
-              <ListTree size={15} className="text-muted-foreground" />
-            </span>
-          )}
-          <span>{card.title}</span>
-        </h4>
-
-        {card.description && (
-          <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
-            {card.description}
-          </p>
+        {/* Left Color Indicator (Optional based on column or tag) */}
+        {columnColor && (
+          <div className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ backgroundColor: columnColor, opacity: 0.5 }} />
         )}
 
-        <div className="flex items-center justify-between mt-auto pt-2 text-muted-foreground">
-          <div className="flex items-center gap-3">
-            {card.due_date && (
-              <div className="flex items-center gap-1 text-[11px] font-medium" title="Prazo">
-                <Clock size={12} />
-                {new Date(card.due_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
-              </div>
+        <div className="flex items-start gap-2">
+          <div className="flex-1 min-w-0">
+            <h4 className="font-medium text-foreground text-sm leading-snug break-words flex items-start gap-1.5">
+              {card.parent_id && (
+                <span title="Sub-tarefa" className="shrink-0 mt-0.5 flex">
+                  <ListTree size={14} className="text-muted-foreground/70" />
+                </span>
+              )}
+              {card.title}
+            </h4>
+
+            {card.description && (
+              <p className="text-[11px] text-muted-foreground line-clamp-1 mt-1 leading-relaxed">
+                {card.description}
+              </p>
             )}
-            <div className="flex items-center gap-1 text-[11px]" title="Comentários">
-              <MessageSquare size={12} /> 0
-            </div>
           </div>
-          <div className="flex items-center gap-4">
-            {card.assignees && card.assignees.length > 0 && (
-              <div className="flex -space-x-2">
-                {card.assignees.slice(0, 3).map((assignee, idx) => (
-                  <div key={assignee.id || idx} className="w-5 h-5 rounded-full border border-background overflow-hidden relative z-10" style={{ zIndex: 10 - idx }}>
-                    <img src={assignee.avatar_url || `https://ui-avatars.com/api/?name=${assignee.name}&size=20`} alt={assignee.name || 'User'} className="w-full h-full object-cover" />
+        </div>
+
+        {/* Footer Data */}
+        <div className="flex items-center justify-between mt-1 pl-5">
+          <div className="flex items-center gap-2.5">
+            {/* Priority */}
+            <span className={`flex items-center ${priorityColors[card.priority]} opacity-70`} title={`Prioridade: ${card.priority}`}>
+              <PriorityIcon size={12} strokeWidth={2.5} />
+            </span>
+
+            {/* Tags (Dot or very subtle outline) */}
+            {card.categories && card.categories.length > 0 && (
+              <div className="flex items-center gap-1.5">
+                {card.categories.slice(0, 2).map(tag => (
+                  <div 
+                    key={tag.id}
+                    className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground border border-border/60 rounded px-1.5 py-0.5 bg-muted/20 truncate max-w-[80px]"
+                    title={tag.name}
+                  >
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: tag.color }} />
+                    <span className="truncate">{tag.name}</span>
                   </div>
                 ))}
-                {card.assignees.length > 3 && (
-                  <div className="w-5 h-5 rounded-full bg-muted border border-background flex items-center justify-center text-[8px] font-bold relative z-0">
-                    +{card.assignees.length - 3}
-                  </div>
+                {card.categories.length > 2 && (
+                  <span className="text-[10px] text-muted-foreground">+{card.categories.length - 2}</span>
                 )}
               </div>
             )}
+
+            {/* Subtasks Progress */}
+            {subtasksProgress !== undefined && (
+              <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium" title="Sub-tarefas">
+                <ListTree size={10} />
+                <span>{Math.round(subtasksProgress)}%</span>
+              </div>
+            )}
+            
+            {/* Due Date & Comments */}
+            {card.due_date && (
+              <div className="flex items-center gap-1 text-[10px] text-muted-foreground" title="Prazo">
+                <Clock size={10} />
+                {new Date(card.due_date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+              </div>
+            )}
           </div>
+
+          {/* Assignees */}
+          {card.assignees && card.assignees.length > 0 && (
+            <div className="flex -space-x-1 shrink-0">
+              {card.assignees.slice(0, 3).map((assignee, idx) => (
+                <div key={assignee.id || idx} className="w-5 h-5 rounded-full border border-card overflow-hidden" style={{ zIndex: 10 - idx }}>
+                  <img src={assignee.avatar_url || `https://ui-avatars.com/api/?name=${assignee.name}&size=20`} alt={assignee.name || 'User'} className="w-full h-full object-cover" />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {subtasksProgress !== undefined && (
-          <div className="mt-3 flex items-center gap-2">
-            <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-primary transition-all duration-300"
-                style={{ width: `${subtasksProgress}%` }}
-              />
-            </div>
-            <span className="text-[10px] text-muted-foreground font-semibold w-7 text-right leading-none">
-              {Math.round(subtasksProgress)}%
-            </span>
-          </div>
-        )}
-
+        {/* Mobile Quick Moves */}
         {onMoveMobile && !isOverlay && (
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50 md:hidden">
+          <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/30 md:hidden">
             <button
               type="button"
               disabled={!canMoveLeft}
               onClick={(e) => { e.stopPropagation(); onMoveMobile(card.id, 'left'); }}
-              className="p-1.5 rounded-lg bg-muted/50 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
+              className="px-2 py-1 rounded bg-muted/50 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
             >
-              <ChevronLeft size={16} />
+              <ChevronLeft size={14} />
             </button>
-            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Mover</span>
             <button
               type="button"
               disabled={!canMoveRight}
               onClick={(e) => { e.stopPropagation(); onMoveMobile(card.id, 'right'); }}
-              className="p-1.5 rounded-lg bg-muted/50 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
+              className="px-2 py-1 rounded bg-muted/50 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
             >
-              <ChevronRight size={16} />
+              <ChevronRight size={14} />
             </button>
           </div>
         )}

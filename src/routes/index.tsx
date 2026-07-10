@@ -15,6 +15,9 @@ import Reports from '@/pages/Reports';
 import SharedProject from '@/pages/SharedProject';
 import Preview from '@/pages/Preview';
 import NotFound from '@/pages/NotFound';
+import Projects from '@/pages/Projects';
+import ProjectDashboard from '@/pages/ProjectDashboard';
+import { ProjectLayout } from '@/components/layout/ProjectLayout';
 
 export function AppRoutes() {
   return (
@@ -35,10 +38,16 @@ export function AppRoutes() {
           {/* Rotas Protegidas para usuários logados */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/projects" element={<Projects />} />
             <Route path="/team" element={<Team />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/project/:id" element={<Project />} />
+            
+            <Route path="/project/:id" element={<ProjectLayout />}>
+              <Route index element={<ProjectDashboard />} />
+              <Route path="kanban" element={<Project />} />
+              {/* Future routes: team, files, activity, settings */}
+            </Route>
           </Route>
 
           {/* Rotas Protegidas para Admins */}

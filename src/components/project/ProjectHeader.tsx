@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Share2, Search, Filter, Bell, Menu, Pencil, Check, X, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
+import { ArrowLeft, Share2, Search, Filter, Bell, Menu, Pencil, Check, X, Trash2, AlertTriangle, Loader2, Lightbulb } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Project as ProjectType, ProjectPermission } from '@/types/database';
 import { supabase } from '@/lib/supabase';
@@ -93,12 +93,6 @@ export function ProjectHeader({
   return (
     <header className="bg-card border-b border-border p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
       <div className="flex items-center gap-4">
-        <button className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground" onClick={onOpenSidebar}>
-          <Menu size={24} />
-        </button>
-        <Link to="/dashboard" className="w-8 h-8 hidden md:flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg transition-colors">
-          <ArrowLeft size={18} />
-        </Link>
         <div>
           {isEditingName ? (
             <div className="flex items-center gap-2">
@@ -200,44 +194,51 @@ export function ProjectHeader({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/60"
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
               onClick={() => !isDeleting && setShowDeleteConfirm(false)}
             />
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="bg-card w-full max-w-md rounded-2xl shadow-xl border border-border overflow-hidden relative z-10 p-6"
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="bg-card w-full max-w-[440px] rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.15)] border border-border/60 overflow-hidden relative z-10 flex flex-col"
             >
-              <div className="flex items-center gap-3 text-destructive mb-4">
-                <AlertTriangle size={24} />
-                <h2 className="text-xl font-bold">Apagar Projeto</h2>
-              </div>
-              
-              <p className="text-muted-foreground mb-4">
-                Tem certeza que deseja apagar o projeto <strong>{currentName}</strong>? Esta ação é irreversível e todas as tarefas serão perdidas.
-              </p>
-              
-              <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl mb-6">
-                <p className="text-sm text-primary/90 font-medium">
-                  💡 Como você apagou um projeto, o seu limite de projetos simultâneos será ajustado, liberando uma vaga para você criar outro no lugar!
-                </p>
+              <div className="p-6 pb-5">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-destructive/10 border border-destructive/20 flex items-center justify-center text-destructive shrink-0">
+                    <Trash2 size={20} />
+                  </div>
+                  <div className="pt-0.5">
+                    <h2 className="text-lg font-bold tracking-tight text-foreground mb-1.5">Apagar Projeto</h2>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Tem certeza que deseja apagar o projeto <strong className="text-foreground">{currentName}</strong>? Todas as tarefas e configurações serão excluídas permanentemente.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="bg-muted/30 border border-border/40 rounded-xl p-3.5 flex gap-3 items-start mt-5 ml-14">
+                  <span className="shrink-0 text-muted-foreground mt-0.5"><Lightbulb size={16} /></span>
+                  <p className="text-[13px] text-muted-foreground/90 font-medium leading-relaxed">
+                    A boa notícia: seu limite será reajustado! Uma nova vaga será liberada para você criar um projeto no lugar deste.
+                  </p>
+                </div>
               </div>
 
-              <div className="flex justify-end gap-3">
+              <div className="flex justify-end gap-3 px-6 py-4 bg-muted/10 border-t border-border/40">
                 <button 
                   onClick={() => setShowDeleteConfirm(false)}
                   disabled={isDeleting}
-                  className="px-5 py-2.5 rounded-xl text-muted-foreground hover:bg-muted transition-colors font-bold text-sm"
+                  className="px-4 py-2 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors font-semibold text-sm"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleDeleteProject}
                   disabled={isDeleting}
-                  className="px-5 py-2.5 bg-destructive text-destructive-foreground rounded-xl hover:bg-destructive/90 transition-colors font-bold text-sm flex items-center gap-2"
+                  className="px-5 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 hover:shadow-lg hover:shadow-destructive/20 transition-all font-bold text-sm flex items-center gap-2 active:scale-95"
                 >
-                  {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                  {isDeleting ? <Loader2 size={16} className="animate-spin" /> : null}
                   Sim, quero apagar
                 </button>
               </div>

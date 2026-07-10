@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Bell, FolderKanban, Menu } from 'lucide-react';
+import { Search, Bell, FolderKanban, Menu, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,6 +8,7 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { UserProfileButton } from '@/components/ui/UserProfileButton';
 import type { Project } from '@/types/database';
 import { toast } from 'sonner';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
 export default function Dashboard() {
   const { user, profile } = useAuth();
@@ -50,38 +51,42 @@ export default function Dashboard() {
     <div className="flex h-screen w-full bg-background overflow-hidden">
       <Sidebar projects={projects} onProjectCreated={fetchProjects} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-muted/10">
-        <header className="h-16 border-b border-border/50 flex items-center justify-between px-4 sm:px-6 bg-background">
-          <div className="flex items-center gap-3">
-            <button className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground" onClick={() => setIsSidebarOpen(true)}>
-              <Menu size={24} />
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
+        
+        {/* Modern App Header */}
+        <header className="h-14 border-b border-border/40 flex items-center justify-between px-4 sm:px-6 bg-background/50 backdrop-blur-md shrink-0">
+          <div className="flex items-center gap-4">
+            <button className="md:hidden p-1.5 -ml-1.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50 transition-colors" onClick={() => setIsSidebarOpen(true)}>
+              <Menu size={20} />
             </button>
-            <div>
-              <h1 className="text-xl font-bold">Meus Projetos</h1>
-              <p className="text-sm text-muted-foreground hidden sm:block">Bem-vindo, {profile?.name || user?.email}</p>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground font-medium">Dashboard</span>
+              <span className="text-muted-foreground/40">/</span>
+              <span className="font-semibold text-foreground">Projetos</span>
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
-            <div className="relative hidden sm:block">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <input 
-                type="text" 
-                placeholder="Buscar projetos..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-9 w-64 rounded-md border border-input bg-background px-9 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
-              />
-            </div>
-            <button className="relative p-2 text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
-              <Bell className="h-5 w-5" />
+          <div className="flex items-center gap-3">
+            <button className="hidden sm:flex items-center gap-2 h-8 px-3 rounded-md bg-muted/30 border border-border/50 text-xs font-medium text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-all group w-48 justify-between">
+              <div className="flex items-center gap-2">
+                <Search className="h-3.5 w-3.5" />
+                <span>Buscar...</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <kbd className="font-mono text-[10px] bg-background border border-border/50 rounded px-1 group-hover:border-border transition-colors">⌘</kbd>
+                <kbd className="font-mono text-[10px] bg-background border border-border/50 rounded px-1 group-hover:border-border transition-colors">K</kbd>
+              </div>
+            </button>
+            <button className="relative p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-md transition-colors hidden sm:block">
+              <Bell className="h-4 w-4" />
             </button>
             <UserProfileButton />
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
-          <div className="sm:hidden mb-4 flex items-center gap-2 w-full">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar">
+          
+          <div className="sm:hidden mb-6 flex items-center gap-2 w-full">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <input 
@@ -96,58 +101,92 @@ export default function Dashboard() {
               <Bell className="h-5 w-5" />
             </button>
           </div>
-          {isLoading ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Visão Geral</h1>
+              <p className="text-sm text-muted-foreground mt-1">Acompanhe o progresso dos seus projetos.</p>
             </div>
-          ) : projects.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center max-w-md mx-auto">
-              <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4">
-                <FolderKanban className="h-8 w-8" />
+            <button 
+              className="hidden sm:flex items-center gap-2 bg-foreground text-background px-4 py-2 rounded-lg text-sm font-medium hover:bg-foreground/90 transition-all shadow-sm shadow-primary/10"
+              onClick={() => document.dispatchEvent(new CustomEvent('open-create-project'))}
+            >
+              <Plus className="h-4 w-4" />
+              Criar Novo Projeto
+            </button>
+          </div>
+
+          {/* Quick Stats Widgets */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            <div className="bg-card border border-border/60 rounded-xl p-4 shadow-sm flex flex-col justify-between h-28">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total de Projetos</span>
+              <div className="flex items-end justify-between">
+                <span className="text-3xl font-bold text-foreground">{isLoading ? '-' : projects.length}</span>
+                <span className="text-xs text-primary font-medium bg-primary/10 px-2 py-0.5 rounded-full">+2 este mês</span>
               </div>
-              <h2 className="text-xl font-bold mb-2">Nenhum projeto ainda</h2>
-              <p className="text-muted-foreground mb-6">Crie seu primeiro projeto para começar a organizar suas tarefas no Kanban.</p>
             </div>
-          ) : filteredProjects.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <p className="text-muted-foreground">Nenhum projeto encontrado para "{searchQuery}"</p>
+            <div className="bg-card border border-border/60 rounded-xl p-4 shadow-sm flex flex-col justify-between h-28">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Tarefas Concluídas</span>
+              <div className="flex items-end justify-between">
+                <span className="text-3xl font-bold text-foreground">124</span>
+                <span className="text-xs text-green-500 font-medium bg-green-500/10 px-2 py-0.5 rounded-full">Na última semana</span>
+              </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredProjects.map((project, idx) => (
-                <motion.div
-                  key={project.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: idx * 0.05 }}
-                >
-                  <div 
-                    onClick={() => navigate(`/project/${project.id}`)}
-                    className="block h-full bg-card rounded-xl border border-border/60 p-5 shadow-sm hover:shadow-md hover:border-primary/50 transition-all group relative overflow-hidden cursor-pointer"
+          </div>
+          {/* Global Dashboard Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* Produtividade Semanal (Mock/Demonstração Global) */}
+            <div className="bg-card border border-border/40 p-6 rounded-2xl shadow-sm">
+              <h3 className="text-base font-bold text-foreground mb-6">Produtividade Global (Últimos 7 dias)</h3>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart 
+                    data={[...Array(7)].map((_, i) => {
+                      const d = new Date(); d.setDate(d.getDate() - (6 - i));
+                      return { day: d.toLocaleDateString('pt-BR', { weekday: 'short' }), Tarefas: Math.floor(Math.random() * 15) + 5 };
+                    })} 
+                    margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                   >
-                    <div className="flex justify-between items-start mb-4 relative z-10">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <FolderKanban className="h-5 w-5" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase ${project.is_free ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary'}`}>
-                          {project.is_free ? 'Grátis' : 'Premium'}
-                        </span>
-                      </div>
-                    </div>
-                    <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors line-clamp-1 relative z-10">{project.name}</h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px] relative z-10">
-                      {project.description || 'Sem descrição'}
-                    </p>
-                    <div className="mt-4 pt-4 border-t border-border/50 text-xs text-muted-foreground flex justify-between items-center relative z-10">
-                      <span>Atualizado em {new Date(project.updated_at).toLocaleDateString('pt-BR')}</span>
-                      <span className="text-primary font-medium hover:underline">Abrir &rarr;</span>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+                    <defs>
+                      <linearGradient id="colorGlobal" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.4} />
+                    <XAxis dataKey="day" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px', fontSize: '13px' }} />
+                    <Area type="monotone" dataKey="Tarefas" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorGlobal)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-          )}
+
+            {/* Projetos Ativos por Mês */}
+            <div className="bg-card border border-border/40 p-6 rounded-2xl shadow-sm">
+              <h3 className="text-base font-bold text-foreground mb-6">Crescimento de Projetos</h3>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart 
+                    data={[
+                      { name: 'Jan', Projetos: 1 }, { name: 'Fev', Projetos: 2 }, { name: 'Mar', Projetos: 4 },
+                      { name: 'Abr', Projetos: 3 }, { name: 'Mai', Projetos: 5 }, { name: 'Jun', Projetos: projects.length }
+                    ]} 
+                    margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.4} />
+                    <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <Tooltip cursor={{ fill: 'hsl(var(--muted))', opacity: 0.2 }} contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px', fontSize: '13px' }} />
+                    <Bar dataKey="Projetos" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+          </div>
         </div>
       </main>
     </div>

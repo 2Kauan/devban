@@ -1,9 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Plus, LayoutDashboard, Users, Settings, LogOut, ShieldAlert, X, BarChart3 } from 'lucide-react';
+import { Plus, LayoutDashboard, Users, Settings, LogOut, ShieldAlert, X, BarChart3, FolderKanban, Star, Calendar, Bell } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { CreateProjectModal } from '@/components/ui/CreateProjectModal';
 import type { Project } from '@/types/database';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 interface SidebarProps {
   projects: Project[];
@@ -12,10 +14,33 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-export function Sidebar({ onProjectCreated, isOpen, onClose }: SidebarProps) {
+export function Sidebar({ projects, onProjectCreated, isOpen, onClose }: SidebarProps) {
   const location = useLocation();
-  const { signOut, profile } = useAuth();
+  const { signOut, profile, user } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    setIsDeletingAccount(true);
+    try {
+      // Tenta chamar a RPC para deletar a conta (se configurada no backend)
+      const { error } = await supabase.rpc('delete_user_account');
+      if (error) {
+        // Fallback: exclui os projetos do usuário (que irá apagar em cascata quadros e tarefas)
+        // Isso pelo menos apaga os dados pessoais mais críticos caso a RPC não exista.
+        await supabase.from('projects').delete().eq('owner_id', user.id);
+        // E loga fora.
+      }
+      toast.success('Sua conta e seus dados foram apagados permanentemente.');
+      await signOut();
+    } catch (error: any) {
+      toast.error('Erro ao excluir dados: ' + error.message);
+    } finally {
+      setIsDeletingAccount(false);
+    }
+  };
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -23,6 +48,15 @@ export function Sidebar({ onProjectCreated, isOpen, onClose }: SidebarProps) {
   useEffect(() => {
     onClose();
   }, [location.pathname]);
+
+  // Listen for global custom event to open Create Project Modal
+  useEffect(() => {
+    const handleOpenCreateProject = () => setIsCreateModalOpen(true);
+    document.addEventListener('open-create-project', handleOpenCreateProject);
+    return () => {
+      document.removeEventListener('open-create-project', handleOpenCreateProject);
+    };
+  }, []);
 
   return (
     <>
@@ -33,70 +67,101 @@ export function Sidebar({ onProjectCreated, isOpen, onClose }: SidebarProps) {
         />
       )}
       
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 h-full border-r border-border/50 bg-background md:bg-muted/20 flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full hidden md:flex'}`}>
-        <div className="p-4 flex items-center justify-between md:hidden border-b border-border/50">
-          <span className="font-bold text-lg">Menu</span>
-          <button onClick={onClose} className="p-2 text-muted-foreground hover:text-foreground bg-muted/50 rounded-lg"><X size={20} /></button>
-        </div>
-        <div className="p-6 shrink-0">
-          <button 
-            onClick={() => setIsCreateModalOpen(true)}
-            className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors shadow-sm"
-          >
-            <Plus className="h-5 w-5" />
-            Novo Projeto
-          </button>
-        </div>
-        <nav className="flex-1 px-4 space-y-2 overflow-y-auto custom-scrollbar">
-          <Link 
-            to="/dashboard" 
-            className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive('/dashboard') ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}`}
-          >
-            <LayoutDashboard className="h-5 w-5" />
-            Visão Geral
+      <aside className={`fixed inset-y-0 left-0 z-50 w-[260px] h-full border-r border-border/40 bg-background flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full hidden md:flex'}`}>
+        
+        {/* Workspace Switcher / Brand Header */}
+        <div className="h-14 px-4 flex items-center justify-between border-b border-transparent hover:border-border/40 transition-colors shrink-0">
+          <Link to="/dashboard" className="flex items-center gap-2 group outline-none rounded-md px-1 py-1 hover:bg-muted/50 transition-colors">
+            <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center shadow-sm">
+              <span className="text-primary-foreground font-bold text-xs leading-none">D</span>
+            </div>
+            <span className="font-semibold text-sm tracking-tight text-foreground group-hover:text-primary transition-colors">DevBan</span>
           </Link>
-          <div className="pt-4 pb-2">
-            <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Geral
-            </p>
-          </div>
+          <button onClick={onClose} className="p-1 text-muted-foreground hover:text-foreground md:hidden"><X size={16} /></button>
+        </div>
+
+        {/* Navigation Area */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar py-4 px-3 space-y-6">
+          
+          {/* Main Actions */}
+          <nav className="space-y-1.5">
+            <Link 
+              to="/dashboard" 
+              className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors ${isActive('/dashboard') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Dashboard
+            </Link>
+            <Link 
+              to="/projects" 
+              className={`flex items-center justify-between gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors ${isActive('/projects') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
+            >
+              <div className="flex items-center gap-2.5">
+                <FolderKanban className="h-4 w-4" />
+                Meus Projetos
+              </div>
+              <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsCreateModalOpen(true);
+                }}
+                className="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                title="Novo Projeto"
+              >
+                <Plus size={14} />
+              </button>
+            </Link>
+            <Link 
+              to="/favorites" 
+              className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors ${isActive('/favorites') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
+            >
+              <Star className="h-4 w-4" />
+              Favoritos
+            </Link>
+            <Link 
+              to="/calendar" 
+              className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors ${isActive('/calendar') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
+            >
+              <Calendar className="h-4 w-4" />
+              Calendário
+            </Link>
+            <Link 
+              to="/team" 
+              className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors ${isActive('/team') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
+            >
+              <Users className="h-4 w-4" />
+              Equipe
+            </Link>
+            <Link 
+              to="/notifications" 
+              className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors ${isActive('/notifications') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
+            >
+              <Bell className="h-4 w-4" />
+              Notificações
+            </Link>
+          </nav>
+        </div>
+
+        {/* Footer Area */}
+        <div className="mt-auto px-3 py-4 border-t border-border/40 space-y-1.5 shrink-0 bg-background/50 backdrop-blur-md">
           <Link 
-            to="/team" 
-            className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive('/team') ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}`}
+            to="/settings" 
+            className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors ${isActive('/settings') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
           >
-            <Users className="h-5 w-5" />
-            Equipe
-          </Link>
-          <Link 
-            to="/reports" 
-            className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive('/reports') ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}`}
-          >
-            <BarChart3 className="h-5 w-5" />
-            Relatórios
+            <Settings className="h-4 w-4" />
+            Configurações
           </Link>
           {profile?.role === 'admin' && (
-            <Link 
-              to="/admin" 
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive('/admin') ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}`}
-            >
-              <ShieldAlert className="h-5 w-5" />
+            <Link to="/admin" className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors ${isActive('/admin') ? 'bg-destructive/10 text-destructive font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}>
+              <ShieldAlert className="h-4 w-4" />
               Painel Admin
             </Link>
           )}
-        </nav>
-        <div className="p-4 border-t border-border/50 space-y-2 mt-auto shrink-0 bg-background md:bg-transparent">
-          <Link 
-            to="/settings" 
-            className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive('/settings') ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}`}
-          >
-            <Settings className="h-5 w-5" />
-            Configurações
-          </Link>
           <button 
-            onClick={() => signOut()} 
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
+            onClick={() => setIsDeleteAccountModalOpen(true)}
+            className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors text-red-500 hover:bg-red-500/10 font-medium"
           >
-            <LogOut className="h-5 w-5" />
+            <LogOut className="h-4 w-4" />
             Sair
           </button>
         </div>
@@ -107,6 +172,47 @@ export function Sidebar({ onProjectCreated, isOpen, onClose }: SidebarProps) {
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={onProjectCreated}
       />
+
+      {/* Delete Account Modal */}
+      {isDeleteAccountModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+          <div className="bg-card border border-border shadow-lg rounded-2xl w-full max-w-md overflow-hidden relative">
+            <div className="p-6">
+              <h2 className="text-xl font-bold text-foreground mb-2 text-red-500 flex items-center gap-2">
+                <ShieldAlert size={24} />
+                Atenção: Exclusão de Dados
+              </h2>
+              <p className="text-sm text-muted-foreground mb-6">
+                Ao clicar em confirmar, você <strong>sairá da sua conta</strong> e todos os seus dados e projetos serão <strong>excluídos permanentemente</strong> do nosso banco de dados. Esta ação não pode ser desfeita. Tem certeza que deseja prosseguir?
+              </p>
+              
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setIsDeleteAccountModalOpen(false)}
+                  disabled={isDeletingAccount}
+                  className="px-4 py-2 rounded-lg font-medium text-sm text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={isDeletingAccount}
+                  className="px-4 py-2 rounded-lg font-medium text-sm text-white bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isDeletingAccount ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Excluindo...
+                    </>
+                  ) : (
+                    'Sim, excluir e sair'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

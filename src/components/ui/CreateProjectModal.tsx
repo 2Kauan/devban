@@ -20,9 +20,24 @@ interface CreateProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  initialPlan?: 'free' | 'pro';
 }
 
-export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProjectModalProps) {
+const isValidCPF = (cpf: string) => {
+  cpf = cpf.replace(/[^\d]+/g, '');
+  if (cpf.length !== 11 || !!cpf.match(/(\d)\1{10}/)) return false;
+  let t = 0, d = 0, c = 0;
+  for (t = 9; t < 11; t++) {
+    for (d = 0, c = 0; c < t; c++) {
+      d += parseInt(cpf[c]) * ((t + 1) - c);
+    }
+    d = ((10 * d) % 11) % 10;
+    if (parseInt(cpf[c]) !== d) return false;
+  }
+  return true;
+};
+
+export function CreateProjectModal({ isOpen, onClose, onSuccess, initialPlan = 'free' }: CreateProjectModalProps) {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
@@ -110,7 +125,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
       const requiresPayment = currentProjects >= allowedSlots;
 
       if (requiresPayment) {
-        if (!data.cpf || data.cpf.replace(/\D/g, '').length !== 11) {
+        if (!data.cpf || !isValidCPF(data.cpf)) {
           toast.error('Por favor, informe um CPF válido para gerar a cobrança.');
           setIsLoading(false);
           return;
@@ -177,7 +192,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
           { project_id: newProject.id, title: 'A Fazer', position: 2000 },
           { project_id: newProject.id, title: 'Fazendo', position: 3000 },
           { project_id: newProject.id, title: 'Revisão', position: 4000 },
-          { project_id: newProject.id, title: 'Concluído', position: 5000 },
+          { project_id: newProject.id, title: 'Concluído', position: 5000, is_completed: true },
         ];
         
         await supabase.from('columns').insert(defaultColumns);
@@ -226,7 +241,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
           { project_id: newProject.id, title: 'A Fazer', position: 2000, color: '#3b82f6' },
           { project_id: newProject.id, title: 'Fazendo', position: 3000, color: '#eab308' },
           { project_id: newProject.id, title: 'Revisão', position: 4000, color: '#a855f7' },
-          { project_id: newProject.id, title: 'Concluído', position: 5000, color: '#22c55e' },
+          { project_id: newProject.id, title: 'Concluído', position: 5000, color: '#22c55e', is_completed: true },
         ];
         
         await supabase.from('columns').insert(defaultColumns);
