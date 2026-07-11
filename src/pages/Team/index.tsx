@@ -81,6 +81,15 @@ export default function TeamPage() {
   const fetchLogs = async () => {
     setIsLoading(true);
     try {
+      const { data: membersData } = await supabase.from('project_members').select('project_id');
+      const sharedProjectIds = [...new Set(membersData?.map(m => m.project_id) || [])];
+
+      if (sharedProjectIds.length === 0 && (!selectedProjectId || selectedProjectId === 'all')) {
+        setLogs([]);
+        setIsLoading(false);
+        return;
+      }
+
       let query = supabase
         .from('card_activity_logs')
         .select(`
@@ -94,6 +103,8 @@ export default function TeamPage() {
 
       if (selectedProjectId && selectedProjectId !== 'all') {
         query = query.eq('project_id', selectedProjectId);
+      } else {
+        query = query.in('project_id', sharedProjectIds);
       }
 
       const { data: logData, error: logError } = await query;
@@ -109,6 +120,14 @@ export default function TeamPage() {
 
   const fetchMembers = async () => {
     try {
+      const { data: memberProjectIds } = await supabase.from('project_members').select('project_id');
+      const sharedProjectIds = [...new Set(memberProjectIds?.map(m => m.project_id) || [])];
+
+      if (sharedProjectIds.length === 0 && (!selectedProjectId || selectedProjectId === 'all')) {
+        setMembers([]);
+        return;
+      }
+
       let query = supabase
         .from('project_members')
         .select(`
@@ -128,6 +147,9 @@ export default function TeamPage() {
       if (selectedProjectId && selectedProjectId !== 'all') {
         query = query.eq('project_id', selectedProjectId);
         projectsQuery = projectsQuery.eq('id', selectedProjectId);
+      } else {
+        query = query.in('project_id', sharedProjectIds);
+        projectsQuery = projectsQuery.in('id', sharedProjectIds);
       }
 
       const [{ data: membersData, error }, { data: projectsData, error: projError }] = await Promise.all([query, projectsQuery]);
