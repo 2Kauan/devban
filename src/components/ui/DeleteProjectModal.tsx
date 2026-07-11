@@ -78,37 +78,38 @@ export function DeleteProjectModal({ isOpen, onClose, projectName, projectId, is
             </div>
 
             <div className="p-6 space-y-4">
-              {showSlotWarning ? (
-                <div className="bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-lg space-y-2">
-                  <p className="font-bold">Este projeto já utilizou o benefício gratuito da sua conta.</p>
-                  <p className="text-sm">Ao excluí-lo, todos os dados serão apagados permanentemente.</p>
-                  <p className="text-sm font-bold">A exclusão NÃO restaurará o direito de criar um novo projeto gratuito.</p>
-                  <p className="text-sm">Para iniciar um novo projeto será necessário adquirir um novo slot permanente.</p>
+              {isUsed ? (
+                <div className="bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-xl space-y-2">
+                  <p className="font-bold flex items-center gap-2"><AlertTriangle size={18} /> Ação Bloqueada</p>
+                  <p className="text-sm">Você não pode excluir este projeto porque já o utilizou no Kanban.</p>
+                  <p className="text-sm">Projetos que já tiveram movimentações ficam registrados permanentemente para manter a consistência dos seus limites e histórico.</p>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  Esta ação não pode ser desfeita. Isso excluirá permanentemente o projeto <strong className="text-foreground">{projectName}</strong> e todos os seus dados associados.
-                </p>
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Esta ação não pode ser desfeita. Isso excluirá permanentemente o projeto <strong className="text-foreground">{projectName}</strong> e todos os seus dados associados.
+                  </p>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">
+                      Para confirmar, digite o nome do projeto:
+                    </label>
+                    <input
+                      type="text"
+                      value={confirmName}
+                      onChange={(e) => setConfirmName(e.target.value)}
+                      placeholder={projectName}
+                      className="w-full bg-background border border-border/60 px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-destructive/50 focus:ring-1 focus:ring-destructive/50 transition-all"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && confirmName === projectName) {
+                          handleDelete();
+                        }
+                      }}
+                    />
+                  </div>
+                </>
               )}
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">
-                  Para confirmar, digite o nome do projeto:
-                </label>
-                <input
-                  type="text"
-                  value={confirmName}
-                  onChange={(e) => setConfirmName(e.target.value)}
-                  placeholder={projectName}
-                  className="w-full bg-background border border-border/60 px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-destructive/50 focus:ring-1 focus:ring-destructive/50 transition-all"
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && confirmName === projectName) {
-                      handleDelete();
-                    }
-                  }}
-                />
-              </div>
             </div>
 
             <div className="flex items-center justify-end gap-3 px-6 py-4 bg-muted/30 border-t border-border/60">
@@ -117,19 +118,21 @@ export function DeleteProjectModal({ isOpen, onClose, projectName, projectId, is
                 className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                 disabled={isLoading}
               >
-                Cancelar
+                {isUsed ? 'Entendi' : 'Cancelar'}
               </button>
-              <button
-                onClick={handleDelete}
-                disabled={isLoading || confirmName !== projectName}
-                className="px-4 py-2 bg-destructive text-destructive-foreground text-sm font-semibold rounded-lg hover:bg-destructive/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
-              >
-                {isLoading ? (
-                  <div className="w-4 h-4 border-2 border-background/30 border-t-background rounded-full animate-spin" />
-                ) : (
-                  'Excluir'
-                )}
-              </button>
+              {!isUsed && (
+                <button
+                  onClick={handleDelete}
+                  disabled={isLoading || confirmName !== projectName}
+                  className="px-4 py-2 bg-destructive text-destructive-foreground text-sm font-semibold rounded-lg hover:bg-destructive/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
+                >
+                  {isLoading ? (
+                    <div className="w-4 h-4 border-2 border-background/30 border-t-background rounded-full animate-spin" />
+                  ) : (
+                    'Excluir'
+                  )}
+                </button>
+              )}
             </div>
           </motion.div>
         </div>
