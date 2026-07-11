@@ -104,6 +104,33 @@ export default function ProjectTeam() {
     }
   };
 
+  const handleChangePermission = async (memberId: string, currentPerm: string) => {
+    if (memberId === project.owner_id || currentPerm === 'owner') {
+      toast.error('Não é possível alterar a permissão do desenvolvedor/dono do projeto.');
+      return;
+    }
+
+    const newPerm = currentPerm === 'editor' ? 'viewer' : 'editor';
+    const previousMembers = [...members];
+    
+    // Optimistic update
+    setMembers(members.map(m => m.user_id === memberId ? { ...m, permission: newPerm } : m));
+
+    try {
+      const { error } = await supabase
+        .from('project_members')
+        .update({ permission: newPerm })
+        .eq('project_id', project.id)
+        .eq('user_id', memberId);
+
+      if (error) throw error;
+      toast.success(`Permissão alterada para ${newPerm === 'editor' ? 'Editor' : 'Leitor'}`);
+    } catch (error: any) {
+      setMembers(previousMembers);
+      toast.error('Erro ao alterar permissão: ' + error.message);
+    }
+  };
+
   return (
     <div className="p-8 max-w-5xl mx-auto h-full overflow-y-auto">
       <div className="flex items-center justify-between mb-8">
@@ -192,15 +219,20 @@ export default function ProjectTeam() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 text-muted-foreground capitalize">
+                      <button 
+                        onClick={() => handleChangePermission(member.user_id, member.permission)}
+                        disabled={member.permission === 'owner'}
+                        className={`group/perm flex items-center gap-2 text-muted-foreground capitalize transition-colors ${member.permission !== 'owner' ? 'hover:text-primary cursor-pointer' : 'cursor-default'}`}
+                        title={member.permission === 'owner' ? 'Permissão do dono não pode ser alterada' : 'Clique para alterar a permissão'}
+                      >
                         {member.permission === 'owner' ? (
                           <><Settings size={14} /> Administrador</>
                         ) : member.permission === 'editor' ? (
-                          <><Settings size={14} /> Editor</>
+                          <><Settings size={14} className={member.permission !== 'owner' ? "group-hover/perm:animate-spin" : ""} style={{ animationDuration: '3s' }} /> Editor</>
                         ) : (
-                          <><Settings size={14} /> Leitor</>
+                          <><Settings size={14} className={member.permission !== 'owner' ? "group-hover/perm:animate-spin" : ""} style={{ animationDuration: '3s' }} /> Leitor</>
                         )}
-                      </div>
+                      </button>
                     </td>
                     <td className="px-6 py-4 text-muted-foreground">
                       {new Date(member.created_at).toLocaleDateString('pt-BR')}
