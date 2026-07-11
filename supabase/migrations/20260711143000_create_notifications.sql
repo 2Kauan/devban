@@ -6,7 +6,7 @@ EXCEPTION
 END $$;
 
 -- Tabela de notificações
-CREATE TABLE notifications (
+CREATE TABLE IF NOT EXISTS notifications (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
     actor_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
@@ -23,8 +23,13 @@ CREATE TABLE notifications (
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
 -- Políticas
+DROP POLICY IF EXISTS "Users can view their own notifications" ON notifications;
 CREATE POLICY "Users can view their own notifications" ON notifications FOR SELECT USING (user_id = auth.uid());
+
+DROP POLICY IF EXISTS "Users can update their own notifications" ON notifications;
 CREATE POLICY "Users can update their own notifications" ON notifications FOR UPDATE USING (user_id = auth.uid());
+
+DROP POLICY IF EXISTS "Users can delete their own notifications" ON notifications;
 CREATE POLICY "Users can delete their own notifications" ON notifications FOR DELETE USING (user_id = auth.uid());
 -- A inserção só é feita via triggers ou server-side, então não abrimos o insert público diretamente (se precisássemos, poderíamos).
 
