@@ -26,6 +26,13 @@ export default function ProjectPage() {
   const userPermission = data?.userPermission || 'viewer';
   const pendingRequestsCount = data?.pendingRequestsCount || 0;
   const projectMembers = data?.projectMembers || [];
+  
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const filteredCards = cards.filter(card => 
+    card.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (card.description && card.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   // States for modals
   const [activeCard, setActiveCard] = useState<KanbanCardType | null>(null);
@@ -107,13 +114,15 @@ export default function ProjectPage() {
           onOpenAccessRequests={() => setIsAccessRequestsOpen(true)}
           onOpenShare={handleShare}
           onOpenSidebar={() => {}}
+          searchQuery={searchQuery}
+          onSearch={setSearchQuery}
         />
 
       {/* Kanban Area */}
-      <div className="flex-1 overflow-hidden p-6">
+      <div className="flex-1 overflow-hidden p-4 sm:p-6 pb-0 flex flex-col min-h-0">
         <KanbanBoard 
           columns={columns}
-          cards={cards}
+          cards={filteredCards}
           onColumnsChange={handleColumnsChange}
           onCardsChange={handleCardsChange}
           onCardMove={handleCardMove}

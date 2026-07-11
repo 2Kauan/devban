@@ -17,6 +17,8 @@ interface ProjectHeaderProps {
   onOpenAccessRequests: () => void;
   onOpenShare: () => void;
   onOpenSidebar?: () => void;
+  searchQuery?: string;
+  onSearch?: (query: string) => void;
 }
 
 export function ProjectHeader({
@@ -26,8 +28,9 @@ export function ProjectHeader({
   userPermission,
   pendingRequestsCount,
   onOpenAccessRequests,
-  onOpenShare
-
+  onOpenShare,
+  searchQuery,
+  onSearch
 }: ProjectHeaderProps) {
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState(project.name);
@@ -158,6 +161,8 @@ export function ProjectHeader({
           <input 
             type="text" 
             placeholder="Pesquisar..." 
+            value={searchQuery || ''}
+            onChange={(e) => onSearch?.(e.target.value)}
             className="w-full pl-9 pr-4 py-2 bg-muted/50 border border-border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:bg-background transition-all"
           />
         </div>

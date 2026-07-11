@@ -155,7 +155,7 @@ export function KanbanBoard({
   }
 
   return (
-    <div className="flex-1 flex overflow-x-auto custom-scrollbar overflow-y-hidden pb-4">
+    <div className="flex-1 w-full h-full min-h-0 flex flex-col overflow-x-auto overflow-y-hidden custom-scrollbar bg-background">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -163,7 +163,7 @@ export function KanbanBoard({
         onDragOver={onDragOver}
         onDragEnd={onDragEnd}
       >
-        <div className="flex gap-6 h-full px-2">
+        <div className="flex gap-6 p-4 sm:p-8 pt-2 min-w-max flex-1 min-h-0 h-full">
           <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
             {columns.map((col, idx) => (
               <KanbanColumn
