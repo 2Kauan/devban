@@ -180,7 +180,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
           ) : (
             <>
               {/* Subtle drag handle */}
-              <GripVertical size={14} className="text-muted-foreground/30 opacity-0 group-hover/header:opacity-100 transition-opacity cursor-grab shrink-0" />
+              <GripVertical size={14} className="text-muted-foreground/50 hover:text-muted-foreground transition-opacity cursor-grab shrink-0" />
               
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 {/* Column color indicator */}
@@ -204,7 +204,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
                       setEditIsCompleted(column.is_completed || false);
                       setIsEditing(true);
                     }}
-                    className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 opacity-0 group-hover/header:opacity-100 transition-all shrink-0"
+                    className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all shrink-0"
                     title="Editar coluna"
                   >
                     <Pencil size={14} />

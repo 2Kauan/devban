@@ -1,0 +1,1 @@
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS is_completed BOOLEAN DEFAULT false;

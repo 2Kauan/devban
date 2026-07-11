@@ -12,7 +12,7 @@ import { RenameProjectModal } from '@/components/ui/RenameProjectModal';
 import { DeleteProjectModal } from '@/components/ui/DeleteProjectModal';
 
 // Componente do Menu Dropdown do Cartão
-function ProjectCard({ project, onEdit, onDelete }: { project: Project, onEdit: (p: Project) => void, onDelete: (p: Project) => void }) {
+function ProjectCard({ project, onEdit, onDelete, onComplete }: { project: Project, onEdit: (p: Project) => void, onDelete: (p: Project) => void, onComplete?: (p: Project) => void }) {
   const { user } = useAuth();
   const { favorites, toggleFavorite } = useFavorites(user?.id);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -50,7 +50,7 @@ function ProjectCard({ project, onEdit, onDelete }: { project: Project, onEdit: 
   };
 
   return (
-    <div className="group relative bg-card border border-border/40 hover:border-primary/40 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col h-[220px]">
+    <div className={`group relative bg-card border border-border/40 hover:border-primary/40 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col h-[220px] ${project.is_completed ? 'opacity-50 grayscale hover:opacity-80 hover:grayscale-0' : ''}`}>
       <Link to={`/project/${project.id}`} className="absolute inset-0 z-0 rounded-2xl" />
       <div className="flex justify-between items-start mb-4 relative z-10">
         <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
@@ -79,11 +79,20 @@ function ProjectCard({ project, onEdit, onDelete }: { project: Project, onEdit: 
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: -10 }}
                 transition={{ duration: 0.1 }}
-                className="absolute right-0 top-full mt-1 w-36 bg-popover border border-border rounded-lg shadow-lg overflow-hidden z-10"
+                className="absolute right-0 top-full mt-1 w-44 bg-popover border border-border rounded-lg shadow-lg overflow-hidden z-[100]"
               >
                 <div className="flex flex-col py-1">
                   <button onClick={(e) => { e.preventDefault(); handleEdit(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/50 w-full text-left">
                     <Edit2 size={14} /> Editar Nome
+                  </button>
+                  <button onClick={(e) => { 
+                    e.preventDefault(); 
+                    setIsMenuOpen(false);
+                    if (!isOwner) { toast.error('Apenas o dono pode alterar o status.'); return; }
+                    onComplete?.(project);
+                  }} className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/50 w-full text-left">
+                    <CheckCircle2 size={14} className={project.is_completed ? "text-primary" : ""} /> 
+                    {project.is_completed ? 'Reabrir Projeto' : 'Finalizar Projeto'}
                   </button>
                   <button onClick={(e) => { e.preventDefault(); handleDelete(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 w-full text-left">
                     <Trash2 size={14} /> Excluir
@@ -168,6 +177,26 @@ export default function Projects({ favoritesOnly = false }: ProjectsProps) {
   const [projectToEdit, setProjectToEdit] = useState<Project | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 
+  const handleToggleComplete = async (projectToToggle: Project) => {
+    try {
+      const newStatus = !projectToToggle.is_completed;
+      const { error } = await supabase
+        .from('projects')
+        .update({ is_completed: newStatus })
+        .eq('id', projectToToggle.id);
+
+      if (error) throw error;
+      
+      setProjects(projects.map(p => 
+        p.id === projectToToggle.id ? { ...p, is_completed: newStatus } : p
+      ));
+      
+      toast.success(newStatus ? 'Projeto finalizado com sucesso!' : 'Projeto reaberto!');
+    } catch (error: any) {
+      toast.error('Erro ao atualizar status do projeto: ' + error.message);
+    }
+  };
+
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       <Sidebar projects={projects} onProjectCreated={fetchProjects} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
@@ -244,6 +273,7 @@ export default function Projects({ favoritesOnly = false }: ProjectsProps) {
                   project={project} 
                   onEdit={setProjectToEdit}
                   onDelete={setProjectToDelete}
+                  onComplete={handleToggleComplete}
                 />
               ))}
             </div>
