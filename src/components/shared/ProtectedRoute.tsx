@@ -21,7 +21,7 @@ export function ProtectedRoute({ adminOnly = false }: ProtectedRouteProps) {
   }
 
   if (adminOnly && profile?.role !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/projects" replace />;
   }
 
   return <Outlet />;

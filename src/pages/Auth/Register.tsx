@@ -37,7 +37,7 @@ export default function Register() {
           data: {
             full_name: data.name,
           },
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: `${window.location.origin}/projects`,
         },
       });
 
@@ -60,7 +60,7 @@ export default function Register() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: `${window.location.origin}/projects`
         }
       });
       if (error) throw error;

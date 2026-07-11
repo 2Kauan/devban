@@ -63,7 +63,7 @@ export default function Admin() {
   return (
     <div className="flex-1 p-8 bg-muted/10 h-full overflow-y-auto">
       <header className="mb-8 flex items-center gap-4">
-        <Link to="/dashboard" className="w-10 h-10 flex items-center justify-center bg-card border border-border text-muted-foreground hover:bg-muted hover:text-foreground rounded-xl transition-colors">
+        <Link to="/projects" className="w-10 h-10 flex items-center justify-center bg-card border border-border text-muted-foreground hover:bg-muted hover:text-foreground rounded-xl transition-colors">
           <ArrowLeft size={20} />
         </Link>
         <div>

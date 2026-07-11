@@ -46,7 +46,7 @@ export function ProjectHeader({
       if (error) throw error;
       
       toast.success('Projeto excluído permanentemente.');
-      navigate('/dashboard');
+      navigate('/projects');
     } catch (error: any) {
       toast.error('Erro ao excluir projeto: ' + error.message);
       setIsDeleting(false);

@@ -93,13 +93,6 @@ export function Sidebar({ onProjectCreated, isOpen, onClose }: SidebarProps) {
           {/* Main Actions */}
           <nav className="space-y-3">
             <Link 
-              to="/dashboard" 
-              className={`flex items-center gap-3 px-3 py-3 rounded-md text-sm transition-colors ${isActive('/dashboard') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              Dashboard
-            </Link>
-            <Link 
               to="/projects" 
               className={`flex items-center justify-between gap-3 px-3 py-3 rounded-md text-sm transition-colors ${isActive('/projects') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
             >
@@ -117,6 +110,13 @@ export function Sidebar({ onProjectCreated, isOpen, onClose }: SidebarProps) {
               >
                 <Plus size={14} />
               </button>
+            </Link>
+            <Link 
+              to="/dashboard" 
+              className={`flex items-center gap-3 px-3 py-3 rounded-md text-sm transition-colors ${isActive('/dashboard') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Dashboard
             </Link>
             <Link 
               to="/favorites" 

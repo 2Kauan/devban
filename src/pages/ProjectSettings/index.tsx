@@ -241,7 +241,7 @@ export default function ProjectSettings() {
         projectName={project.name}
         projectId={project.id}
         isUsed={project.is_used}
-        onSuccess={() => navigate('/dashboard')}
+        onSuccess={() => navigate('/projects')}
       />
     </div>
   );

@@ -40,7 +40,7 @@ export default function Login() {
       }
 
       toast.success('Login realizado com sucesso!');
-      navigate('/dashboard');
+      navigate('/projects');
     } catch (error) {
       toast.error('Ocorreu um erro ao fazer login');
     } finally {
@@ -53,7 +53,7 @@ export default function Login() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: `${window.location.origin}/projects`
         }
       });
       if (error) throw error;

@@ -93,7 +93,7 @@ export default function ProjectPage() {
     return (
       <div className="flex-1 flex flex-col items-center justify-center">
         <h2 className="text-xl font-bold mb-2">Projeto não encontrado</h2>
-        <Link to="/dashboard" className="text-primary hover:underline">Voltar ao Dashboard</Link>
+        <Link to="/projects" className="text-primary hover:underline">Voltar aos Projetos</Link>
       </div>
     );
   }
