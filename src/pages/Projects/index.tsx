@@ -12,7 +12,7 @@ import { RenameProjectModal } from '@/components/ui/RenameProjectModal';
 import { DeleteProjectModal } from '@/components/ui/DeleteProjectModal';
 
 // Componente do Menu Dropdown do Cartão
-function ProjectCard({ project, onEdit, onDelete, onComplete }: { project: Project, onEdit: (p: Project) => void, onDelete: (p: Project) => void, onComplete?: (p: Project) => void }) {
+function ProjectCard({ project, onDelete, onComplete }: { project: Project, onDelete: (p: Project) => void, onComplete?: (p: Project) => void }) {
   const { user } = useAuth();
   const { favorites, toggleFavorite } = useFavorites(user?.id);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -30,15 +30,6 @@ function ProjectCard({ project, onEdit, onDelete, onComplete }: { project: Proje
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const handleEdit = async () => {
-    setIsMenuOpen(false);
-    if (!isOwner) {
-      toast.error('Apenas o dono do projeto pode editar.');
-      return;
-    }
-    onEdit(project);
-  };
 
   const handleDelete = async () => {
     setIsMenuOpen(false);
@@ -82,9 +73,6 @@ function ProjectCard({ project, onEdit, onDelete, onComplete }: { project: Proje
                 className="absolute right-0 top-full mt-1 w-44 bg-popover border border-border rounded-lg shadow-lg overflow-hidden z-[100]"
               >
                 <div className="flex flex-col py-1">
-                  <button onClick={(e) => { e.preventDefault(); handleEdit(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/50 w-full text-left">
-                    <Edit2 size={14} /> Editar Nome
-                  </button>
                   <button onClick={(e) => { 
                     e.preventDefault(); 
                     setIsMenuOpen(false);
@@ -174,7 +162,6 @@ export default function Projects({ favoritesOnly = false }: ProjectsProps) {
     ? projects.filter(p => favorites.includes(p.id))
     : projects;
 
-  const [projectToEdit, setProjectToEdit] = useState<Project | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 
   const handleToggleComplete = async (projectToToggle: Project) => {
@@ -271,7 +258,6 @@ export default function Projects({ favoritesOnly = false }: ProjectsProps) {
                 <ProjectCard 
                   key={project.id} 
                   project={project} 
-                  onEdit={setProjectToEdit}
                   onDelete={setProjectToDelete}
                   onComplete={handleToggleComplete}
                 />
@@ -281,16 +267,6 @@ export default function Projects({ favoritesOnly = false }: ProjectsProps) {
 
         </div>
       </main>
-
-      {projectToEdit && (
-        <RenameProjectModal
-          isOpen={!!projectToEdit}
-          onClose={() => setProjectToEdit(null)}
-          projectName={projectToEdit.name}
-          projectId={projectToEdit.id}
-          onSuccess={fetchProjects}
-        />
-      )}
 
       {projectToDelete && (
         <DeleteProjectModal
