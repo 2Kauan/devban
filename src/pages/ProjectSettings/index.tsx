@@ -29,20 +29,41 @@ export default function ProjectSettings() {
       toast.error('O nome do projeto é obrigatório.');
       return;
     }
+
+    const isChangingName = name.trim() !== project.name;
+
+    if (isChangingName) {
+      if (project.name_changed) {
+        toast.error('O nome do projeto só pode ser alterado uma vez.');
+        setName(project.name);
+        return;
+      }
+
+      const confirmed = confirm('Atenção: Você só poderá alterar o nome do projeto UMA ÚNICA VEZ. Tem certeza que deseja confirmar este novo nome?');
+      if (!confirmed) return;
+    }
     
     setIsSaving(true);
     try {
+      const updates: any = { description: description.trim() };
+      if (isChangingName) {
+        updates.name = name.trim();
+        updates.name_changed = true;
+      }
+
       const { error } = await supabase
         .from('projects')
-        .update({ name: name.trim(), description: description.trim() })
+        .update(updates)
         .eq('id', project.id);
 
       if (error) throw error;
       toast.success('Projeto atualizado com sucesso!');
       
-      // In a real app we might want to refresh the project context here
-      // But the ProjectLayout fetches on mount, so it might need a global state or force refresh
-      // For now, toast is enough feedback.
+      // Update local object to avoid having to reload immediately
+      if (isChangingName) {
+        project.name = name.trim();
+        project.name_changed = true;
+      }
     } catch (error: any) {
       toast.error('Erro ao atualizar projeto: ' + error.message);
     } finally {
@@ -104,15 +125,17 @@ export default function ProjectSettings() {
           
           <form onSubmit={handleSave} className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-foreground mb-1.5">
-                Nome do Projeto <span className="text-destructive">*</span>
+              <label className="block text-sm font-semibold text-foreground mb-1.5 flex justify-between items-center">
+                <span>Nome do Projeto <span className="text-destructive">*</span></span>
+                {project.name_changed && <span className="text-[11px] text-muted-foreground font-normal">Nome já alterado</span>}
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                disabled={project.name_changed}
                 placeholder="Ex: Novo App Mobile"
-                className="w-full bg-background border border-border/60 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
+                className={`w-full bg-background border border-border/60 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm ${project.name_changed ? 'opacity-60 cursor-not-allowed bg-muted/30' : ''}`}
               />
             </div>
             
