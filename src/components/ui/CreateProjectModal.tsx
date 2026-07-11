@@ -54,11 +54,15 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
     async function checkSlots() {
       if (!user || !isOpen) return;
       try {
-        const { count: projectsCount } = await supabase.from('projects').select('*', { count: 'exact', head: true }).eq('owner_id', user.id);
+        const { data: profile } = await supabase.from('profiles').select('free_slot_consumed').eq('id', user.id).single();
+        const { count: freeProjects } = await supabase.from('projects').select('*', { count: 'exact', head: true }).eq('owner_id', user.id).eq('is_free', true);
         const { count: paymentsCount } = await supabase.from('payments').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'confirmed');
-        const allowedSlots = 1 + (paymentsCount || 0);
-        const currentProjects = projectsCount || 0;
-        setRequiresPayment(currentProjects >= allowedSlots);
+        const { count: premiumProjects } = await supabase.from('projects').select('*', { count: 'exact', head: true }).eq('owner_id', user.id).eq('is_free', false);
+
+        const canCreateFree = freeProjects === 0 && profile?.free_slot_consumed === false;
+        const canCreatePremium = (premiumProjects || 0) < (paymentsCount || 0);
+
+        setRequiresPayment(!canCreateFree && !canCreatePremium);
       } catch (e) {
         console.error("Error checking slots:", e);
       }
@@ -102,27 +106,20 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
     setIsLoading(true);
 
     try {
-      // Logic for Slots/Balance
-      // 1 slot free by default + 1 slot per confirmed payment
-      const { count: projectsCount, error: checkProjError } = await supabase
-        .from('projects')
-        .select('*', { count: 'exact', head: true })
-        .eq('owner_id', user.id);
-        
-      if (checkProjError) throw checkProjError;
+      const { data: profile } = await supabase.from('profiles').select('free_slot_consumed').eq('id', user.id).single();
+      const { count: freeProjects, error: checkFreeError } = await supabase.from('projects').select('*', { count: 'exact', head: true }).eq('owner_id', user.id).eq('is_free', true);
+      if (checkFreeError) throw checkFreeError;
 
-      const { count: paymentsCount, error: checkPayError } = await supabase
-        .from('payments')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('status', 'confirmed');
-        
+      const { count: paymentsCount, error: checkPayError } = await supabase.from('payments').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'confirmed');
       if (checkPayError) throw checkPayError;
+
+      const { count: premiumProjects, error: checkPremError } = await supabase.from('projects').select('*', { count: 'exact', head: true }).eq('owner_id', user.id).eq('is_free', false);
+      if (checkPremError) throw checkPremError;
       
-      const allowedSlots = 1 + (paymentsCount || 0);
-      const currentProjects = projectsCount || 0;
-      
-      const requiresPayment = currentProjects >= allowedSlots;
+      const canCreateFree = freeProjects === 0 && profile?.free_slot_consumed === false;
+      const canCreatePremium = (premiumProjects || 0) < (paymentsCount || 0);
+
+      const requiresPayment = !canCreateFree && !canCreatePremium;
 
       if (requiresPayment) {
         if (!data.cpf || !isValidCPF(data.cpf)) {
@@ -182,7 +179,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
           owner_id: user.id,
           name: data.name,
           description: data.description,
-          is_free: true,
+          is_free: canCreateFree,
         }).select().single();
 
         if (error) throw error;

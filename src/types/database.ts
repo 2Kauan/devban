@@ -12,6 +12,7 @@ export interface Profile {
   email: string;
   avatar_url: string | null;
   role: Role;
+  free_slot_consumed?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -24,6 +25,7 @@ export interface Project {
   is_free: boolean;
   name_changed?: boolean;
   is_completed?: boolean;
+  is_used?: boolean;
   payment_id: string | null;
   share_token: string;
   share_permission: SharePermission;

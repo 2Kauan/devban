@@ -49,14 +49,14 @@ export function ProjectLayout() {
   };
 
   const tabs = [
-    { name: 'Resumo', path: `/project/${id}`, icon: LayoutDashboard },
-    { name: 'Kanban', path: `/project/${id}/kanban`, icon: Layout },
+    { name: 'Kanban', path: `/project/${id}`, icon: Layout },
+    { name: 'Resumo', path: `/project/${id}/resumo`, icon: LayoutDashboard },
     { name: 'Equipe', path: `/project/${id}/team`, icon: Users },
     { name: 'Atividades', path: `/project/${id}/activity`, icon: Activity },
     { name: 'Configurações', path: `/project/${id}/settings`, icon: Settings },
   ];
 
-  const currentTabName = tabs.find(t => location.pathname === t.path)?.name || 'Resumo';
+  const currentTabName = tabs.find(t => location.pathname === t.path)?.name || 'Kanban';
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">

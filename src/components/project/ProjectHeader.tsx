@@ -213,12 +213,22 @@ export function ProjectHeader({
                   </div>
                 </div>
                 
-                <div className="bg-muted/30 border border-border/40 rounded-xl p-3.5 flex gap-3 items-start mt-5 ml-14">
-                  <span className="shrink-0 text-muted-foreground mt-0.5"><Lightbulb size={16} /></span>
-                  <p className="text-[13px] text-muted-foreground/90 font-medium leading-relaxed">
-                    A boa notícia: seu limite será reajustado! Uma nova vaga será liberada para você criar um projeto no lugar deste.
-                  </p>
-                </div>
+                {project.is_free && project.is_used ? (
+                  <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-3.5 flex gap-3 items-start mt-5">
+                    <span className="shrink-0 text-destructive mt-0.5"><AlertTriangle size={16} /></span>
+                    <div className="text-[13px] text-destructive leading-relaxed font-medium">
+                      <p>Este projeto já utilizou o benefício gratuito da sua conta.</p>
+                      <p className="font-bold mt-1">A exclusão NÃO restaurará o direito de criar um novo projeto gratuito.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-muted/30 border border-border/40 rounded-xl p-3.5 flex gap-3 items-start mt-5 ml-14">
+                    <span className="shrink-0 text-muted-foreground mt-0.5"><Lightbulb size={16} /></span>
+                    <p className="text-[13px] text-muted-foreground/90 font-medium leading-relaxed">
+                      A boa notícia: seu limite será reajustado! Uma nova vaga será liberada para você criar um projeto no lugar deste.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end gap-3 px-6 py-4 bg-muted/10 border-t border-border/40">

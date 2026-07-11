@@ -9,10 +9,12 @@ interface DeleteProjectModalProps {
   onClose: () => void;
   projectName: string;
   projectId: string;
+  isFree?: boolean;
+  isUsed?: boolean;
   onSuccess: () => void;
 }
 
-export function DeleteProjectModal({ isOpen, onClose, projectName, projectId, onSuccess }: DeleteProjectModalProps) {
+export function DeleteProjectModal({ isOpen, onClose, projectName, projectId, isFree, isUsed, onSuccess }: DeleteProjectModalProps) {
   const [confirmName, setConfirmName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -41,6 +43,8 @@ export function DeleteProjectModal({ isOpen, onClose, projectName, projectId, on
       setIsLoading(false);
     }
   };
+
+  const showSlotWarning = isFree && isUsed;
 
   return (
     <AnimatePresence>
@@ -74,9 +78,18 @@ export function DeleteProjectModal({ isOpen, onClose, projectName, projectId, on
             </div>
 
             <div className="p-6 space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Esta ação não pode ser desfeita. Isso excluirá permanentemente o projeto <strong className="text-foreground">{projectName}</strong> e todos os seus dados associados.
-              </p>
+              {showSlotWarning ? (
+                <div className="bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-lg space-y-2">
+                  <p className="font-bold">Este projeto já utilizou o benefício gratuito da sua conta.</p>
+                  <p className="text-sm">Ao excluí-lo, todos os dados serão apagados permanentemente.</p>
+                  <p className="text-sm font-bold">A exclusão NÃO restaurará o direito de criar um novo projeto gratuito.</p>
+                  <p className="text-sm">Para iniciar um novo projeto será necessário adquirir um novo slot permanente.</p>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Esta ação não pode ser desfeita. Isso excluirá permanentemente o projeto <strong className="text-foreground">{projectName}</strong> e todos os seus dados associados.
+                </p>
+              )}
               
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">

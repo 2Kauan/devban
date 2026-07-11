@@ -48,8 +48,8 @@ export function AppRoutes() {
             <Route path="/settings" element={<Settings />} />
             
             <Route path="/project/:id" element={<ProjectLayout />}>
-              <Route index element={<ProjectDashboard />} />
-              <Route path="kanban" element={<Project />} />
+              <Route index element={<Project />} />
+              <Route path="resumo" element={<ProjectDashboard />} />
               <Route path="team" element={<ProjectTeam />} />
               <Route path="activity" element={<ProjectActivity />} />
               <Route path="settings" element={<ProjectSettings />} />

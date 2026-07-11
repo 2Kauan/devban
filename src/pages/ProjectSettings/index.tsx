@@ -240,6 +240,8 @@ export default function ProjectSettings() {
         onClose={() => setShowDeleteModal(false)}
         projectName={project.name}
         projectId={project.id}
+        isFree={project.is_free}
+        isUsed={project.is_used}
         onSuccess={() => navigate('/dashboard')}
       />
     </div>
