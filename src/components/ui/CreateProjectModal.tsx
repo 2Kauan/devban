@@ -44,6 +44,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
   const [paymentData, setPaymentData] = useState<{ id: string; pixQrCode: string | null; invoiceUrl: string | null; pixEncodedImage?: string | null } | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'credit_card'>('pix');
   const [requiresPayment, setRequiresPayment] = useState(false);
+  const [isCheckingSlots, setIsCheckingSlots] = useState(true);
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ProjectForm>({
     resolver: zodResolver(projectSchema),
@@ -53,6 +54,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
   useEffect(() => {
     async function checkSlots() {
       if (!user || !isOpen) return;
+      setIsCheckingSlots(true);
       try {
         const { data: profile } = await supabase.from('profiles').select('free_slot_consumed').eq('id', user.id).single();
         const { count: freeProjects } = await supabase.from('projects').select('*', { count: 'exact', head: true }).eq('owner_id', user.id).eq('is_free', true);
@@ -65,6 +67,8 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
         setRequiresPayment(!canCreateFree && !canCreatePremium);
       } catch (e) {
         console.error("Error checking slots:", e);
+      } finally {
+        setIsCheckingSlots(false);
       }
     }
     checkSlots();
@@ -289,7 +293,12 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
             </div>
 
             <div className="p-6 overflow-y-auto custom-scrollbar">
-              {!showPayment ? (
+              {isCheckingSlots ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+                  <p className="text-muted-foreground font-medium">Verificando elegibilidade...</p>
+                </div>
+              ) : !showPayment ? (
                 <form onSubmit={handleSubmit(handleCreate)} className="space-y-5">
                   {requiresPayment && (
                     <motion.div 
