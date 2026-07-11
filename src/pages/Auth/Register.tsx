@@ -46,7 +46,7 @@ export default function Register() {
         return;
       }
 
-      toast.success('Conta criada com sucesso! Você já pode fazer login.');
+      toast.success('Conta criada! Verifique seu email para confirmar o cadastro antes de fazer login.');
       navigate('/login');
     } catch (error) {
       toast.error('Ocorreu um erro ao criar a conta');
