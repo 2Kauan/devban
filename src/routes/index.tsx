@@ -15,6 +15,7 @@ import Reports from '@/pages/Reports';
 import Notifications from '@/pages/Notifications';
 import SharedProject from '@/pages/SharedProject';
 import Preview from '@/pages/Preview';
+import Calendar from '@/pages/Calendar';
 import NotFound from '@/pages/NotFound';
 import Projects from '@/pages/Projects';
 import ProjectDashboard from '@/pages/ProjectDashboard';
@@ -22,6 +23,7 @@ import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import ProjectTeam from '@/pages/ProjectTeam';
 import ProjectActivity from '@/pages/ProjectActivity';
 import ProjectSettings from '@/pages/ProjectSettings';
+import ProjectPlanning from '@/pages/ProjectPlanning';
 
 export function AppRoutes() {
   return (
@@ -46,6 +48,7 @@ export function AppRoutes() {
             <Route path="/favorites" element={<Projects favoritesOnly />} />
             <Route path="/team" element={<Team />} />
             <Route path="/reports" element={<Reports />} />
+            <Route path="/calendar" element={<Calendar />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/notifications" element={<Notifications />} />
             
@@ -53,6 +56,7 @@ export function AppRoutes() {
               <Route index element={<Project />} />
               <Route path="resumo" element={<ProjectDashboard />} />
               <Route path="team" element={<ProjectTeam />} />
+              <Route path="planning" element={<ProjectPlanning />} />
               <Route path="activity" element={<ProjectActivity />} />
               <Route path="settings" element={<ProjectSettings />} />
             </Route>

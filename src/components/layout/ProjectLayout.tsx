@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useParams, Link, useLocation } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { ChevronRight, LayoutDashboard, Layout, Users, Activity, Settings, Menu } from 'lucide-react';
+import { ChevronRight, LayoutDashboard, Layout, Users, Activity, Settings, Menu, CalendarDays } from 'lucide-react';
 import type { Project } from '@/types/database';
 import { toast } from 'sonner';
 
@@ -17,29 +18,45 @@ export function ProjectLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    if (user && id) {
-      fetchData();
-    }
-  }, [user, id]);
-
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      // Fetch all projects for sidebar
-      const { data: allProjects, error: allErr } = await supabase
+      // 1. Fetch the current project directly by ID (works for owner AND member)
+      const { data: currentProject, error: projErr } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (projErr) throw new Error('Projeto não encontrado ou sem permissão.');
+      setProject(currentProject);
+
+      // 2. Fetch all projects for sidebar (owned + member)
+      const { data: ownedProjects } = await supabase
         .from('projects')
         .select('*')
         .eq('owner_id', user?.id)
         .order('created_at', { ascending: false });
 
-      if (allErr) throw allErr;
-      setProjects(allProjects || []);
+      const { data: memberRows } = await supabase
+        .from('project_members')
+        .select('project_id')
+        .eq('user_id', user?.id);
 
-      // Set current project
-      const current = allProjects?.find(p => p.id === id);
-      if (current) setProject(current);
-      else throw new Error('Projeto não encontrado');
+      const memberIds = memberRows?.map(r => r.project_id) || [];
+      let memberProjects: any[] = [];
+      if (memberIds.length > 0) {
+        const { data: mp } = await supabase
+          .from('projects')
+          .select('*')
+          .in('id', memberIds);
+        memberProjects = mp || [];
+      }
+
+      // Merge and deduplicate
+      const allMap = new Map();
+      [...(ownedProjects || []), ...memberProjects].forEach(p => allMap.set(p.id, p));
+      setProjects(Array.from(allMap.values()));
 
     } catch (error: any) {
       toast.error(error.message);
@@ -48,8 +65,15 @@ export function ProjectLayout() {
     }
   };
 
+  useEffect(() => {
+    if (user && id) {
+      fetchData();
+    }
+  }, [user, id]);
+
   const tabs = [
     { name: 'Kanban', path: `/project/${id}`, icon: Layout },
+    { name: 'Planejamento', path: `/project/${id}/planning`, icon: CalendarDays },
     { name: 'Resumo', path: `/project/${id}/resumo`, icon: LayoutDashboard },
     { name: 'Equipe', path: `/project/${id}/team`, icon: Users },
     { name: 'Atividades', path: `/project/${id}/activity`, icon: Activity },
@@ -57,6 +81,15 @@ export function ProjectLayout() {
   ];
 
   const currentTabName = tabs.find(t => location.pathname === t.path)?.name || 'Kanban';
+
+  // Show loading spinner while fetching project data
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
@@ -104,14 +137,8 @@ export function ProjectLayout() {
         </div>
 
         {/* Dynamic Content */}
-        <div className="flex-1 overflow-y-auto bg-background/50 relative">
-          {isLoading ? (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-            </div>
-          ) : (
-            <Outlet context={{ project }} />
-          )}
+        <div className="flex-1 flex flex-col overflow-hidden relative">
+          <Outlet context={{ project }} />
         </div>
       </main>
     </div>

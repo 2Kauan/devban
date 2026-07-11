@@ -1,0 +1,66 @@
+import type { KanbanCardType } from '@/types/kanban';
+
+interface CalendarEventProps {
+  event: KanbanCardType;
+  onClick: (event: KanbanCardType) => void;
+}
+
+export function CalendarEvent({ event, onClick }: CalendarEventProps) {
+  const category = event.categories?.[0];
+  const color = category?.color || event.border_color || 'blue-500';
+  
+  // Extrair horário se existir na string ISO (ex: "2023-10-12T14:30:00")
+  let timeStr = '';
+  if (event.due_date && event.due_date.includes('T')) {
+    const timePart = event.due_date.split('T')[1];
+    if (timePart && timePart !== '00:00:00.000Z') {
+      timeStr = timePart.substring(0, 5);
+    }
+  }
+
+  // Handle native drag
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData('text/plain', event.id);
+    e.dataTransfer.effectAllowed = 'move';
+    // Pequeno delay para a UI ficar limpa durante o drag
+    setTimeout(() => {
+      const el = e.target as HTMLElement;
+      el.style.opacity = '0.5';
+    }, 0);
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    const el = e.target as HTMLElement;
+    el.style.opacity = '1';
+  };
+
+  return (
+    <div
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick(event);
+      }}
+      className={`relative flex items-center px-2 py-1 mb-1 text-xs rounded-md cursor-pointer overflow-hidden transition-all hover:scale-[1.02] shadow-sm`}
+      style={{
+        backgroundColor: `rgba(var(--color-${color}), 0.1)`,
+      }}
+    >
+      <div 
+        className="absolute left-0 top-0 bottom-0 w-1 rounded-l-md"
+        style={{ backgroundColor: color.startsWith('#') ? color : `var(--color-${color})` }}
+      />
+      {/* Exemplo de borda tailwind: border-l-2 border-${color} (Se a cor vier direto do tailwind como 'blue-500') */}
+      {/* Para manter compatibilidade com as cores do Kanban (blue-500), usaremos classes do tailwind dinamicamente ou mapeadas. */}
+      {/* Devido ao Tailwind, classes dinâmicas precisam estar na safelist ou geramos um mapeamento seguro: */}
+      <div className={`absolute left-0 top-0 bottom-0 w-1 bg-${color}`} />
+      
+      <div className="flex-1 truncate pl-1 font-medium text-foreground">
+        {timeStr && <span className="text-muted-foreground mr-1 text-[10px] font-normal">{timeStr}</span>}
+        {event.title}
+      </div>
+    </div>
+  );
+}

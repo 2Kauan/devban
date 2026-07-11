@@ -14,6 +14,8 @@ import type { ProjectMember } from '@/hooks/useProjectQuery';
 interface CardModalProps {
   card: KanbanCardType | null;
   isOpen: boolean;
+  initialDate?: Date;
+  initialColumnId?: string;
   onClose: () => void;
   onUpdate: () => void;
   projectCategories?: Category[];
@@ -37,7 +39,7 @@ interface Checklist {
   items: ChecklistItem[];
 }
 
-export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories = [], projectMembers = [], projectId, canEdit = true, allCards = [], columns = [] }: CardModalProps) {
+export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories = [], projectMembers = [], projectId, canEdit = true, allCards = [], columns = [], initialDate, initialColumnId }: CardModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const [localTags, setLocalTags] = useState<Category[]>([]);
@@ -63,8 +65,9 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
       title: '',
       description: '',
       priority: 'medium',
-      due_date: '',
+      due_date: initialDate ? initialDate.toISOString().split('T')[0] : '',
       border_color: '',
+      column_id: initialColumnId || (columns?.length > 0 ? columns[0].id : '')
     }
   });
 
@@ -85,8 +88,20 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
       setIsAssigneeOpen(false);
       setIsPriorityOpen(false);
       fetchChecklists();
+    } else {
+      reset({
+        title: '',
+        description: '',
+        priority: 'medium',
+        due_date: initialDate ? initialDate.toISOString().split('T')[0] : '',
+        border_color: '',
+        column_id: initialColumnId || (columns?.length > 0 ? columns[0].id : '')
+      });
+      setLocalTags([]);
+      setLocalAssignees([]);
+      setChecklists([]);
     }
-  }, [card, reset]);
+  }, [card, reset, initialDate, initialColumnId, columns]);
 
   const fetchChecklists = async () => {
     if (!card) return;
@@ -151,28 +166,70 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
     }
   };
 
-  if (!isOpen || !card) return null;
+  if (!isOpen) return null;
 
   const onSubmit = async (data: any) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('cards')
-        .update({
-          title: data.title,
-          description: data.description,
-          priority: data.priority,
-          due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
-          border_color: data.border_color || null,
-        })
-        .eq('id', card.id);
+      if (card) {
+        const { error } = await supabase
+          .from('cards')
+          .update({
+            title: data.title,
+            description: data.description,
+            priority: data.priority,
+            due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
+            border_color: data.border_color || null,
+          })
+          .eq('id', card.id);
 
-      if (error) throw error;
-      toast.success('Cartão atualizado!');
+        if (error) throw error;
+        toast.success('Cartão atualizado!');
+      } else {
+        if (!projectId || !data.column_id) {
+          throw new Error('Projeto ou Coluna não definidos');
+        }
+        
+        // Find position for new card
+        const colCards = allCards.filter(c => c.column_id === data.column_id);
+        const position = colCards.length > 0 ? colCards[colCards.length - 1].position + 1000 : 1000;
+
+        const { data: newCard, error } = await supabase
+          .from('cards')
+          .insert({
+            project_id: projectId,
+            column_id: data.column_id,
+            title: data.title,
+            description: data.description,
+            priority: data.priority,
+            due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
+            border_color: data.border_color || null,
+            position
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        
+        // Insert tags and assignees
+        if (localTags.length > 0) {
+          await supabase.from('card_categories').insert(
+            localTags.map(tag => ({ card_id: newCard.id, category_id: tag.id }))
+          );
+        }
+        if (localAssignees.length > 0) {
+          await supabase.from('card_assignees').insert(
+            localAssignees.map(user => ({ card_id: newCard.id, user_id: user.id }))
+          );
+        }
+
+        toast.success('Cartão criado!');
+      }
+      
       onUpdate();
       onClose();
     } catch (error: any) {
-      toast.error('Erro ao atualizar: ' + error.message);
+      toast.error('Erro ao salvar: ' + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -186,6 +243,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
       onConfirm: async () => {
         setIsLoading(true);
         try {
+          if (!card) return;
           const { error } = await supabase.from('cards').delete().eq('id', card.id);
           if (error) throw error;
           toast.success('Cartão excluído!');
@@ -202,6 +260,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
   };
 
   const handleCreateChecklist = async () => {
+    if (!card) return;
     try {
       const { data, error } = await supabase
         .from('checklists')
