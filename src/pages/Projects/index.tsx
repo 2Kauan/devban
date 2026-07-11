@@ -298,7 +298,6 @@ export default function Projects({ favoritesOnly = false }: ProjectsProps) {
           onClose={() => setProjectToDelete(null)}
           projectName={projectToDelete.name}
           projectId={projectToDelete.id}
-          isFree={projectToDelete.is_free}
           isUsed={projectToDelete.is_used}
           onSuccess={fetchProjects}
         />
