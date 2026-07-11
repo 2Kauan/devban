@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopHeader } from '@/components/layout/TopHeader';
 import { Link } from 'react-router-dom';
-import { Plus, MoreVertical, Folder, Star, Users, CheckCircle2, Menu, Trash2 } from 'lucide-react';
+import { Plus, MoreVertical, Folder, Star, Users, CheckCircle2, Trash2 } from 'lucide-react';
 import type { Project } from '@/types/database';
 import { toast } from 'sonner';
 import { useFavorites } from '@/hooks/useFavorites';

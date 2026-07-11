@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopHeader } from '@/components/layout/TopHeader';
 import { supabase } from '@/lib/supabase';
-import { Menu, BarChart3, TrendingUp, CheckSquare, Layers, Users, X } from 'lucide-react';
+import { BarChart3, TrendingUp, CheckSquare, Layers, Users, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopHeader } from '@/components/layout/TopHeader';
 import { useAuth } from '@/contexts/AuthContext';
-import { Menu, Save, User, Mail, Loader2, Camera, Moon, Sun, Monitor } from 'lucide-react';
+import { Save, User, Mail, Loader2, Camera, Moon, Sun, Monitor } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { ImageCropModal } from '@/components/ui/ImageCropModal';

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell, Menu, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
