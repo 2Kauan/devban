@@ -16,9 +16,11 @@ export interface Profile {
   free_slot_consumed?: boolean;
   created_at: string;
   updated_at: string;
+  color?: string;
 }
 
 export interface Project {
+  color: string;
   id: string;
   owner_id: string;
   name: string;

@@ -381,7 +381,7 @@ export default function Calendar() {
                         onClick={() => handlePickProject(project.id)}
                         className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted/60 transition-colors text-left"
                       >
-                        <div 
+                        <div
                           className="w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0"
                           style={{ backgroundColor: project.color || '#6366f1' }}
                         >
