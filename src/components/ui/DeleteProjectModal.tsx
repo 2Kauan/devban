@@ -44,8 +44,6 @@ export function DeleteProjectModal({ isOpen, onClose, projectName, projectId, is
     }
   };
 
-  const showSlotWarning = isFree && isUsed;
-
   return (
     <AnimatePresence>
       {isOpen && (
