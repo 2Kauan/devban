@@ -21,6 +21,43 @@ export function Sidebar({ onProjectCreated, isOpen, onClose }: SidebarProps) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchUnreadCount = async () => {
+      const { count } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+      
+      setUnreadNotifications(count || 0);
+    };
+
+    fetchUnreadCount();
+
+    const channel = supabase
+      .channel('sidebar_notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          fetchUnreadCount();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const handleDeleteAccount = async () => {
     if (!user) return;
@@ -141,10 +178,17 @@ export function Sidebar({ onProjectCreated, isOpen, onClose }: SidebarProps) {
             </Link>
             <Link 
               to="/notifications" 
-              className={`flex items-center gap-3 px-3 py-3 rounded-md text-sm transition-colors ${isActive('/notifications') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
+              className={`flex items-center justify-between gap-3 px-3 py-3 rounded-md text-sm transition-colors ${isActive('/notifications') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
             >
-              <Bell className="h-4 w-4" />
-              Notificações
+              <div className="flex items-center gap-3">
+                <Bell className="h-4 w-4" />
+                Notificações
+              </div>
+              {unreadNotifications > 0 && (
+                <span className="bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  {unreadNotifications > 99 ? '99+' : unreadNotifications}
+                </span>
+              )}
             </Link>
           </nav>
         </div>

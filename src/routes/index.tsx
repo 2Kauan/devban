@@ -12,6 +12,7 @@ import Admin from '@/pages/Admin';
 import Team from '@/pages/Team';
 import Settings from '@/pages/Settings';
 import Reports from '@/pages/Reports';
+import Notifications from '@/pages/Notifications';
 import SharedProject from '@/pages/SharedProject';
 import Preview from '@/pages/Preview';
 import NotFound from '@/pages/NotFound';
@@ -46,6 +47,7 @@ export function AppRoutes() {
             <Route path="/team" element={<Team />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/notifications" element={<Notifications />} />
             
             <Route path="/project/:id" element={<ProjectLayout />}>
               <Route index element={<Project />} />

@@ -4,6 +4,7 @@ export type CardPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type PaymentMethod = 'pix' | 'credit_card';
 export type PaymentStatus = 'pending' | 'confirmed' | 'failed';
 export type ProjectPermission = 'owner' | 'editor' | 'viewer' | 'admin' | 'client';
+export type NotificationType = 'project_invite' | 'mention' | 'system';
 
 export interface Profile {
   id: string;
@@ -48,4 +49,17 @@ export interface CardCategory {
   id: string;
   card_id: string;
   category_id: string;
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  actor_id: string | null;
+  project_id: string | null;
+  type: NotificationType;
+  title: string;
+  message: string | null;
+  is_read: boolean;
+  link: string | null;
+  created_at: string;
 }
