@@ -84,17 +84,17 @@ export function Sidebar({ onProjectCreated, isOpen, onClose }: SidebarProps) {
         <div className="flex-1 overflow-y-auto custom-scrollbar py-4 px-3 space-y-6">
           
           {/* Main Actions */}
-          <nav className="space-y-1.5">
+          <nav className="space-y-2">
             <Link 
               to="/dashboard" 
-              className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors ${isActive('/dashboard') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
+              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm transition-colors ${isActive('/dashboard') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
             >
               <LayoutDashboard className="h-4 w-4" />
               Dashboard
             </Link>
             <Link 
               to="/projects" 
-              className={`flex items-center justify-between gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors ${isActive('/projects') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
+              className={`flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-md text-sm transition-colors ${isActive('/projects') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
             >
               <div className="flex items-center gap-2.5">
                 <FolderKanban className="h-4 w-4" />
@@ -113,28 +113,28 @@ export function Sidebar({ onProjectCreated, isOpen, onClose }: SidebarProps) {
             </Link>
             <Link 
               to="/favorites" 
-              className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors ${isActive('/favorites') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
+              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm transition-colors ${isActive('/favorites') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
             >
               <Star className="h-4 w-4" />
               Favoritos
             </Link>
             <Link 
               to="/calendar" 
-              className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors ${isActive('/calendar') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
+              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm transition-colors ${isActive('/calendar') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
             >
               <Calendar className="h-4 w-4" />
               Calendário
             </Link>
             <Link 
               to="/team" 
-              className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors ${isActive('/team') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
+              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm transition-colors ${isActive('/team') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
             >
               <Users className="h-4 w-4" />
               Equipe
             </Link>
             <Link 
               to="/notifications" 
-              className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors ${isActive('/notifications') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
+              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm transition-colors ${isActive('/notifications') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
             >
               <Bell className="h-4 w-4" />
               Notificações
@@ -143,23 +143,23 @@ export function Sidebar({ onProjectCreated, isOpen, onClose }: SidebarProps) {
         </div>
 
         {/* Footer Area */}
-        <div className="mt-auto px-3 py-4 border-t border-border/40 space-y-1.5 shrink-0 bg-background/50 backdrop-blur-md">
+        <div className="mt-auto px-3 py-4 border-t border-border/40 space-y-2 shrink-0 bg-background/50 backdrop-blur-md">
           <Link 
             to="/settings" 
-            className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors ${isActive('/settings') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
+            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm transition-colors ${isActive('/settings') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
           >
             <Settings className="h-4 w-4" />
             Configurações
           </Link>
           {profile?.role === 'admin' && (
-            <Link to="/admin" className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors ${isActive('/admin') ? 'bg-destructive/10 text-destructive font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}>
+            <Link to="/admin" className={`flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm transition-colors ${isActive('/admin') ? 'bg-destructive/10 text-destructive font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}>
               <ShieldAlert className="h-4 w-4" />
               Painel Admin
             </Link>
           )}
           <button 
             onClick={() => setIsDeleteAccountModalOpen(true)}
-            className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors text-red-500 hover:bg-red-500/10 font-medium"
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm transition-colors text-red-500 hover:bg-red-500/10 font-medium"
           >
             <LogOut className="h-4 w-4" />
             Sair
