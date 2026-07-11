@@ -3,12 +3,11 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Link } from 'react-router-dom';
-import { Plus, MoreVertical, Folder, Star, Users, CheckCircle2, Menu, Edit2, Trash2 } from 'lucide-react';
+import { Plus, MoreVertical, Folder, Star, Users, CheckCircle2, Menu, Trash2 } from 'lucide-react';
 import type { Project } from '@/types/database';
 import { toast } from 'sonner';
 import { useFavorites } from '@/hooks/useFavorites';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RenameProjectModal } from '@/components/ui/RenameProjectModal';
 import { DeleteProjectModal } from '@/components/ui/DeleteProjectModal';
 
 // Componente do Menu Dropdown do Cartão
