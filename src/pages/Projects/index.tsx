@@ -267,16 +267,14 @@ export default function Projects({ favoritesOnly = false }: ProjectsProps) {
         </div>
       </main>
 
-      {projectToDelete && (
-        <DeleteProjectModal
-          isOpen={!!projectToDelete}
-          onClose={() => setProjectToDelete(null)}
-          projectName={projectToDelete.name}
-          projectId={projectToDelete.id}
-          isUsed={projectToDelete.is_used}
-          onSuccess={fetchProjects}
-        />
-      )}
+      <DeleteProjectModal
+        isOpen={!!projectToDelete}
+        onClose={() => setProjectToDelete(null)}
+        projectName={projectToDelete?.name || ''}
+        projectId={projectToDelete?.id || ''}
+        isUsed={projectToDelete?.is_used}
+        onSuccess={fetchProjects}
+      />
     </div>
   );
 }
