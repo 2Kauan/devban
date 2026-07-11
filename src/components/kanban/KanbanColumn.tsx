@@ -86,13 +86,19 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
       style={{
         ...style,
       }}
-      className="bg-muted/60 border border-border/50 rounded-xl flex-shrink-0 flex flex-col h-full w-[85vw] md:w-[300px] relative group/col overflow-hidden"
+      className="bg-background/40 backdrop-blur-xl border border-border/40 shadow-sm rounded-2xl flex-shrink-0 flex flex-col h-full w-[85vw] md:w-[300px] relative group/col overflow-hidden transition-colors hover:bg-background/50"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Top Color Detail */}
+      {/* Top Color Detail & Subtle Glow */}
       {column.color && (
-        <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: column.color, opacity: 0.8 }} />
+        <>
+          <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: column.color, opacity: 0.8 }} />
+          <div 
+            className="absolute top-0 left-0 right-0 h-32 opacity-[0.06] pointer-events-none transition-opacity group-hover/col:opacity-[0.1]" 
+            style={{ background: `linear-gradient(to bottom, ${column.color}, transparent)` }} 
+          />
+        </>
       )}
       {/* Column Header */}
       <div 
