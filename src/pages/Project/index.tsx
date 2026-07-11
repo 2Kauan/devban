@@ -6,7 +6,6 @@ import { CardModal } from '@/components/ui/CardModal';
 import { ShareModal } from '@/components/ui/ShareModal';
 import { AccessRequestsModal } from '@/components/ui/AccessRequestsModal';
 import { ProjectHeader } from '@/components/project/ProjectHeader';
-import { Sidebar } from '@/components/layout/Sidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEvent } from '@/hooks/useEvent';
 import { useKanbanModals } from '@/hooks/useKanbanModals';
@@ -69,22 +68,14 @@ export default function ProjectPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen w-full bg-background overflow-hidden">
-        <Sidebar projects={[]} onProjectCreated={() => {}} isOpen={false} onClose={() => {}} />
-        <div className="flex-1 flex flex-col h-full bg-background min-w-0">
-          <div className="h-14 border-b border-border/40 px-6 flex items-center shrink-0">
-            <div className="h-6 w-48 bg-muted/40 rounded-md animate-pulse" />
+      <div className="flex-1 p-6 flex gap-6 overflow-hidden">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="w-[300px] shrink-0 h-full flex flex-col gap-3">
+            <div className="h-12 w-full bg-muted/20 rounded-xl animate-pulse" />
+            <div className="h-24 w-full bg-muted/20 rounded-xl animate-pulse" />
+            <div className="h-32 w-full bg-muted/20 rounded-xl animate-pulse" />
           </div>
-          <div className="flex-1 p-6 flex gap-6 overflow-hidden">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="w-[300px] shrink-0 h-full flex flex-col gap-3">
-                <div className="h-12 w-full bg-muted/20 rounded-xl animate-pulse" />
-                <div className="h-24 w-full bg-muted/20 rounded-xl animate-pulse" />
-                <div className="h-32 w-full bg-muted/20 rounded-xl animate-pulse" />
-              </div>
-            ))}
-          </div>
-        </div>
+        ))}
       </div>
     );
   }
