@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Share2, Search, Bell, Pencil, Check, X, Trash2, Loader2, Lightbulb, AlertTriangle } from 'lucide-react';
+import { Share2, Search, Bell, Trash2, Loader2, Lightbulb, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Project as ProjectType, ProjectPermission } from '@/types/database';
 import { supabase } from '@/lib/supabase';
