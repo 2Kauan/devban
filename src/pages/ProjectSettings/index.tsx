@@ -6,6 +6,7 @@ import { Settings, Save, Trash2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DeleteProjectModal } from '@/components/ui/DeleteProjectModal';
 
 export default function ProjectSettings() {
   const { project } = useOutletContext<{ project: Project }>();
@@ -78,29 +79,7 @@ export default function ProjectSettings() {
     }
   };
 
-  const handleDelete = async () => {
-    const confirmName = prompt(`Para excluir este projeto, digite o nome do projeto "${project.name}":`);
-    if (confirmName !== project.name) {
-      if (confirmName !== null) toast.error('Nome incorreto. Exclusão cancelada.');
-      return;
-    }
-
-    setIsDeleting(true);
-    try {
-      const { error } = await supabase
-        .from('projects')
-        .delete()
-        .eq('id', project.id);
-
-      if (error) throw error;
-      
-      toast.success('Projeto excluído com sucesso!');
-      navigate('/dashboard');
-    } catch (error: any) {
-      toast.error('Erro ao excluir projeto: ' + error.message);
-      setIsDeleting(false);
-    }
-  };
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   if (!isOwner) {
     return (
@@ -261,6 +240,14 @@ export default function ProjectSettings() {
           </div>
         )}
       </AnimatePresence>
+
+      <DeleteProjectModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        projectName={project.name}
+        projectId={project.id}
+        onSuccess={() => navigate('/dashboard')}
+      />
     </div>
   );
 }

@@ -8,9 +8,11 @@ import type { Project } from '@/types/database';
 import { toast } from 'sonner';
 import { useFavorites } from '@/hooks/useFavorites';
 import { motion, AnimatePresence } from 'framer-motion';
+import { RenameProjectModal } from '@/components/ui/RenameProjectModal';
+import { DeleteProjectModal } from '@/components/ui/DeleteProjectModal';
 
 // Componente do Menu Dropdown do Cartão
-function ProjectCard({ project, onUpdate, onDelete }: { project: Project, onUpdate: () => void, onDelete: () => void }) {
+function ProjectCard({ project, onEdit, onDelete }: { project: Project, onEdit: (p: Project) => void, onDelete: (p: Project) => void }) {
   const { user } = useAuth();
   const { favorites, toggleFavorite } = useFavorites(user?.id);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -35,22 +37,7 @@ function ProjectCard({ project, onUpdate, onDelete }: { project: Project, onUpda
       toast.error('Apenas o dono do projeto pode editar.');
       return;
     }
-    
-    const newName = prompt('Digite o novo nome do projeto:', project.name);
-    if (!newName || newName.trim() === '' || newName === project.name) return;
-
-    try {
-      const { error } = await supabase
-        .from('projects')
-        .update({ name: newName.trim() })
-        .eq('id', project.id);
-      
-      if (error) throw error;
-      toast.success('Nome do projeto atualizado!');
-      onUpdate();
-    } catch (error: any) {
-      toast.error('Erro ao editar: ' + error.message);
-    }
+    onEdit(project);
   };
 
   const handleDelete = async () => {
@@ -59,21 +46,7 @@ function ProjectCard({ project, onUpdate, onDelete }: { project: Project, onUpda
       toast.error('Apenas o dono do projeto pode excluir.');
       return;
     }
-
-    const confirmName = prompt(`Para excluir, digite o nome "${project.name}":`);
-    if (confirmName !== project.name) {
-      if (confirmName !== null) toast.error('Nome incorreto. Exclusão cancelada.');
-      return;
-    }
-
-    try {
-      const { error } = await supabase.from('projects').delete().eq('id', project.id);
-      if (error) throw error;
-      toast.success('Projeto excluído com sucesso!');
-      onDelete();
-    } catch (error: any) {
-      toast.error('Erro ao excluir: ' + error.message);
-    }
+    onDelete(project);
   };
 
   return (
@@ -192,6 +165,9 @@ export default function Projects({ favoritesOnly = false }: ProjectsProps) {
     ? projects.filter(p => favorites.includes(p.id))
     : projects;
 
+  const [projectToEdit, setProjectToEdit] = useState<Project | null>(null);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       <Sidebar projects={projects} onProjectCreated={fetchProjects} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
@@ -266,8 +242,8 @@ export default function Projects({ favoritesOnly = false }: ProjectsProps) {
                 <ProjectCard 
                   key={project.id} 
                   project={project} 
-                  onUpdate={fetchProjects}
-                  onDelete={fetchProjects}
+                  onEdit={setProjectToEdit}
+                  onDelete={setProjectToDelete}
                 />
               ))}
             </div>
@@ -275,6 +251,26 @@ export default function Projects({ favoritesOnly = false }: ProjectsProps) {
 
         </div>
       </main>
+
+      {projectToEdit && (
+        <RenameProjectModal
+          isOpen={!!projectToEdit}
+          onClose={() => setProjectToEdit(null)}
+          projectName={projectToEdit.name}
+          projectId={projectToEdit.id}
+          onSuccess={fetchProjects}
+        />
+      )}
+
+      {projectToDelete && (
+        <DeleteProjectModal
+          isOpen={!!projectToDelete}
+          onClose={() => setProjectToDelete(null)}
+          projectName={projectToDelete.name}
+          projectId={projectToDelete.id}
+          onSuccess={fetchProjects}
+        />
+      )}
     </div>
   );
 }
