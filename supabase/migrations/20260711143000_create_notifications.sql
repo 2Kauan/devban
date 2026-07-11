@@ -77,4 +77,8 @@ CREATE TRIGGER on_project_invite_notification
   FOR EACH ROW EXECUTE PROCEDURE create_notification_on_project_invite();
 
 -- Adicionar notificações ao Realtime
-ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
+DO $$ BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
