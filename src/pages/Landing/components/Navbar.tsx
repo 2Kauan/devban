@@ -51,15 +51,15 @@ export function Navbar() {
         </nav>
 
         {/* CTA */}
-        <div className="flex items-center gap-4">
-          <Link to="/login" className="text-sm font-medium hover:text-primary transition-colors">
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          <Link to="/login" className="hidden sm:block text-sm font-medium hover:text-primary transition-colors">
             Entrar
           </Link>
           <Link 
             to="/register" 
-            className="text-sm font-medium bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors shadow-sm"
+            className="text-sm font-medium bg-primary text-primary-foreground px-3 py-2 sm:px-4 sm:py-2 rounded-md hover:bg-primary/90 transition-colors shadow-sm whitespace-nowrap"
           >
-            Começar Gratuitamente
+            Começar Grátis
           </Link>
         </div>
       </div>
