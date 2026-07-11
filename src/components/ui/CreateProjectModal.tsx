@@ -277,18 +277,18 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="bg-card w-full max-w-md rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.15)] border border-border overflow-hidden relative z-10"
+            className="bg-card w-full max-w-md max-h-[90vh] flex flex-col rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.15)] border border-border overflow-hidden relative z-10"
           >
-            <div className="flex justify-between items-center p-6 border-b border-border/50">
+            <div className="flex justify-between items-center p-6 border-b border-border/50 shrink-0">
               <h2 className="text-xl font-bold text-foreground">
                 {showPayment ? 'Finalizar Pagamento' : 'Novo Projeto'}
               </h2>
-              <button onClick={onClose} className="text-muted-foreground hover:text-foreground hover:bg-muted p-1.5 rounded-full transition-colors">
+              <button onClick={onClose} className="text-muted-foreground hover:text-foreground hover:bg-muted p-1.5 rounded-full transition-colors shrink-0">
                 <X size={20} />
               </button>
             </div>
 
-            <div className="p-6">
+            <div className="p-6 overflow-y-auto custom-scrollbar">
               {!showPayment ? (
                 <form onSubmit={handleSubmit(handleCreate)} className="space-y-5">
                   {requiresPayment && (
