@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import type { KanbanCardType } from '@/types/kanban';
 import { KanbanBoard } from '@/components/kanban/KanbanBoard';
@@ -14,6 +14,7 @@ import { useKanbanActions } from '@/hooks/useKanbanActions';
 
 export default function SharedProject() {
   const { token } = useParams<{ token: string }>();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [isJoining, setIsJoining] = useState(false);
 
@@ -23,6 +24,15 @@ export default function SharedProject() {
   const cards = data?.cards || [];
   const projectCategories = data?.projectCategories || [];
   const projectMembers = data?.projectMembers || [];
+  
+  const isMember = user && projectMembers.some(m => m.profiles.id === user.id);
+  const isOwner = user && project?.owner_id === user.id;
+
+  useEffect(() => {
+    if ((isMember || isOwner) && project?.id) {
+      navigate(`/project/${project.id}`);
+    }
+  }, [isMember, isOwner, project?.id, navigate]);
   const [activeCard, setActiveCard] = useState<KanbanCardType | null>(null);
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const { openPrompt, openConfirm, KanbanModals } = useKanbanModals();

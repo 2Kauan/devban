@@ -78,20 +78,21 @@ function ProjectCard({ project, onUpdate, onDelete }: { project: Project, onUpda
 
   return (
     <div className="group relative bg-card border border-border/40 hover:border-primary/40 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col h-[220px]">
-      <div className="flex justify-between items-start mb-4">
+      <Link to={`/project/${project.id}`} className="absolute inset-0 z-0 rounded-2xl" />
+      <div className="flex justify-between items-start mb-4 relative z-10">
         <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
           <Folder size={22} />
         </div>
         <div className="flex gap-1 relative" ref={menuRef}>
           <button 
-            onClick={() => toggleFavorite(project.id)}
+            onClick={(e) => { e.preventDefault(); toggleFavorite(project.id); }}
             className={`p-1.5 rounded-md hover:bg-muted transition-colors ${isFavorite ? 'text-yellow-500' : 'text-muted-foreground hover:text-yellow-500'}`}
             title={isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
           >
             <Star size={16} fill={isFavorite ? "currentColor" : "none"} />
           </button>
           <button 
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            onClick={(e) => { e.preventDefault(); setIsMenuOpen(!isMenuOpen); }}
             className="text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-muted transition-colors"
           >
             <MoreVertical size={16} />
@@ -108,10 +109,10 @@ function ProjectCard({ project, onUpdate, onDelete }: { project: Project, onUpda
                 className="absolute right-0 top-full mt-1 w-36 bg-popover border border-border rounded-lg shadow-lg overflow-hidden z-10"
               >
                 <div className="flex flex-col py-1">
-                  <button onClick={handleEdit} className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/50 w-full text-left">
+                  <button onClick={(e) => { e.preventDefault(); handleEdit(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/50 w-full text-left">
                     <Edit2 size={14} /> Editar Nome
                   </button>
-                  <button onClick={handleDelete} className="flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 w-full text-left">
+                  <button onClick={(e) => { e.preventDefault(); handleDelete(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 w-full text-left">
                     <Trash2 size={14} /> Excluir
                   </button>
                 </div>
@@ -121,20 +122,20 @@ function ProjectCard({ project, onUpdate, onDelete }: { project: Project, onUpda
         </div>
       </div>
       
-      <h3 className="font-bold text-lg text-foreground mb-1 truncate group-hover:text-primary transition-colors pr-2">{project.name}</h3>
-      <p className="text-[13px] text-muted-foreground line-clamp-2 mb-4 flex-1">
+      <h3 className="font-bold text-lg text-foreground mb-1 truncate group-hover:text-primary transition-colors pr-2 relative z-10 pointer-events-none">{project.name}</h3>
+      <p className="text-[13px] text-muted-foreground line-clamp-2 mb-4 flex-1 relative z-10 pointer-events-none">
         {project.description || 'Nenhuma descrição fornecida para este projeto.'}
       </p>
 
-      <div className="mt-auto space-y-4">
+      <div className="mt-auto space-y-4 relative z-10">
         {/* Metrics Placeholder */}
-        <div className="flex gap-4 text-xs font-medium text-muted-foreground">
+        <div className="flex gap-4 text-xs font-medium text-muted-foreground pointer-events-none">
           <div className="flex items-center gap-1.5"><Users size={14} /> 1</div>
           <div className="flex items-center gap-1.5"><CheckCircle2 size={14} /> 0/0</div>
         </div>
         
         <div className="flex items-center justify-between border-t border-border/40 pt-4">
-          <div className="flex items-center gap-2 text-[11px] font-bold">
+          <div className="flex items-center gap-2 text-[11px] font-bold pointer-events-none">
             <span className={`px-2 py-1 rounded-md ${project.is_free ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary'}`}>
               {project.is_free ? 'GRATUITO' : 'PREMIUM'}
             </span>

@@ -7,14 +7,16 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   AreaChart, Area, PieChart, Pie, Cell
 } from 'recharts';
-import { Layers, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { Layers, CheckCircle2, Clock, AlertCircle, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ProjectDashboard() {
   const { project } = useOutletContext<{ project: Project }>();
   const [columns, setColumns] = useState<KanbanColumnType[]>([]);
   const [cards, setCards] = useState<KanbanCardType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedMetric, setSelectedMetric] = useState<'total' | 'completed' | 'inProgress' | 'overdue' | null>(null);
 
   useEffect(() => {
     if (project?.id) {
@@ -51,16 +53,41 @@ export default function ProjectDashboard() {
   }
 
   // --- KPI Calcs ---
-  const totalCards = cards.length;
   const completedColId = columns.find(c => c.is_completed)?.id;
-  const completedCards = cards.filter(c => c.column_id === completedColId).length;
-  const inProgressCards = totalCards - completedCards;
-  const overdueCards = cards.filter(c => {
+  
+  const completedCardsList = cards.filter(c => c.column_id === completedColId);
+  const inProgressCardsList = cards.filter(c => c.column_id !== completedColId);
+  const overdueCardsList = cards.filter(c => {
     if (!c.due_date || c.column_id === completedColId) return false;
     return new Date(c.due_date) < new Date();
-  }).length;
+  });
+
+  const totalCards = cards.length;
+  const completedCards = completedCardsList.length;
+  const inProgressCards = inProgressCardsList.length;
+  const overdueCards = overdueCardsList.length;
 
   const progressPercentage = totalCards > 0 ? Math.round((completedCards / totalCards) * 100) : 0;
+  
+  const getSelectedCards = () => {
+    switch (selectedMetric) {
+      case 'total': return cards;
+      case 'completed': return completedCardsList;
+      case 'inProgress': return inProgressCardsList;
+      case 'overdue': return overdueCardsList;
+      default: return [];
+    }
+  };
+  
+  const getSelectedMetricTitle = () => {
+    switch (selectedMetric) {
+      case 'total': return 'Todas as Tarefas';
+      case 'completed': return 'Tarefas Concluídas';
+      case 'inProgress': return 'Tarefas em Andamento';
+      case 'overdue': return 'Tarefas Atrasadas';
+      default: return '';
+    }
+  };
 
   // --- Chart Data: Tasks by Column ---
   const tasksByColumnData = columns.map(col => ({
@@ -114,42 +141,54 @@ export default function ProjectDashboard() {
 
       {/* KPIs Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-card border border-border/40 p-5 rounded-2xl shadow-sm flex items-start gap-4 hover:border-primary/30 transition-colors">
-          <div className="p-3 bg-primary/10 text-primary rounded-xl">
+        <div 
+          onClick={() => setSelectedMetric('total')}
+          className="bg-card border border-border/40 p-5 rounded-2xl shadow-sm flex items-start gap-4 hover:border-primary/30 transition-colors cursor-pointer group"
+        >
+          <div className="p-3 bg-primary/10 text-primary rounded-xl group-hover:scale-110 transition-transform">
             <Layers size={24} />
           </div>
           <div>
-            <p className="text-sm text-muted-foreground font-medium mb-1">Total de Tarefas</p>
+            <p className="text-sm text-muted-foreground font-medium mb-1 group-hover:text-primary transition-colors">Total de Tarefas</p>
             <h3 className="text-2xl font-bold text-foreground">{totalCards}</h3>
           </div>
         </div>
         
-        <div className="bg-card border border-border/40 p-5 rounded-2xl shadow-sm flex items-start gap-4 hover:border-green-500/30 transition-colors">
-          <div className="p-3 bg-green-500/10 text-green-500 rounded-xl">
+        <div 
+          onClick={() => setSelectedMetric('completed')}
+          className="bg-card border border-border/40 p-5 rounded-2xl shadow-sm flex items-start gap-4 hover:border-green-500/30 transition-colors cursor-pointer group"
+        >
+          <div className="p-3 bg-green-500/10 text-green-500 rounded-xl group-hover:scale-110 transition-transform">
             <CheckCircle2 size={24} />
           </div>
           <div>
-            <p className="text-sm text-muted-foreground font-medium mb-1">Concluídas</p>
+            <p className="text-sm text-muted-foreground font-medium mb-1 group-hover:text-green-500 transition-colors">Concluídas</p>
             <h3 className="text-2xl font-bold text-foreground">{completedCards}</h3>
           </div>
         </div>
 
-        <div className="bg-card border border-border/40 p-5 rounded-2xl shadow-sm flex items-start gap-4 hover:border-blue-500/30 transition-colors">
-          <div className="p-3 bg-blue-500/10 text-blue-500 rounded-xl">
+        <div 
+          onClick={() => setSelectedMetric('inProgress')}
+          className="bg-card border border-border/40 p-5 rounded-2xl shadow-sm flex items-start gap-4 hover:border-blue-500/30 transition-colors cursor-pointer group"
+        >
+          <div className="p-3 bg-blue-500/10 text-blue-500 rounded-xl group-hover:scale-110 transition-transform">
             <Clock size={24} />
           </div>
           <div>
-            <p className="text-sm text-muted-foreground font-medium mb-1">Em Andamento</p>
+            <p className="text-sm text-muted-foreground font-medium mb-1 group-hover:text-blue-500 transition-colors">Em Andamento</p>
             <h3 className="text-2xl font-bold text-foreground">{inProgressCards}</h3>
           </div>
         </div>
 
-        <div className="bg-card border border-border/40 p-5 rounded-2xl shadow-sm flex items-start gap-4 hover:border-red-500/30 transition-colors">
-          <div className="p-3 bg-red-500/10 text-red-500 rounded-xl">
+        <div 
+          onClick={() => setSelectedMetric('overdue')}
+          className="bg-card border border-border/40 p-5 rounded-2xl shadow-sm flex items-start gap-4 hover:border-red-500/30 transition-colors cursor-pointer group"
+        >
+          <div className="p-3 bg-red-500/10 text-red-500 rounded-xl group-hover:scale-110 transition-transform">
             <AlertCircle size={24} />
           </div>
           <div>
-            <p className="text-sm text-muted-foreground font-medium mb-1">Atrasadas</p>
+            <p className="text-sm text-muted-foreground font-medium mb-1 group-hover:text-red-500 transition-colors">Atrasadas</p>
             <h3 className="text-2xl font-bold text-foreground">{overdueCards}</h3>
           </div>
         </div>
@@ -245,6 +284,70 @@ export default function ProjectDashboard() {
         </div>
 
       </div>
+
+      <AnimatePresence>
+        {selectedMetric && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setSelectedMetric(null)}
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="bg-card w-full max-w-[600px] max-h-[80vh] rounded-2xl shadow-2xl border border-border/60 overflow-hidden relative z-10 flex flex-col"
+            >
+              <div className="flex items-center justify-between p-6 border-b border-border/40">
+                <h2 className="text-lg font-bold text-foreground">{getSelectedMetricTitle()}</h2>
+                <button 
+                  onClick={() => setSelectedMetric(null)}
+                  className="p-2 text-muted-foreground hover:bg-muted rounded-full transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="p-6 overflow-y-auto custom-scrollbar flex flex-col gap-3">
+                {getSelectedCards().length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Nenhuma tarefa encontrada para esta categoria.
+                  </div>
+                ) : (
+                  getSelectedCards().map(card => {
+                    const column = columns.find(c => c.id === card.column_id);
+                    return (
+                      <div key={card.id} className="p-4 rounded-xl border border-border/50 bg-muted/20 hover:bg-muted/40 transition-colors flex flex-col gap-2">
+                        <div className="flex items-start justify-between gap-4">
+                          <h4 className="font-semibold text-foreground">{card.title}</h4>
+                          {column && (
+                            <span className="text-[11px] font-medium px-2 py-1 rounded-md bg-background border border-border/50 whitespace-nowrap" style={{ color: column.color || 'inherit' }}>
+                              {column.title}
+                            </span>
+                          )}
+                        </div>
+                        {card.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">{card.description}</p>
+                        )}
+                        {card.due_date && (
+                          <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground mt-1">
+                            <Clock size={12} />
+                            {new Date(card.due_date).toLocaleDateString('pt-BR')}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
