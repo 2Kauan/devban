@@ -104,13 +104,12 @@ export default function ProjectTeam() {
     }
   };
 
-  const handleChangePermission = async (memberId: string, currentPerm: string) => {
-    if (memberId === project.owner_id || currentPerm === 'owner') {
+  const handleChangePermission = async (memberId: string, newPerm: string) => {
+    if (memberId === project.owner_id) {
       toast.error('Não é possível alterar a permissão do desenvolvedor/dono do projeto.');
       return;
     }
 
-    const newPerm = currentPerm === 'editor' ? 'viewer' : 'editor';
     const previousMembers = [...members];
     
     // Optimistic update
@@ -124,7 +123,7 @@ export default function ProjectTeam() {
         .eq('user_id', memberId);
 
       if (error) throw error;
-      toast.success(`Permissão alterada para ${newPerm === 'editor' ? 'Editor' : 'Leitor'}`);
+      toast.success('Permissão alterada com sucesso!');
     } catch (error: any) {
       setMembers(previousMembers);
       toast.error('Erro ao alterar permissão: ' + error.message);
@@ -217,20 +216,27 @@ export default function ProjectTeam() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <button 
-                        onClick={() => handleChangePermission(member.user_id, member.permission)}
-                        disabled={member.permission === 'owner'}
-                        className={`group/perm flex items-center gap-2 text-muted-foreground capitalize transition-colors ${member.permission !== 'owner' ? 'hover:text-primary cursor-pointer' : 'cursor-default'}`}
-                        title={member.permission === 'owner' ? 'Permissão do dono não pode ser alterada' : 'Clique para alterar a permissão'}
-                      >
-                        {member.permission === 'owner' ? (
-                          <><Settings size={14} /> Administrador</>
-                        ) : member.permission === 'editor' ? (
-                          <><Settings size={14} className="group-hover/perm:animate-spin" style={{ animationDuration: '3s' }} /> Editor</>
-                        ) : (
-                          <><Settings size={14} className="group-hover/perm:animate-spin" style={{ animationDuration: '3s' }} /> Leitor</>
-                        )}
-                      </button>
+                      {member.permission === 'owner' ? (
+                        <div className="flex items-center gap-2 text-muted-foreground capitalize cursor-default" title="Permissão do dono não pode ser alterada">
+                          <Settings size={14} /> Administrador
+                        </div>
+                      ) : (
+                        <div className="relative">
+                          <select
+                            value={member.permission}
+                            onChange={(e) => handleChangePermission(member.user_id, e.target.value)}
+                            className="appearance-none bg-muted/30 border border-border/60 rounded-lg text-sm pl-3 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-foreground transition-all cursor-pointer hover:bg-muted/50 w-32"
+                          >
+                            <option value="editor">Editor</option>
+                            <option value="viewer">Leitor</option>
+                            <option value="admin">Administrador</option>
+                            <option value="client">Cliente</option>
+                          </select>
+                          <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                          </div>
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-muted-foreground">
                       {new Date(member.created_at).toLocaleDateString('pt-BR')}
