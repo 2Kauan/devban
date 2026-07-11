@@ -91,12 +91,13 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
       urgent: 'text-destructive',
     };
 
+    const priorityKey = card.priority || 'medium';
     const PriorityIcon = {
       low: ArrowDownRight,
       medium: ArrowRight,
       high: ArrowUpRight,
       urgent: AlertCircle,
-    }[card.priority];
+    }[priorityKey];
 
     return (
       <div
@@ -147,7 +148,7 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
         <div className="flex items-center justify-between mt-1 pl-5">
           <div className="flex items-center gap-2.5">
             {/* Priority */}
-            <span className={`flex items-center ${priorityColors[card.priority]} opacity-70`} title={`Prioridade: ${card.priority}`}>
+            <span className={`flex items-center ${priorityColors[card.priority] || ''} opacity-70`} title={`Prioridade: ${card.priority}`}>
               <PriorityIcon size={12} strokeWidth={2.5} />
             </span>
 

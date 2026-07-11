@@ -154,6 +154,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
         column_id: firstCol.id,
         parent_id: card.id,
         title: newSubtaskTitle.trim(),
+        priority: 'medium',
         position: 1000
       });
       if (error) throw error;

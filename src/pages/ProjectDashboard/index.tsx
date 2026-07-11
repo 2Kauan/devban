@@ -118,7 +118,7 @@ export default function ProjectDashboard() {
   });
 
   return (
-    <div className="p-6 md:p-8 max-w-[1400px] mx-auto space-y-8">
+    <div className="p-6 md:p-8 max-w-[1400px] mx-auto space-y-8 overflow-y-auto">
       
       {/* Header Info */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">

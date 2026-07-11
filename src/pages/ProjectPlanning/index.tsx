@@ -92,7 +92,7 @@ export default function ProjectPlanning() {
   const canEdit = userPermission === 'owner' || userPermission === 'admin' || userPermission === 'editor';
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-background">
+    <div className="flex-1 flex flex-col h-full overflow-y-auto bg-background">
       <PlanningHeader
         currentDate={currentDate}
         view={view}
