@@ -13,9 +13,10 @@ interface SidebarProps {
   onProjectCreated: () => void;
   isOpen: boolean;
   onClose: () => void;
+  isProjectView?: boolean;
 }
 
-export function Sidebar({ onProjectCreated, isOpen, onClose }: SidebarProps) {
+export function Sidebar({ onProjectCreated, isOpen, onClose, isProjectView = false }: SidebarProps) {
   const location = useLocation();
   const { signOut, profile, user } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -105,13 +106,13 @@ export function Sidebar({ onProjectCreated, isOpen, onClose }: SidebarProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 md:hidden"
+            className={`fixed inset-0 bg-background/80 backdrop-blur-sm z-40 ${isProjectView ? '' : 'md:hidden'}`}
             onClick={onClose}
           />
         )}
       </AnimatePresence>
       
-      <aside className={`fixed inset-y-0 left-0 z-50 w-[260px] h-full border-r border-border/40 bg-background flex flex-col transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-[260px] h-full border-r border-border/40 bg-background flex flex-col transition-transform duration-300 ease-in-out ${isProjectView ? (isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full') : `md:relative md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}`}>
         
         {/* Workspace Switcher / Brand Header */}
         <div className="h-14 px-4 flex items-center justify-between border-b border-transparent hover:border-border/40 transition-colors shrink-0">

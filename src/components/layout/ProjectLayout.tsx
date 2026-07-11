@@ -71,6 +71,30 @@ export function ProjectLayout() {
     }
   }, [user, id]);
 
+  useEffect(() => {
+    if (!project?.id) return;
+    
+    const channel = supabase
+      .channel(`project_layout_${project.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'projects',
+          filter: `id=eq.${project.id}`,
+        },
+        (payload) => {
+          setProject((prev) => ({ ...prev, ...payload.new } as Project));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [project?.id]);
+
   const tabs = [
     { name: 'Kanban', path: `/project/${id}`, icon: Layout },
     { name: 'Planejamento', path: `/project/${id}/planning`, icon: CalendarDays },
@@ -93,12 +117,12 @@ export function ProjectLayout() {
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
-      <Sidebar projects={projects} onProjectCreated={fetchData} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <Sidebar projects={projects} onProjectCreated={fetchData} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} isProjectView={true} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
         {/* Top Header / Breadcrumb */}
         <header className="h-14 border-b border-border/40 flex items-center px-4 sm:px-6 bg-background/50 backdrop-blur-md shrink-0">
-          <button className="md:hidden p-1.5 -ml-1.5 mr-2 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50 transition-colors" onClick={() => setIsSidebarOpen(true)}>
+          <button className="p-1.5 -ml-1.5 mr-2 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50 transition-colors" onClick={() => setIsSidebarOpen(true)}>
             <Menu size={20} />
           </button>
           

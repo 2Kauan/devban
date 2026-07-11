@@ -43,7 +43,7 @@ function ProjectCard({ project, onDelete, onComplete }: { project: Project, onDe
   return (
     <div className={`group relative bg-card border border-border/40 hover:border-primary/40 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col h-[220px] ${project.is_completed ? 'opacity-50 grayscale hover:opacity-80 hover:grayscale-0' : ''}`}>
       <Link to={`/project/${project.id}`} className="absolute inset-0 z-0 rounded-2xl" />
-      <div className="flex justify-between items-start mb-4 relative z-10">
+      <div className="flex justify-between items-start mb-4 relative z-20">
         <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
           <Folder size={22} />
         </div>
@@ -266,6 +266,7 @@ export default function Projects({ favoritesOnly = false }: ProjectsProps) {
         projectName={projectToDelete?.name || ''}
         projectId={projectToDelete?.id || ''}
         isUsed={projectToDelete?.is_used}
+        isFree={projectToDelete?.is_free}
         onSuccess={fetchProjects}
       />
     </div>

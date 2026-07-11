@@ -131,7 +131,7 @@ export default function ProjectTeam() {
   };
 
   return (
-    <div className="p-8 max-w-5xl mx-auto h-full overflow-y-auto">
+    <div className="p-4 sm:p-8 w-full max-w-5xl mx-auto h-full overflow-y-auto">
       <div className="mb-8 flex flex-col items-start">
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
           <Users className="text-primary" size={28} />
@@ -149,9 +149,9 @@ export default function ProjectTeam() {
         </button>
       </div>
 
-      <div className="bg-card border border-border/50 rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-card border border-border/50 rounded-xl overflow-hidden shadow-sm w-full">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
+          <table className="w-full min-w-[600px] text-sm text-left">
             <thead className="bg-muted/30 text-muted-foreground text-xs uppercase font-semibold">
               <tr>
                 <th className="px-6 py-4">Membro</th>

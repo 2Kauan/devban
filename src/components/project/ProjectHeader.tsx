@@ -38,6 +38,15 @@ export function ProjectHeader({
   const handleDeleteProject = async () => {
     setIsDeleting(true);
     try {
+      // Fallback de segurança: garantir que a vaga gratuita fique marcada como consumida
+      // caso a trigger do banco falhe por questões de RLS
+      if (project.is_used && project.is_free) {
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData.user) {
+          await supabase.from('profiles').update({ free_slot_consumed: true }).eq('id', userData.user.id);
+        }
+      }
+
       const { error } = await supabase
         .from('projects')
         .delete()
@@ -140,12 +149,12 @@ export function ProjectHeader({
                 </div>
                 
                 {project.is_used ? (
-                  <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-3.5 flex gap-3 items-start mt-5">
+                  <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-3.5 flex gap-3 items-start mt-5 ml-14">
                     <span className="shrink-0 text-destructive mt-0.5"><AlertTriangle size={16} /></span>
                     <div className="text-[13px] text-destructive leading-relaxed font-medium">
-                      <p className="font-bold mb-1">Ação Bloqueada</p>
-                      <p>Você não pode excluir este projeto porque já o utilizou no Kanban.</p>
-                      <p className="mt-1">Projetos que já tiveram movimentações ficam registrados permanentemente.</p>
+                      <p className="font-bold mb-1">Atenção: Vaga Consumida</p>
+                      <p>Como você já mexeu no Kanban, você poderá excluir este projeto, mas terá que comprar um novo.</p>
+                      <p className="mt-1">Se não tivesse sido mexido, você poderia criar outro sem pagar.</p>
                     </div>
                   </div>
                 ) : (
@@ -164,18 +173,16 @@ export function ProjectHeader({
                   disabled={isDeleting}
                   className="px-4 py-2 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors font-semibold text-sm"
                 >
-                  {project.is_used ? 'Entendi' : 'Cancelar'}
+                  Cancelar
                 </button>
-                {!project.is_used && (
-                  <button
-                    onClick={handleDeleteProject}
-                    disabled={isDeleting}
-                    className="px-5 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 hover:shadow-lg hover:shadow-destructive/20 transition-all font-bold text-sm flex items-center gap-2 active:scale-95"
-                  >
-                    {isDeleting ? <Loader2 size={16} className="animate-spin" /> : null}
-                    Sim, quero apagar
-                  </button>
-                )}
+                <button
+                  onClick={handleDeleteProject}
+                  disabled={isDeleting}
+                  className="px-5 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 hover:shadow-lg hover:shadow-destructive/20 transition-all font-bold text-sm flex items-center gap-2 active:scale-95"
+                >
+                  {isDeleting ? <Loader2 size={16} className="animate-spin" /> : null}
+                  Sim, quero apagar
+                </button>
               </div>
             </motion.div>
           </div>
