@@ -14,7 +14,7 @@ interface DeleteProjectModalProps {
   onSuccess: () => void;
 }
 
-export function DeleteProjectModal({ isOpen, onClose, projectName, projectId, isFree, isUsed, onSuccess }: DeleteProjectModalProps) {
+export function DeleteProjectModal({ isOpen, onClose, projectName, projectId, isUsed, onSuccess }: DeleteProjectModalProps) {
   const [confirmName, setConfirmName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
