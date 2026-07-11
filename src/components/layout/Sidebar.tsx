@@ -6,6 +6,7 @@ import { CreateProjectModal } from '@/components/ui/CreateProjectModal';
 import type { Project } from '@/types/database';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SidebarProps {
   projects?: Project[]; // Make it optional so parents passing it won't break
@@ -60,14 +61,20 @@ export function Sidebar({ onProjectCreated, isOpen, onClose }: SidebarProps) {
 
   return (
     <>
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 md:hidden"
-          onClick={onClose}
-        />
-      )}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 md:hidden"
+            onClick={onClose}
+          />
+        )}
+      </AnimatePresence>
       
-      <aside className={`fixed inset-y-0 left-0 z-50 w-[260px] h-full border-r border-border/40 bg-background flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full hidden md:flex'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-[260px] h-full border-r border-border/40 bg-background flex flex-col transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         
         {/* Workspace Switcher / Brand Header */}
         <div className="h-14 px-4 flex items-center justify-between border-b border-transparent hover:border-border/40 transition-colors shrink-0">
