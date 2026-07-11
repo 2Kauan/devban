@@ -133,19 +133,17 @@ export default function ProjectTeam() {
 
   return (
     <div className="p-8 max-w-5xl mx-auto h-full overflow-y-auto">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
-            <Users className="text-primary" size={28} />
-            Equipe do Projeto
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Gerencie quem tem acesso a este projeto e defina suas permissões.
-          </p>
-        </div>
+      <div className="mb-8 flex flex-col items-start">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+          <Users className="text-primary" size={28} />
+          Equipe do Projeto
+        </h1>
+        <p className="text-muted-foreground mt-2 mb-4">
+          Gerencie quem tem acesso a este projeto e defina suas permissões.
+        </p>
         <button
           onClick={() => setIsShareModalOpen(true)}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 px-5 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors w-full sm:w-auto shadow-sm"
         >
           <UserPlus size={18} />
           Convidar Membro

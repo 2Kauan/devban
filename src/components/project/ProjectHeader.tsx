@@ -141,11 +141,11 @@ export function ProjectHeader({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto overflow-y-hidden custom-scrollbar pb-1 sm:pb-0 shrink-0">
+      <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 mt-4 md:mt-0">
         {userPermission === 'owner' && (
           <button
             onClick={onOpenAccessRequests}
-            className="relative p-2 text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg transition-colors"
+            className="relative p-2 text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg transition-colors shrink-0"
             title="Solicitações de Acesso"
           >
             <Bell size={20} />
@@ -164,9 +164,6 @@ export function ProjectHeader({
             className="w-full pl-9 pr-4 py-2 bg-muted/50 border border-border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:bg-background transition-all"
           />
         </div>
-        <button className="p-2 text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent rounded-lg transition-colors" title="Filtrar">
-          <Filter size={18} />
-        </button>
         <div className="w-px h-6 bg-border mx-1"></div>
         <button 
           onClick={onOpenShare}
