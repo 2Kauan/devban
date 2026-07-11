@@ -31,46 +31,9 @@ export function ProjectHeader({
   searchQuery,
   onSearch
 }: ProjectHeaderProps) {
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [newName, setNewName] = useState(project.name);
-  const [isSavingName, setIsSavingName] = useState(false);
-  const [currentName, setCurrentName] = useState(project.name);
-  const [nameChanged, setNameChanged] = useState(project.name_changed);
-  const [showNameConfirmModal, setShowNameConfirmModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
-
-  const handleSaveName = async () => {
-    if (!newName.trim() || newName.trim() === currentName) {
-      setIsEditingName(false);
-      return;
-    }
-
-    setShowNameConfirmModal(true);
-  };
-
-  const confirmNameChange = async () => {
-    setIsSavingName(true);
-    setShowNameConfirmModal(false);
-    try {
-      const { error } = await supabase
-        .from('projects')
-        .update({ name: newName.trim(), name_changed: true })
-        .eq('id', project.id);
-
-      if (error) throw error;
-
-      setCurrentName(newName.trim());
-      setNameChanged(true);
-      toast.success('Nome do projeto atualizado com sucesso!');
-      setIsEditingName(false);
-    } catch (error: any) {
-      toast.error('Erro ao atualizar nome: ' + error.message);
-    } finally {
-      setIsSavingName(false);
-    }
-  };
 
   const handleDeleteProject = async () => {
     setIsDeleting(true);
@@ -94,44 +57,7 @@ export function ProjectHeader({
     <header className="bg-card border-b border-border p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
       <div className="flex items-center gap-4">
         <div>
-          {isEditingName ? (
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                disabled={isSavingName}
-                autoFocus
-                className="text-xl font-bold text-foreground bg-background border border-border rounded px-2 py-1 outline-none focus:border-primary"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleSaveName();
-                  if (e.key === 'Escape') setIsEditingName(false);
-                }}
-              />
-              <button onClick={handleSaveName} disabled={isSavingName} className="p-1.5 text-green-600 hover:bg-green-100 rounded">
-                <Check size={16} />
-              </button>
-              <button onClick={() => setIsEditingName(false)} disabled={isSavingName} className="p-1.5 text-destructive hover:bg-destructive/10 rounded">
-                <X size={16} />
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 group">
-              <h1 className="text-xl font-bold text-foreground leading-tight">{currentName}</h1>
-              {userPermission === 'owner' && !nameChanged && (
-                <button
-                  onClick={() => {
-                    setNewName(currentName);
-                    setIsEditingName(true);
-                  }}
-                  className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-foreground transition-opacity"
-                  title="Alterar nome (Apenas uma vez)"
-                >
-                  <Pencil size={14} />
-                </button>
-              )}
-            </div>
-          )}
+          <h1 className="text-xl font-bold text-foreground leading-tight">{project.name}</h1>
           <div className="flex items-center gap-3 text-sm text-muted-foreground mt-0.5">
             <span>{columnsCount} colunas</span>
             <span className="w-1 h-1 bg-border rounded-full"></span>
@@ -208,7 +134,7 @@ export function ProjectHeader({
                   <div className="pt-0.5">
                     <h2 className="text-lg font-bold tracking-tight text-foreground mb-1.5">Apagar Projeto</h2>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      Tem certeza que deseja apagar o projeto <strong className="text-foreground">{currentName}</strong>? Todas as tarefas e configurações serão excluídas permanentemente.
+                      Tem certeza que deseja apagar o projeto <strong className="text-foreground">{project.name}</strong>? Todas as tarefas e configurações serão excluídas permanentemente.
                     </p>
                   </div>
                 </div>
@@ -250,63 +176,6 @@ export function ProjectHeader({
                     Sim, quero apagar
                   </button>
                 )}
-              </div>
-            </motion.div>
-          </div>
-        )}
-
-        {showNameConfirmModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => setShowNameConfirmModal(false)}
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="bg-card w-full max-w-[450px] rounded-2xl shadow-2xl border border-border/60 overflow-hidden relative z-10 flex flex-col"
-            >
-              <div className="p-6 pb-0 flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0 text-amber-500">
-                  <AlertTriangle size={24} />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-foreground">Confirmar alteração de nome?</h3>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Atenção: Você só poderá alterar o nome do projeto <strong>UMA ÚNICA VEZ</strong>. 
-                    Após salvar, ele será bloqueado definitivamente para futuras edições.
-                  </p>
-                  
-                  <div className="mt-4 p-3 bg-muted/40 border border-border/50 rounded-lg text-sm text-foreground">
-                    <span className="text-muted-foreground">Novo nome:</span> <strong className="ml-1">{newName.trim()}</strong>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="p-6 flex items-center justify-end gap-3 mt-2">
-                <button
-                  onClick={() => setShowNameConfirmModal(false)}
-                  disabled={isSavingName}
-                  className="px-4 py-2 rounded-lg font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={confirmNameChange}
-                  disabled={isSavingName}
-                  className="bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50 px-5 py-2 rounded-lg font-medium transition-all shadow-sm flex items-center gap-2"
-                >
-                  {isSavingName ? (
-                    <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                  ) : (
-                    'Confirmar Alteração'
-                  )}
-                </button>
               </div>
             </motion.div>
           </div>
