@@ -25,6 +25,38 @@ const faqs = [
   }
 ];
 
+const AnimatedText = ({ text }: { text: string }) => {
+  return (
+    <motion.span
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: { opacity: 0 },
+        visible: {
+          opacity: 1,
+          transition: {
+            staggerChildren: 0.015,
+          },
+        },
+      }}
+      aria-label={text}
+    >
+      {text.split('').map((char, index) => (
+        <motion.span
+          key={index}
+          variants={{
+            hidden: { opacity: 0, filter: 'blur(4px)', y: 2 },
+            visible: { opacity: 1, filter: 'blur(0px)', y: 0 },
+          }}
+          transition={{ duration: 0.2 }}
+        >
+          {char === ' ' ? '\u00A0' : char}
+        </motion.span>
+      ))}
+    </motion.span>
+  );
+};
+
 export function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
@@ -65,8 +97,8 @@ export function FAQ() {
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3, ease: 'easeOut' }}
                   >
-                    <div className="px-6 pb-6 text-muted-foreground leading-relaxed">
-                      {faq.answer}
+                    <div className="px-6 pb-6 text-muted-foreground leading-relaxed break-words">
+                      <AnimatedText text={faq.answer} />
                     </div>
                   </motion.div>
                 )}
