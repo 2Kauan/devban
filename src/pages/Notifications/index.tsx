@@ -7,11 +7,14 @@ import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { TopHeader } from '@/components/layout/TopHeader';
 
 export default function Notifications() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -98,10 +101,16 @@ export default function Notifications() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 p-8 bg-muted/10 h-full overflow-y-auto">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
+      <div className="flex h-screen w-full bg-background overflow-hidden">
+        <Sidebar projects={[]} onProjectCreated={() => {}} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-muted/10">
+          <TopHeader title="Notificações" onOpenSidebar={() => setIsSidebarOpen(true)} />
+          <div className="flex-1 p-8 bg-muted/10 h-full overflow-y-auto">
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
@@ -109,8 +118,12 @@ export default function Notifications() {
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return (
-    <div className="flex-1 p-8 bg-muted/10 h-full overflow-y-auto">
-      <div className="max-w-4xl mx-auto">
+    <div className="flex h-screen w-full bg-background overflow-hidden">
+      <Sidebar projects={[]} onProjectCreated={() => {}} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-muted/10">
+        <TopHeader title="Notificações" onOpenSidebar={() => setIsSidebarOpen(true)} />
+        <div className="flex-1 p-4 sm:p-8 bg-muted/10 h-full overflow-y-auto">
+          <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -199,5 +212,7 @@ export default function Notifications() {
         </div>
       </div>
     </div>
+    </main>
+  </div>
   );
 }

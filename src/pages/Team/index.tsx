@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { Users, History, Menu } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { UserProfileButton } from '@/components/ui/UserProfileButton';
+import { TopHeader } from '@/components/layout/TopHeader';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale/pt-BR';
 import { ShareModal } from '@/components/ui/ShareModal';
@@ -213,18 +213,7 @@ export default function TeamPage() {
       <Sidebar projects={projects} onProjectCreated={fetchProjects} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-muted/10">
-        <header className="h-16 border-b border-border/50 flex items-center justify-between px-4 sm:px-6 bg-background shrink-0">
-          <div className="flex items-center gap-3">
-            <button className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground" onClick={() => setIsSidebarOpen(true)}>
-              <Menu size={24} />
-            </button>
-            <div>
-              <h1 className="text-xl font-bold">Equipe e Atividades</h1>
-              <p className="text-sm text-muted-foreground hidden sm:block">Acompanhe o que está acontecendo nos seus projetos</p>
-            </div>
-          </div>
-          <UserProfileButton />
-        </header>
+        <TopHeader title="Equipe" onOpenSidebar={() => setIsSidebarOpen(true)} />
 
         <div className="flex-1 overflow-hidden flex flex-col">
           <div className="border-b border-border/50 bg-background px-6">

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { TopHeader } from '@/components/layout/TopHeader';
 import { useAuth } from '@/contexts/AuthContext';
 import { Menu, Save, User, Mail, Loader2, Camera, Moon, Sun, Monitor } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -111,17 +112,7 @@ export default function Settings() {
       <Sidebar projects={[]} onProjectCreated={() => {}} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-muted/10">
-        <header className="h-16 border-b border-border/50 flex items-center justify-between px-4 sm:px-6 bg-background shrink-0">
-          <div className="flex items-center gap-3">
-            <button className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground" onClick={() => setIsSidebarOpen(true)}>
-              <Menu size={24} />
-            </button>
-            <div>
-              <h1 className="text-xl font-bold">Configurações</h1>
-              <p className="text-sm text-muted-foreground hidden sm:block">Gerencie sua conta e perfil</p>
-            </div>
-          </div>
-        </header>
+        <TopHeader title="Configurações" onOpenSidebar={() => setIsSidebarOpen(true)} />
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
           <div className="max-w-2xl mx-auto space-y-6">

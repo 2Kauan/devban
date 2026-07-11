@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { TopHeader } from '@/components/layout/TopHeader';
 import { supabase } from '@/lib/supabase';
 import { Menu, BarChart3, TrendingUp, CheckSquare, Layers, Users, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -182,17 +183,7 @@ export default function Reports() {
       <Sidebar projects={[]} onProjectCreated={fetchReports} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-muted/10">
-        <header className="h-16 border-b border-border/50 flex items-center justify-between px-4 sm:px-6 bg-background shrink-0">
-          <div className="flex items-center gap-3">
-            <button className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground" onClick={() => setIsSidebarOpen(true)}>
-              <Menu size={24} />
-            </button>
-            <div>
-              <h1 className="text-xl font-bold">Relatório DevBan</h1>
-              <p className="text-sm text-muted-foreground hidden sm:block">Visão geral do seu desempenho e da equipe</p>
-            </div>
-          </div>
-        </header>
+        <TopHeader title="Relatórios" onOpenSidebar={() => setIsSidebarOpen(true)} />
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar relative">
           {isLoading ? (

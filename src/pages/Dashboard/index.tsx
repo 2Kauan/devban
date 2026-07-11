@@ -3,7 +3,7 @@ import { Bell, Menu, Plus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { UserProfileButton } from '@/components/ui/UserProfileButton';
+import { TopHeader } from '@/components/layout/TopHeader';
 import type { Project } from '@/types/database';
 import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
@@ -117,23 +117,7 @@ export default function Dashboard() {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
         
         {/* Modern App Header */}
-        <header className="h-14 border-b border-border/40 flex items-center justify-between px-4 sm:px-6 bg-background/50 backdrop-blur-md shrink-0">
-          <div className="flex items-center gap-4">
-            <button className="md:hidden p-1.5 -ml-1.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50 transition-colors" onClick={() => setIsSidebarOpen(true)}>
-              <Menu size={20} />
-            </button>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="font-semibold text-foreground">Dashboard</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <button className="relative p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-md transition-colors">
-              <Bell className="h-4 w-4" />
-            </button>
-            <UserProfileButton />
-          </div>
-        </header>
+        <TopHeader title="Dashboard" onOpenSidebar={() => setIsSidebarOpen(true)} />
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar">
           
