@@ -1,5 +1,9 @@
--- Tipos de notificação
-CREATE TYPE notification_type AS ENUM ('project_invite', 'mention', 'system');
+-- Create ENUM type for notification types safely
+DO $$ BEGIN
+    CREATE TYPE notification_type AS ENUM ('project_invite', 'mention', 'system');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- Tabela de notificações
 CREATE TABLE notifications (
