@@ -13,33 +13,103 @@ export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [cards, setCards] = useState<any[]>([]);
+  const [columns, setColumns] = useState<any[]>([]);
 
   useEffect(() => {
     if (user) {
-      fetchProjects();
+      fetchDashboardData();
     }
   }, [user]);
 
-  const fetchProjects = async () => {
+  const fetchDashboardData = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      // 1. Fetch projects
+      const { data: projData, error: projError } = await supabase
         .from('projects')
         .select('*')
         .eq('owner_id', user?.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setProjects(data || []);
+      if (projError) throw projError;
+      setProjects(projData || []);
+
+      if (projData && projData.length > 0) {
+        const projectIds = projData.map(p => p.id);
+
+        // 2. Fetch columns (to know which are completed)
+        const { data: colsData, error: colsError } = await supabase
+          .from('columns')
+          .select('*')
+          .in('project_id', projectIds);
+        
+        if (!colsError) setColumns(colsData || []);
+
+        // 3. Fetch cards
+        const { data: cardsData, error: cardsError } = await supabase
+          .from('cards')
+          .select('*')
+          .in('project_id', projectIds);
+
+        if (!cardsError) setCards(cardsData || []);
+      }
     } catch (error: any) {
-      toast.error('Erro ao buscar projetos: ' + error.message);
+      toast.error('Erro ao buscar dados: ' + error.message);
     } finally {
       setIsLoading(false);
     }
   };
+  // --- KPI Calcs ---
+  const completedColumnIds = columns.filter(c => c.is_completed).map(c => c.id);
+  const completedCards = cards.filter(c => completedColumnIds.includes(c.column_id));
+  
+  const totalCompleted = completedCards.length;
+
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const projectsThisMonth = projects.filter(p => {
+    const d = new Date(p.created_at);
+    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+  }).length;
+
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  const completedThisWeek = completedCards.filter(c => new Date(c.updated_at || c.created_at) >= oneWeekAgo).length;
+
+  // --- Chart Data: Productivity (last 7 days) ---
+  const productivityData = [...Array(7)].map((_, i) => {
+    const d = new Date(); 
+    d.setDate(d.getDate() - (6 - i));
+    const dayStart = new Date(d.setHours(0,0,0,0));
+    const dayEnd = new Date(d.setHours(23,59,59,999));
+    
+    const completedThatDay = completedCards.filter(c => {
+      const cardDate = new Date(c.updated_at || c.created_at);
+      return cardDate >= dayStart && cardDate <= dayEnd;
+    }).length;
+    
+    // Volta a data normal pra pegar o dia da semana
+    return { day: new Date(dayStart).toLocaleDateString('pt-BR', { weekday: 'short' }), Tarefas: completedThatDay };
+  });
+
+  // --- Chart Data: Project Growth (last 6 months cumulative) ---
+  const projectGrowthData = [...Array(6)].map((_, i) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - (5 - i));
+    const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
+    
+    const projectsUntilMonth = projects.filter(p => new Date(p.created_at) <= monthEnd).length;
+    
+    return { 
+      name: d.toLocaleDateString('pt-BR', { month: 'short' }), 
+      Projetos: projectsUntilMonth 
+    };
+  });
+
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
-      <Sidebar projects={projects} onProjectCreated={fetchProjects} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <Sidebar projects={projects} onProjectCreated={fetchDashboardData} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
         
@@ -55,7 +125,6 @@ export default function Dashboard() {
           </div>
           
           <div className="flex items-center gap-3">
-
             <button className="relative p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-md transition-colors">
               <Bell className="h-4 w-4" />
             </button>
@@ -85,30 +154,27 @@ export default function Dashboard() {
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total de Projetos</span>
               <div className="flex items-end justify-between">
                 <span className="text-3xl font-bold text-foreground">{isLoading ? '-' : projects.length}</span>
-                <span className="text-xs text-primary font-medium bg-primary/10 px-2 py-0.5 rounded-full">+2 este mês</span>
+                <span className="text-xs text-primary font-medium bg-primary/10 px-2 py-0.5 rounded-full">+{projectsThisMonth} este mês</span>
               </div>
             </div>
             <div className="bg-card border border-border/60 rounded-xl p-4 shadow-sm flex flex-col justify-between h-28">
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Tarefas Concluídas</span>
               <div className="flex items-end justify-between">
-                <span className="text-3xl font-bold text-foreground">124</span>
-                <span className="text-xs text-green-500 font-medium bg-green-500/10 px-2 py-0.5 rounded-full">Na última semana</span>
+                <span className="text-3xl font-bold text-foreground">{isLoading ? '-' : totalCompleted}</span>
+                <span className="text-xs text-green-500 font-medium bg-green-500/10 px-2 py-0.5 rounded-full">{completedThisWeek} na última semana</span>
               </div>
             </div>
           </div>
           {/* Global Dashboard Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
-            {/* Produtividade Semanal (Mock/Demonstração Global) */}
+            {/* Produtividade Semanal */}
             <div className="bg-card border border-border/40 p-6 rounded-2xl shadow-sm">
               <h3 className="text-base font-bold text-foreground mb-6">Produtividade Global (Últimos 7 dias)</h3>
               <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart 
-                    data={[...Array(7)].map((_, i) => {
-                      const d = new Date(); d.setDate(d.getDate() - (6 - i));
-                      return { day: d.toLocaleDateString('pt-BR', { weekday: 'short' }), Tarefas: Math.floor(Math.random() * 15) + 5 };
-                    })} 
+                    data={productivityData} 
                     margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                   >
                     <defs>
@@ -133,10 +199,7 @@ export default function Dashboard() {
               <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart 
-                    data={[
-                      { name: 'Jan', Projetos: 1 }, { name: 'Fev', Projetos: 2 }, { name: 'Mar', Projetos: 4 },
-                      { name: 'Abr', Projetos: 3 }, { name: 'Mai', Projetos: 5 }, { name: 'Jun', Projetos: projects.length }
-                    ]} 
+                    data={projectGrowthData} 
                     margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.4} />

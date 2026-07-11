@@ -126,11 +126,11 @@ export default function ProjectDashboard() {
           <h1 className="text-3xl font-bold text-foreground">Visão Geral</h1>
           <p className="text-muted-foreground mt-1">Acompanhe as métricas do projeto <span className="font-semibold text-foreground">{project.name}</span></p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="text-right">
+        <div className="flex items-center md:justify-end gap-4 mt-2 md:mt-0">
+          <div className="text-left md:text-right w-full">
             <p className="text-xs text-muted-foreground font-medium mb-1">Progresso Total</p>
             <div className="flex items-center gap-3">
-              <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
+              <div className="flex-1 md:w-32 h-2 bg-muted rounded-full overflow-hidden">
                 <div className="h-full bg-primary rounded-full transition-all duration-1000" style={{ width: `${progressPercentage}%` }} />
               </div>
               <span className="font-bold text-foreground">{progressPercentage}%</span>

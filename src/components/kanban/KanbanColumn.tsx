@@ -118,7 +118,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
                 autoFocus
                 className="w-full bg-background border border-border/60 px-2 py-1.5 rounded-md text-sm font-semibold focus:outline-none focus:border-primary/50"
               />
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap items-center gap-1.5">
                 {COLUMN_COLORS.map(c => (
                   <button
                     key={c.value}
@@ -129,6 +129,21 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
                     title={c.label}
                   />
                 ))}
+                <div className="w-[1px] h-4 bg-border/60 mx-0.5" />
+                <label className="relative flex items-center justify-center cursor-pointer group" title="Cor hexadecimal personalizada">
+                  <input
+                    type="color"
+                    value={editColor || '#ffffff'}
+                    onChange={(e) => setEditColor(e.target.value)}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  />
+                  <div 
+                    className="w-5 h-5 rounded-full border-2 transition-all flex items-center justify-center border-dashed border-muted-foreground/50 group-hover:border-primary"
+                    style={{ backgroundColor: editColor && !COLUMN_COLORS.find(c => c.value === editColor) ? editColor : 'transparent' }}
+                  >
+                    <Plus size={12} className={editColor && !COLUMN_COLORS.find(c => c.value === editColor) ? 'text-background mix-blend-difference' : 'text-muted-foreground'} />
+                  </div>
+                </label>
               </div>
               <div className="flex flex-col gap-2 mt-1">
                 <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
