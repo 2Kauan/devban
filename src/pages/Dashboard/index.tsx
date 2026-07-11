@@ -107,6 +107,9 @@ export default function Dashboard() {
     };
   });
 
+  const completedProjects = projects.filter(p => p.is_completed).length;
+  const activeProjects = projects.filter(p => !p.is_completed).length;
+
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       <Sidebar projects={projects} onProjectCreated={fetchDashboardData} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
@@ -149,12 +152,19 @@ export default function Dashboard() {
           </div>
 
           {/* Quick Stats Widgets */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             <div className="bg-card border border-border/60 rounded-xl p-4 shadow-sm flex flex-col justify-between h-28">
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total de Projetos</span>
               <div className="flex items-end justify-between">
                 <span className="text-3xl font-bold text-foreground">{isLoading ? '-' : projects.length}</span>
                 <span className="text-xs text-primary font-medium bg-primary/10 px-2 py-0.5 rounded-full">+{projectsThisMonth} este mês</span>
+              </div>
+            </div>
+            <div className="bg-card border border-border/60 rounded-xl p-4 shadow-sm flex flex-col justify-between h-28">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Projetos Finalizados</span>
+              <div className="flex items-end justify-between">
+                <span className="text-3xl font-bold text-foreground">{isLoading ? '-' : completedProjects}</span>
+                <span className="text-xs text-blue-500 font-medium bg-blue-500/10 px-2 py-0.5 rounded-full">{activeProjects} ativos</span>
               </div>
             </div>
             <div className="bg-card border border-border/60 rounded-xl p-4 shadow-sm flex flex-col justify-between h-28">
