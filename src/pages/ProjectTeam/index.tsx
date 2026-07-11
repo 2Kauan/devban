@@ -218,7 +218,7 @@ export default function ProjectTeam() {
                     <td className="px-6 py-4">
                       {member.permission === 'owner' ? (
                         <div className="flex items-center gap-2 text-muted-foreground capitalize cursor-default" title="Permissão do dono não pode ser alterada">
-                          <Settings size={14} /> Administrador
+                          <Settings size={14} /> Proprietário
                         </div>
                       ) : (
                         <div className="relative">

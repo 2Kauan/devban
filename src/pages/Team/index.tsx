@@ -29,7 +29,7 @@ interface ActivityLog {
 
 interface TeamMember {
   user_id: string;
-  role: string;
+  permission: string;
   created_at: string;
   profiles: {
     name: string;
@@ -131,7 +131,7 @@ export default function TeamPage() {
       let query = supabase
         .from('project_members')
         .select(`
-          user_id, role, created_at,
+          user_id, permission, created_at,
           profiles (name, avatar_url),
           projects (name)
         `)
@@ -361,7 +361,7 @@ export default function TeamPage() {
                         </div>
                         <div className="text-right">
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
-                            {member.role === 'owner' ? 'Proprietário' : 'Convidado'}
+                            {member.permission === 'owner' ? 'Proprietário' : member.permission === 'admin' ? 'Administrador' : member.permission === 'editor' ? 'Editor' : 'Leitor'}
                           </span>
                           <p className="text-[10px] text-muted-foreground mt-1 truncate max-w-[120px]">
                             {member.projects?.name}
