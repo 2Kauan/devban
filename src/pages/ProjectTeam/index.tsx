@@ -228,9 +228,9 @@ export default function ProjectTeam() {
                         {member.permission === 'owner' ? (
                           <><Settings size={14} /> Administrador</>
                         ) : member.permission === 'editor' ? (
-                          <><Settings size={14} className={member.permission !== 'owner' ? "group-hover/perm:animate-spin" : ""} style={{ animationDuration: '3s' }} /> Editor</>
+                          <><Settings size={14} className="group-hover/perm:animate-spin" style={{ animationDuration: '3s' }} /> Editor</>
                         ) : (
-                          <><Settings size={14} className={member.permission !== 'owner' ? "group-hover/perm:animate-spin" : ""} style={{ animationDuration: '3s' }} /> Leitor</>
+                          <><Settings size={14} className="group-hover/perm:animate-spin" style={{ animationDuration: '3s' }} /> Leitor</>
                         )}
                       </button>
                     </td>
