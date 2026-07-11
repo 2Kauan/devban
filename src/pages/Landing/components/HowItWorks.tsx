@@ -33,14 +33,20 @@ export function HowItWorks() {
   return (
     <section id="how-it-works" className="py-24 px-4 bg-muted/20 relative overflow-hidden">
       <div className="container mx-auto max-w-6xl relative z-10">
-        <div className="text-center max-w-2xl mx-auto mb-20">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center max-w-2xl mx-auto mb-20"
+        >
           <h2 className="text-3xl md:text-4xl font-extrabold mb-4 text-foreground tracking-tight">
             Como Funciona
           </h2>
           <p className="text-lg text-muted-foreground">
             Do caos à organização em 5 passos simples.
           </p>
-        </div>
+        </motion.div>
 
         <div className="flex flex-col md:flex-row items-start justify-between relative">
           {/* Connecting Line */}

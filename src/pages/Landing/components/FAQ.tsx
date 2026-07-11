@@ -63,11 +63,17 @@ export function FAQ() {
   return (
     <section id="faq" className="py-24 px-4 bg-muted/20 border-y border-border/40">
       <div className="container mx-auto max-w-3xl">
-        <div className="text-center mb-16">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-16"
+        >
           <h2 className="text-3xl md:text-4xl font-extrabold mb-4 text-foreground tracking-tight">
             Perguntas Frequentes
           </h2>
-        </div>
+        </motion.div>
 
         <div className="flex flex-col gap-4">
           {faqs.map((faq, idx) => (
