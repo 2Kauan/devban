@@ -16,7 +16,6 @@ export default function ProjectSettings() {
   const [name, setName] = useState(project.name);
   const [description, setDescription] = useState(project.description || '');
   const [isSaving, setIsSaving] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const isOwner = user?.id === project.owner_id;
@@ -167,15 +166,10 @@ export default function ProjectSettings() {
           </p>
 
           <button
-            onClick={handleDelete}
-            disabled={isDeleting}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 transition-all disabled:opacity-50 w-full sm:w-auto justify-center"
+            onClick={() => setShowDeleteModal(true)}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 transition-all w-full sm:w-auto justify-center"
           >
-            {isDeleting ? (
-              <div className="w-5 h-5 rounded-full border-2 border-destructive-foreground border-t-transparent animate-spin" />
-            ) : (
-              <Trash2 size={18} />
-            )}
+            <Trash2 size={18} />
             Excluir Projeto Permanentemente
           </button>
         </div>
