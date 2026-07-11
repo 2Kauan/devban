@@ -6,7 +6,6 @@ import type { Project as ProjectType, ProjectPermission } from '@/types/database
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
-import { UserProfileButton } from '@/components/ui/UserProfileButton';
 
 interface ProjectHeaderProps {
   project: ProjectType;
@@ -182,9 +181,6 @@ export function ProjectHeader({
             <Trash2 size={16} />
           </button>
         )}
-        
-        <div className="w-px h-6 bg-border mx-1 shrink-0"></div>
-        <UserProfileButton />
       </div>
 
       <AnimatePresence>
