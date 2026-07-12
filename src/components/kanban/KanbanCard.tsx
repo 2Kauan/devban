@@ -47,18 +47,18 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
               const rawVelX = dx / dt;
               const rawVelY = dy / dt;
 
-              // Suavização com amortecimento solto (0.08 = mais "mole", sente-se como papel)
-              smoothVelocityX += (rawVelX - smoothVelocityX) * 0.08;
-              smoothVelocityY += (rawVelY - smoothVelocityY) * 0.06;
+              // Reação rápida ao movimento (0.25 = responsivo e direto)
+              smoothVelocityX += (rawVelX - smoothVelocityX) * 0.25;
+              smoothVelocityY += (rawVelY - smoothVelocityY) * 0.2;
 
               // Rotação baseada na velocidade horizontal (max ±12deg)
               const targetRotate = Math.max(-12, Math.min(12, smoothVelocityX * 12));
-              currentRotate += (targetRotate - currentRotate) * 0.12;
+              currentRotate += (targetRotate - currentRotate) * 0.35;
 
               // Scale pulsa levemente baseado na velocidade total
               const speed = Math.sqrt(smoothVelocityX ** 2 + smoothVelocityY ** 2);
               const targetScale = 1.04 + Math.min(speed * 0.03, 0.04);
-              currentScale += (targetScale - currentScale) * 0.1;
+              currentScale += (targetScale - currentScale) * 0.3;
 
               localRef.current.style.transform = `rotate(${currentRotate}deg) scale(${currentScale})`;
             }
