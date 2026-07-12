@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopHeader } from '@/components/layout/TopHeader';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Plus, MoreVertical, Folder, Star, Users, CheckCircle2, Trash2 } from 'lucide-react';
 import type { Project } from '@/types/database';
 import { toast } from 'sonner';
@@ -14,6 +14,7 @@ import { DeleteProjectModal } from '@/components/ui/DeleteProjectModal';
 // Componente do Menu Dropdown do Cartão
 function ProjectCard({ project, onDelete, onComplete }: { project: Project, onDelete: (p: Project) => void, onComplete?: (p: Project) => void }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { favorites, toggleFavorite } = useFavorites(user?.id);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -40,23 +41,31 @@ function ProjectCard({ project, onDelete, onComplete }: { project: Project, onDe
     onDelete(project);
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Evita navegar se clicou no menu dropdown ou nos botões rápidos
+    if ((e.target as HTMLElement).closest('.action-btn')) return;
+    navigate(`/project/${project.id}`);
+  };
+
   return (
-    <div className={`group relative bg-card border border-border/40 hover:border-primary/40 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col h-[220px] ${project.is_completed ? 'opacity-50 grayscale hover:opacity-80 hover:grayscale-0' : ''}`}>
-      <Link to={`/project/${project.id}`} className="absolute inset-0 z-0 rounded-2xl" />
+    <div 
+      onClick={handleCardClick}
+      className={`group relative cursor-pointer bg-card border border-border/40 hover:border-primary/40 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col h-[220px] ${project.is_completed ? 'opacity-50 grayscale hover:opacity-80 hover:grayscale-0' : ''}`}
+    >
       <div className="flex justify-between items-start mb-4 relative z-20">
         <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
           <Folder size={22} />
         </div>
-        <div className="flex gap-1 relative" ref={menuRef}>
+        <div className="flex gap-1 relative action-btn" ref={menuRef}>
           <button 
-            onClick={(e) => { e.preventDefault(); toggleFavorite(project.id); }}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(project.id); }}
             className={`p-1.5 rounded-md hover:bg-muted transition-colors ${isFavorite ? 'text-yellow-500' : 'text-muted-foreground hover:text-yellow-500'}`}
             title={isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
           >
             <Star size={16} fill={isFavorite ? "currentColor" : "none"} />
           </button>
           <button 
-            onClick={(e) => { e.preventDefault(); setIsMenuOpen(!isMenuOpen); }}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
             className="text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-muted transition-colors"
           >
             <MoreVertical size={16} />
@@ -75,6 +84,7 @@ function ProjectCard({ project, onDelete, onComplete }: { project: Project, onDe
                 <div className="flex flex-col py-1">
                   <button onClick={(e) => { 
                     e.preventDefault(); 
+                    e.stopPropagation();
                     setIsMenuOpen(false);
                     if (!isOwner) { toast.error('Apenas o dono pode alterar o status.'); return; }
                     onComplete?.(project);
@@ -82,7 +92,7 @@ function ProjectCard({ project, onDelete, onComplete }: { project: Project, onDe
                     <CheckCircle2 size={14} className={project.is_completed ? "text-primary" : ""} /> 
                     {project.is_completed ? 'Reabrir Projeto' : 'Finalizar Projeto'}
                   </button>
-                  <button onClick={(e) => { e.preventDefault(); handleDelete(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 w-full text-left">
+                  <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 w-full text-left">
                     <Trash2 size={14} /> Excluir
                   </button>
                 </div>

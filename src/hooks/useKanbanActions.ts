@@ -61,13 +61,11 @@ export function useKanbanActions({
     setOptimisticCards(updatedCards);
 
     try {
-      const updates = updatedCards.map(card => ({
-        id: card.id,
-        project_id: card.project_id,
-        column_id: card.column_id,
-        title: card.title,
-        position: card.position
-      }));
+      const updates = updatedCards.map(card => {
+        // Remove relation fields that don't belong directly in the cards table
+        const { assignees, categories, ...dbCard } = card;
+        return dbCard;
+      });
 
       const { error } = await supabase.from('cards').upsert(updates);
       if (error) throw error;
@@ -94,6 +92,33 @@ export function useKanbanActions({
       });
     } catch (error) {
       console.error('Failed to log move:', error);
+    }
+  });
+
+  const handleBulkDelete = useEvent(async (cardIds: string[]) => {
+    if (!projectId || cardIds.length === 0) return;
+    try {
+      const { error } = await supabase.from('cards').delete().in('id', cardIds);
+      if (error) throw error;
+      toast.success(`${cardIds.length} cartões excluídos com sucesso`);
+      refetch();
+    } catch (error: any) {
+      toast.error('Erro ao excluir cartões: ' + error?.message);
+    }
+  });
+
+  const handleBulkMove = useEvent(async (cardIds: string[], targetColumnId: string) => {
+    if (!projectId || cardIds.length === 0) return;
+    try {
+      const { error } = await supabase
+        .from('cards')
+        .update({ column_id: targetColumnId })
+        .in('id', cardIds);
+      if (error) throw error;
+      toast.success(`${cardIds.length} cartões movidos com sucesso`);
+      refetch();
+    } catch (error: any) {
+      toast.error('Erro ao mover cartões: ' + error?.message);
     }
   });
 
@@ -196,6 +221,8 @@ export function useKanbanActions({
     handleColumnsChange,
     handleCardsChange,
     handleCardMove,
+    handleBulkDelete,
+    handleBulkMove,
     handleAddColumn,
     handleUpdateColumn,
     handleDeleteColumn,

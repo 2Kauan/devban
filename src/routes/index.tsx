@@ -24,6 +24,9 @@ import ProjectTeam from '@/pages/ProjectTeam';
 import ProjectActivity from '@/pages/ProjectActivity';
 import ProjectSettings from '@/pages/ProjectSettings';
 import ProjectPlanning from '@/pages/ProjectPlanning';
+import ProjectAI from '@/pages/Project/AI';
+import ProjectCheckout from '@/pages/ProjectCheckout';
+import ResetPassword from '@/pages/Auth/ResetPassword';
 
 export function AppRoutes() {
   return (
@@ -34,6 +37,7 @@ export function AppRoutes() {
           <Route path="/" element={<Landing />} />
           <Route path="/shared/:token" element={<SharedProject />} />
           <Route path="/preview" element={<Preview />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           
           {/* Rotas para visitantes apenas */}
           <Route element={<PublicRoute />}>
@@ -52,6 +56,8 @@ export function AppRoutes() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/notifications" element={<Notifications />} />
             
+            <Route path="/project/:id/checkout" element={<ProjectCheckout />} />
+            
             <Route path="/project/:id" element={<ProjectLayout />}>
               <Route index element={<Project />} />
               <Route path="resumo" element={<ProjectDashboard />} />
@@ -59,6 +65,7 @@ export function AppRoutes() {
               <Route path="planning" element={<ProjectPlanning />} />
               <Route path="activity" element={<ProjectActivity />} />
               <Route path="settings" element={<ProjectSettings />} />
+              <Route path="ai" element={<ProjectAI />} />
             </Route>
           </Route>
 

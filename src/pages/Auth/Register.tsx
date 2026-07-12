@@ -6,6 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { Eye, EyeOff } from 'lucide-react';
+import { translateAuthError } from '@/utils/authErrors';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres'),
@@ -18,6 +20,7 @@ type RegisterForm = z.infer<typeof registerSchema>;
 export default function Register() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -42,14 +45,14 @@ export default function Register() {
       });
 
       if (error) {
-        toast.error(error.message);
+        toast.error(translateAuthError(error.message));
         return;
       }
 
       toast.success('Conta criada! Verifique seu email para confirmar o cadastro antes de fazer login.');
       navigate('/login');
-    } catch (error) {
-      toast.error('Ocorreu um erro ao criar a conta');
+    } catch (error: any) {
+      toast.error('Ocorreu um erro ao criar a conta: ' + translateAuthError(error.message));
     } finally {
       setIsLoading(false);
     }
@@ -119,12 +122,21 @@ export default function Register() {
           
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Senha</label>
-            <input 
-              type="password" 
-              placeholder="••••••••" 
-              {...register('password')}
-              className="w-full h-11 px-4 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-            />
+            <div className="relative">
+              <input 
+                type={showPassword ? 'text' : 'password'} 
+                placeholder="••••••••" 
+                {...register('password')}
+                className="w-full h-11 pl-4 pr-10 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none transition-colors"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
             {errors.password && <p className="text-xs text-destructive mt-1">{errors.password.message}</p>}
           </div>
 

@@ -13,50 +13,20 @@ export default function ProjectSettings() {
   const { user } = useAuth();
   const navigate = useNavigate();
   
-  const [name, setName] = useState(project.name);
   const [description, setDescription] = useState(project.description || '');
   const [isSaving, setIsSaving] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const isOwner = user?.id === project.owner_id;
 
   useEffect(() => {
-    setName(project.name);
     setDescription(project.description || '');
   }, [project]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) {
-      toast.error('O nome do projeto é obrigatório.');
-      return;
-    }
-
-    const isChangingName = name.trim() !== project.name;
-
-    if (isChangingName) {
-      if (project.name_changed) {
-        toast.error('O nome do projeto só pode ser alterado uma vez.');
-        setName(project.name);
-        return;
-      }
-      
-      setShowConfirmModal(true);
-      return;
-    }
-    
-    await submitChanges(false);
-  };
-
-  const submitChanges = async (isChangingName: boolean) => {
     setIsSaving(true);
-    setShowConfirmModal(false);
     try {
       const updates: any = { description: description.trim() };
-      if (isChangingName) {
-        updates.name = name.trim();
-        updates.name_changed = true;
-      }
 
       const { error } = await supabase
         .from('projects')
@@ -66,11 +36,6 @@ export default function ProjectSettings() {
       if (error) throw error;
       toast.success('Projeto atualizado com sucesso!');
       
-      // Update local object to avoid having to reload immediately
-      if (isChangingName) {
-        project.name = name.trim();
-        project.name_changed = true;
-      }
     } catch (error: any) {
       toast.error('Erro ao atualizar projeto: ' + error.message);
     } finally {
@@ -111,16 +76,13 @@ export default function ProjectSettings() {
           <form onSubmit={handleSave} className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-foreground mb-1.5 flex justify-between items-center">
-                <span>Nome do Projeto <span className="text-destructive">*</span></span>
-                {project.name_changed && <span className="text-[11px] text-muted-foreground font-normal">Nome já alterado</span>}
+                <span>Nome do Projeto</span>
               </label>
               <input
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={project.name_changed}
-                placeholder="Ex: Novo App Mobile"
-                className={`w-full bg-background border border-border/60 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm ${project.name_changed ? 'opacity-60 cursor-not-allowed bg-muted/30' : ''}`}
+                value={project.name}
+                disabled={true}
+                className="w-full bg-muted/30 border border-border/60 rounded-lg px-4 py-2 text-sm opacity-60 cursor-not-allowed"
               />
             </div>
             
@@ -140,7 +102,7 @@ export default function ProjectSettings() {
             <div className="pt-2">
               <button
                 type="submit"
-                disabled={isSaving || !name.trim() || (name === project.name && description === (project.description || ''))}
+                disabled={isSaving || description === (project.description || '')}
                 className="bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-2.5 rounded-lg font-medium flex items-center gap-2 transition-all w-full justify-center sm:w-auto"
               >
                 {isSaving ? (

@@ -45,6 +45,8 @@ export default function ProjectPage() {
     handleColumnsChange,
     handleCardsChange,
     handleCardMove,
+    handleBulkDelete,
+    handleBulkMove,
     handleAddColumn,
     handleUpdateColumn,
     handleDeleteColumn,
@@ -94,7 +96,7 @@ export default function ProjectPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-muted/10 overflow-hidden min-w-0">
+    <div className="flex-1 flex flex-col h-full bg-muted/10 overflow-hidden min-w-0 min-h-0">
         {/* Project Header */}
         <ProjectHeader 
           project={project}
@@ -109,7 +111,6 @@ export default function ProjectPage() {
           onSearch={setSearchQuery}
         />
 
-      {/* Kanban Area */}
       <div className="flex-1 overflow-hidden p-4 sm:p-6 pb-0 flex flex-col min-h-0">
         <KanbanBoard 
           columns={columns}
@@ -123,6 +124,8 @@ export default function ProjectPage() {
           onUpdateColumn={handleUpdateColumn}
           onDeleteColumn={handleDeleteColumn}
           canEdit={userPermission === 'owner' || userPermission === 'editor'}
+          onBulkDelete={handleBulkDelete}
+          onBulkMove={handleBulkMove}
         />
       </div>
 

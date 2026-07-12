@@ -1,5 +1,5 @@
 import { useState, useMemo, memo } from 'react';
-import { SortableContext, useSortable } from '@dnd-kit/sortable';
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { KanbanColumnType, KanbanCardType } from '@/types/kanban';
 import { KanbanCard } from './KanbanCard';
@@ -19,9 +19,12 @@ interface KanbanColumnProps {
   isLastColumn?: boolean;
   allCards?: KanbanCardType[];
   allColumns?: KanbanColumnType[];
+  selectedCardIds?: string[];
+  onToggleSelect?: (cardId: string) => void;
+  isBulkDragging?: boolean;
 }
 
-export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpdateColumn, onDeleteColumn, canEdit = true, onMoveCardMobile, isFirstColumn, isLastColumn, allCards = [], allColumns = [] }: KanbanColumnProps) => {
+export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpdateColumn, onDeleteColumn, canEdit = true, onMoveCardMobile, isFirstColumn, isLastColumn, allCards = [], allColumns = [], selectedCardIds = [], onToggleSelect, isBulkDragging }: KanbanColumnProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(column.title);
   const [editColor, setEditColor] = useState(column.color || '');
@@ -272,7 +275,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
             </div>
           ) : (
             <>
-              <SortableContext items={cardIds}>
+              <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
                 {cards.map((card) => {
                   const subtasks = allCards.filter(c => c.parent_id === card.id);
                   let subtasksProgress = undefined;
@@ -295,6 +298,9 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
                       columnColor={column.color}
                       isCompleted={column.is_completed}
                       subtasksProgress={subtasksProgress}
+                      isSelected={selectedCardIds?.includes(card.id)}
+                      onToggleSelect={onToggleSelect}
+                      isBulkDragging={isBulkDragging}
                     />
                   );
                 })}
@@ -302,12 +308,13 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
               
               {/* Subtle Add Button at bottom of column */}
               {canEdit && (
-                <button
+                <motion.button
+                  layout
                   onClick={() => onAddCard(column.id)}
                   className="mt-1 flex items-center gap-2 text-[13px] font-medium text-muted-foreground hover:text-foreground py-1.5 px-2 rounded-md hover:bg-muted/40 transition-colors w-full group/add"
                 >
                   <Plus size={14} className="opacity-70 group-hover/add:opacity-100" /> Nova tarefa
-                </button>
+                </motion.button>
               )}
 
               {column.is_completed && showCompletedCards && cards.length > 0 && (
@@ -325,16 +332,16 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
     </div>
   );
 };
-KanbanColumnInner.displayName = 'KanbanColumnInner';
 
 export const KanbanColumn = memo(KanbanColumnInner, (prev, next) => {
-  if (prev.column !== next.column) return false;
-  if (prev.canEdit !== next.canEdit) return false;
-  if (prev.cards.length !== next.cards.length) return false;
-  
-  for (let i = 0; i < prev.cards.length; i++) {
-    if (prev.cards[i] !== next.cards[i]) return false;
-  }
-  
-  return true;
+  const cardsEqual = prev.cards.length === next.cards.length && prev.cards.every((c, i) => c === next.cards[i]);
+
+  return prev.column === next.column &&
+         cardsEqual &&
+         prev.allColumns === next.allColumns &&
+         prev.canEdit === next.canEdit &&
+         prev.isFirstColumn === next.isFirstColumn &&
+         prev.isLastColumn === next.isLastColumn &&
+         prev.selectedCardIds === next.selectedCardIds &&
+         prev.isBulkDragging === next.isBulkDragging;
 });

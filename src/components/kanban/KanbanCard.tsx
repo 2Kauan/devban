@@ -3,6 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { KanbanCardType } from '@/types/kanban';
 import { Clock, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle, ChevronLeft, ChevronRight, ListTree } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface KanbanCardProps {
   card: KanbanCardType;
@@ -14,19 +15,26 @@ interface KanbanCardProps {
   columnColor?: string | null;
   isCompleted?: boolean;
   subtasksProgress?: number;
+  isSelected?: boolean;
+  onToggleSelect?: (cardId: string) => void;
+  selectionCount?: number; // Used only in overlay to show stack count
+  isBulkDragging?: boolean;
 }
 
 export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
-  ({ card, onClick, isOverlay, onMoveMobile, canMoveLeft, canMoveRight, columnColor, isCompleted, subtasksProgress }, ref) => {
+  ({ card, onClick, isOverlay, onMoveMobile, canMoveLeft, canMoveRight, columnColor, isCompleted, subtasksProgress, isSelected, onToggleSelect, selectionCount, isBulkDragging }, ref) => {
     const localRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
       if (!isOverlay) return;
       let frame: number;
       let currentRotate = 0;
-      let smoothVelocity = 0;
+      let smoothVelocityX = 0;
+      let smoothVelocityY = 0;
       let lastX = 0;
+      let lastY = 0;
       let lastTime = 0;
+      let currentScale = 1.04;
 
       const loop = (time: number) => {
         if (localRef.current) {
@@ -35,16 +43,30 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
             const dt = time - lastTime;
             if (dt > 0) {
               const dx = rect.x - lastX;
-              const rawVelocity = dx / dt;
-              smoothVelocity += (rawVelocity - smoothVelocity) * 0.15;
-              const targetRotate = Math.max(-8, Math.min(8, smoothVelocity * 8));
-              currentRotate += (targetRotate - currentRotate) * 0.2;
-              localRef.current.style.transform = `rotate(${currentRotate}deg) scale(1.02)`;
+              const dy = rect.y - lastY;
+              const rawVelX = dx / dt;
+              const rawVelY = dy / dt;
+
+              // Suavização com amortecimento solto (0.08 = mais "mole", sente-se como papel)
+              smoothVelocityX += (rawVelX - smoothVelocityX) * 0.08;
+              smoothVelocityY += (rawVelY - smoothVelocityY) * 0.06;
+
+              // Rotação baseada na velocidade horizontal (max ±12deg)
+              const targetRotate = Math.max(-12, Math.min(12, smoothVelocityX * 12));
+              currentRotate += (targetRotate - currentRotate) * 0.12;
+
+              // Scale pulsa levemente baseado na velocidade total
+              const speed = Math.sqrt(smoothVelocityX ** 2 + smoothVelocityY ** 2);
+              const targetScale = 1.04 + Math.min(speed * 0.03, 0.04);
+              currentScale += (targetScale - currentScale) * 0.1;
+
+              localRef.current.style.transform = `rotate(${currentRotate}deg) scale(${currentScale})`;
             }
           } else {
-             localRef.current.style.transform = `rotate(0deg) scale(1.02)`;
+            localRef.current.style.transform = `rotate(0deg) scale(1.04)`;
           }
           lastX = rect.x;
+          lastY = rect.y;
           lastTime = time;
         }
         frame = requestAnimationFrame(loop);
@@ -84,6 +106,17 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
       );
     }
 
+    if (isBulkDragging && isSelected) {
+      // If a bulk drag is active, and this card is selected (but not the active one, since isDragging is false)
+      // We should hide it visually so it looks like it was picked up with the stack
+      return (
+        <div 
+          ref={setNodeRef}
+          style={{ ...style, display: 'none' }}
+        />
+      );
+    }
+
     const priorityColors = {
       low: 'text-muted-foreground',
       medium: 'text-blue-500',
@@ -116,16 +149,56 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
         onClick={() => onClick(card)}
         {...attributes} 
         {...listeners}
-        className={`group bg-card hover:bg-muted/30 p-3 rounded-lg border border-border/60 shadow-sm mb-2 cursor-grab active:cursor-grabbing transition-colors relative overflow-hidden flex flex-col gap-2 ${
+        className={`group bg-card hover:bg-muted/30 p-3 rounded-lg border shadow-sm mb-2 cursor-grab active:cursor-grabbing transition-all relative flex flex-col gap-2 ${
           isOverlay ? 'shadow-xl ring-1 ring-primary/20' : ''
-        } ${isCompleted && !isOverlay ? 'opacity-50' : ''}`}
+        } ${isSelected ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border/60'} ${isCompleted && !isOverlay ? 'opacity-50' : ''}`}
       >
         {/* Left Color Indicator (Optional based on column or tag) */}
         {columnColor && (
           <div className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ backgroundColor: columnColor, opacity: 0.5 }} />
         )}
 
-        <div className="flex items-start gap-2">
+        {/* Selection Circle & Count Badge (for overlay) */}
+        {onToggleSelect && !isOverlay && (
+          <button 
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleSelect(card.id);
+            }}
+            className={`absolute top-2 right-2 w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+              isSelected ? 'opacity-100 border-primary bg-primary text-primary-foreground' : 'opacity-0 group-hover:opacity-100 border-muted-foreground/40 hover:border-primary/50'
+            }`}
+          >
+            <AnimatePresence>
+              {isSelected && (
+                <motion.svg 
+                  initial={{ opacity: 0, scale: 0.2 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.2 }}
+                  transition={{ duration: 0.15 }}
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="3" 
+                  className="w-3 h-3"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </motion.svg>
+              )}
+            </AnimatePresence>
+          </button>
+        )}
+
+        {isOverlay && selectionCount && selectionCount > 1 && (
+          <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md animate-bounce">
+            {selectionCount}
+          </div>
+        )}
+
+        <div className="flex items-start gap-2 pr-6">
           <div className="flex-1 min-w-0">
             <h4 className="font-medium text-foreground text-sm leading-snug break-words flex items-start gap-1.5">
               {card.parent_id && (
@@ -137,7 +210,7 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
             </h4>
 
             {card.description && (
-              <p className="text-[11px] text-muted-foreground line-clamp-1 mt-1 leading-relaxed">
+              <p className="text-[11px] text-muted-foreground line-clamp-2 mt-1 leading-relaxed">
                 {card.description}
               </p>
             )}
@@ -230,5 +303,11 @@ KanbanCardInner.displayName = 'KanbanCardInner';
 export const KanbanCard = memo(KanbanCardInner, (prev: KanbanCardProps, next: KanbanCardProps) => {
   return prev.card === next.card && 
          prev.isOverlay === next.isOverlay &&
-         prev.onClick === next.onClick;
+         prev.onClick === next.onClick &&
+         prev.isSelected === next.isSelected &&
+         prev.isCompleted === next.isCompleted &&
+         prev.subtasksProgress === next.subtasksProgress &&
+         prev.columnColor === next.columnColor &&
+         prev.isBulkDragging === next.isBulkDragging &&
+         prev.selectionCount === next.selectionCount;
 });
