@@ -37,6 +37,8 @@ export default function ProjectCheckout() {
       }
     }
     fetchProject();
+  }, [id]);
+
   const [paymentRecordId, setPaymentRecordId] = useState<string | null>(null);
 
   useEffect(() => {
