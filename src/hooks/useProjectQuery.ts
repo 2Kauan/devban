@@ -62,9 +62,17 @@ export function useProjectQuery(projectId: string | undefined) {
             .maybeSingle();
           if (memberData) {
             perm = memberData.permission;
-          } else if (projectData.share_enabled && projectData.share_permission === 'edit') {
-            // Guest via public edit link
-            perm = 'editor';
+          } else if (projectData.share_enabled) {
+            perm = projectData.share_permission === 'edit' ? 'editor' : 'viewer';
+            // Auto-join authenticated user via public link so they appear in members list
+            const { error } = await supabase.from('project_members').insert({
+              project_id: projectId,
+              user_id: user.id,
+              permission: perm
+            });
+            if (error && error.code !== '23505') { // Ignore unique constraint violation
+              console.error(error);
+            }
           }
         }
       } else if (projectData.share_enabled && projectData.share_permission === 'edit') {

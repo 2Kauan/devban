@@ -442,7 +442,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
   };
 
   const handleCreateTag = async (name: string, color: string) => {
-    if (!card || !projectId) return;
+    if (!projectId) return;
     try {
       // 1. Create Category
       const { data: newCategory, error: catError } = await supabase
@@ -460,13 +460,15 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
       // Optimistic Update
       setLocalTags(prev => [...prev, newCategory]);
 
-      // 2. Attach to card
-      await supabase
-        .from('card_categories')
-        .insert({
-          card_id: card.id,
-          category_id: newCategory.id
-        });
+      // 2. Attach to card if it already exists
+      if (card) {
+        await supabase
+          .from('card_categories')
+          .insert({
+            card_id: card.id,
+            category_id: newCategory.id
+          });
+      }
         
       toast.success('Etiqueta criada!');
       onUpdate(); // Reload project data
