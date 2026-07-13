@@ -5,7 +5,6 @@ import type { Project } from '@/types/database';
 import { Settings, Save, Trash2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { motion, AnimatePresence } from 'framer-motion';
 import { DeleteProjectModal } from '@/components/ui/DeleteProjectModal';
 
 export default function ProjectSettings() {
@@ -136,66 +135,6 @@ export default function ProjectSettings() {
           </button>
         </div>
       </div>
-
-      {/* Confirmation Modal */}
-      <AnimatePresence>
-        {showConfirmModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => setShowConfirmModal(false)}
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="bg-card w-full max-w-[450px] rounded-2xl shadow-2xl border border-border/60 overflow-hidden relative z-10 flex flex-col"
-            >
-              <div className="p-6 pb-0 flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0 text-amber-500">
-                  <AlertTriangle size={24} />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-foreground">Confirmar alteração de nome?</h3>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Atenção: Você só poderá alterar o nome do projeto <strong>UMA ÚNICA VEZ</strong>. 
-                    Após salvar, o campo de nome será bloqueado definitivamente para futuras edições.
-                  </p>
-                  
-                  <div className="mt-4 p-3 bg-muted/40 border border-border/50 rounded-lg text-sm text-foreground">
-                    <span className="text-muted-foreground">Novo nome:</span> <strong className="ml-1">{name.trim()}</strong>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="p-6 flex items-center justify-end gap-3 mt-2">
-                <button
-                  onClick={() => setShowConfirmModal(false)}
-                  disabled={isSaving}
-                  className="px-4 py-2 rounded-lg font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={() => submitChanges(true)}
-                  disabled={isSaving}
-                  className="bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50 px-5 py-2 rounded-lg font-medium transition-all shadow-sm flex items-center gap-2"
-                >
-                  {isSaving ? (
-                    <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                  ) : (
-                    'Confirmar Alteração'
-                  )}
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       <DeleteProjectModal
         isOpen={showDeleteModal}

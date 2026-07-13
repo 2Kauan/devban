@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { AIKanbanBoard } from '@/types/ai';
 import { useAIImport } from '@/hooks/ai/useAIImport';
-import { Sparkles, ArrowRight, X, ListChecks } from 'lucide-react';
+import { Sparkles, ArrowRight, ListChecks } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface AIPreviewBoardProps {

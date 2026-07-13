@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import type { Project } from '@/types/database';
 import { AIPaywall } from '@/components/ai/AIPaywall';
@@ -6,7 +5,7 @@ import { AIUploader } from '@/components/ai/AIUploader';
 import { AIProcessingModal } from '@/components/ai/AIProcessingModal';
 import { AIPreviewBoard } from '@/components/ai/AIPreviewBoard';
 import { useAIProcessor } from '@/hooks/ai/useAIProcessor';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 export default function ProjectAI() {
   const { project } = useOutletContext<{ project: Project | null }>();

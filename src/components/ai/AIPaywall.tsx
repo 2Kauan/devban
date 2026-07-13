@@ -1,9 +1,6 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, CheckCircle2, ArrowRight, Zap, Image, FileText, Lock } from 'lucide-react';
+import { Sparkles, ArrowRight, Zap, Image, FileText, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
 import type { Project } from '@/types/database';
 
 interface AIPaywallProps {
@@ -11,7 +8,6 @@ interface AIPaywallProps {
 }
 
 export function AIPaywall({ project }: AIPaywallProps) {
-  const [isUpgrading, setIsUpgrading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -69,20 +65,12 @@ export function AIPaywall({ project }: AIPaywallProps) {
 
         <button 
           onClick={handleUpgrade}
-          disabled={isUpgrading}
-          className="w-full relative group overflow-hidden rounded-xl bg-primary text-primary-foreground p-4 font-bold shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:hover:scale-100 flex items-center justify-center gap-2"
+          className="w-full relative group overflow-hidden rounded-xl bg-primary text-primary-foreground p-4 font-bold shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
         >
           {/* Shine effect */}
           <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12" />
-          
-          {isUpgrading ? (
-            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          ) : (
-            <>
-              Tornar este Projeto Premium
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-            </>
-          )}
+          Tornar este Projeto Premium
+          <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
         </button>
 
         <p className="text-center text-xs text-muted-foreground mt-4">

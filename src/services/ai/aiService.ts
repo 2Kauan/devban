@@ -13,10 +13,10 @@ const FALLBACK_MODELS = [
  */
 export const aiService = {
   generateKanban: async (
-    projectId: string, 
+    _projectId: string, 
     mode: AIGenerationMode,
     text: string,
-    files: File[]
+    _files: File[]
   ): Promise<AIKanbanBoard> => {
     
     // Fallback if no text is provided but files are (OCR not implemented in frontend demo)

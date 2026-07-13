@@ -1,5 +1,5 @@
-import { useState, useRef, DragEvent } from 'react';
-import { UploadCloud, FileText, Image as ImageIcon, Send, Loader2, Target, FastForward } from 'lucide-react';
+import { useState, useRef, type DragEvent } from 'react';
+import { UploadCloud, FileText, Image as ImageIcon, Send, Target, FastForward } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { AIGenerationMode } from '@/types/ai';
 
