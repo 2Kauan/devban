@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { CardComments } from '../kanban/CardComments';
 import { supabase } from '@/lib/supabase';
 import type { KanbanCardType } from '@/types/kanban';
 import { X, AlignLeft, CheckSquare, Clock, Tag, Flag, Loader2, Plus, Trash2, ChevronDown, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle, Users, ListTree } from 'lucide-react';
@@ -636,6 +637,9 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                   )}
                 </div>
                 )}
+                
+                {/* Comentários e Atividades */}
+                {card && <CardComments cardId={card.id} canEdit={canEdit} />}
               </div>
 
               {/* Sidebar do Card */}
