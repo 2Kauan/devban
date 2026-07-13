@@ -183,7 +183,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
             title: data.title,
             description: data.description,
             priority: data.priority,
-            due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
+            due_date: data.due_date ? new Date(`${data.due_date}T12:00:00`).toISOString() : null,
             border_color: data.border_color || null,
           })
           .eq('id', card.id);
@@ -207,7 +207,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
             title: data.title,
             description: data.description,
             priority: data.priority,
-            due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
+            due_date: data.due_date ? new Date(`${data.due_date}T12:00:00`).toISOString() : null,
             border_color: data.border_color || null,
             position
           })
@@ -470,7 +470,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
