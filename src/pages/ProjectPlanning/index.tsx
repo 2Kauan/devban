@@ -157,7 +157,7 @@ export default function ProjectPlanning() {
               }}
               onDragLeave={(e) => {
                 // Só desativa se realmente saiu da div (não entrou num filho)
-                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget as Node)) {
                   setIsDraggingOverNoDate(false);
                 }
               }}
