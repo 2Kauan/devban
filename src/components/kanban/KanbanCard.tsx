@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef, memo } from 'react';
+import { forwardRef, useEffect, useRef, memo, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { KanbanCardType } from '@/types/kanban';
@@ -123,17 +123,19 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
       urgent: AlertCircle,
     }[priorityKey];
 
+    const handleNodeRef = useCallback((node: HTMLDivElement | null) => {
+      localRef.current = node;
+      if (isOverlay) {
+        if (typeof ref === 'function') ref(node);
+        else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+      } else {
+        setNodeRef(node);
+      }
+    }, [isOverlay, ref, setNodeRef]);
+
     return (
       <div
-        ref={(node) => {
-          localRef.current = node;
-          if (isOverlay) {
-            if (typeof ref === 'function') ref(node);
-            else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
-          } else {
-            setNodeRef(node);
-          }
-        }}
+        ref={handleNodeRef}
         style={style}
         className="relative mb-2"
       >
