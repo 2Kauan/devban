@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Calendar as CalendarIcon } from 'lucide-react';
 import type { KanbanCardType } from '@/types/kanban';
 import { getEventsForDay } from '@/utils/calendar';
-import { CalendarEvent } from './CalendarEvent';
 
 interface DayDrawerProps {
   isOpen: boolean;
@@ -87,14 +86,68 @@ export function DayDrawer({ isOpen, date, onClose, cards, onEventClick, onNewTas
                   </button>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {dayEvents.map(event => (
-                    <CalendarEvent 
-                      key={event.id} 
-                      event={event} 
-                      onClick={onEventClick} 
-                    />
-                  ))}
+                <div className="space-y-3">
+                  {dayEvents.map(event => {
+                    const category = event.categories?.[0];
+                    const color = category?.color || event.border_color || 'blue-500';
+                    let timeStr = '';
+                    if (event.due_date && event.due_date.includes('T')) {
+                      const timePart = event.due_date.split('T')[1];
+                      if (timePart && timePart !== '00:00:00.000Z') {
+                        timeStr = timePart.substring(0, 5);
+                      }
+                    }
+
+                    return (
+                      <button 
+                        key={event.id} 
+                        onClick={() => onEventClick(event)} 
+                        className="w-full text-left bg-background border border-border p-4 rounded-xl shadow-sm hover:shadow-md hover:border-primary/50 transition-all group flex flex-col gap-2"
+                      >
+                        <div className="flex justify-between items-start gap-2">
+                          <h4 className="font-semibold text-foreground text-sm line-clamp-2">{event.title}</h4>
+                          {timeStr && (
+                            <span className="shrink-0 text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-md">
+                              {timeStr}
+                            </span>
+                          )}
+                        </div>
+                        
+                        {event.description && (
+                          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                            {event.description}
+                          </p>
+                        )}
+                        
+                        <div className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-border/50">
+                          {event.priority && (
+                            <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-sm ${
+                              event.priority === 'low' ? 'bg-green-500/10 text-green-600' :
+                              event.priority === 'medium' ? 'bg-blue-500/10 text-blue-600' :
+                              event.priority === 'high' ? 'bg-orange-500/10 text-orange-600' :
+                              'bg-red-500/10 text-red-600'
+                            }`}>
+                              {event.priority === 'urgent' ? 'Urgente' : 
+                               event.priority === 'high' ? 'Alta' : 
+                               event.priority === 'medium' ? 'Média' : 'Baixa'}
+                            </span>
+                          )}
+                          
+                          {category && (
+                            <span 
+                              className="text-[10px] font-medium px-2 py-0.5 rounded-sm"
+                              style={{
+                                backgroundColor: `rgba(var(--color-${color}), 0.1)`,
+                                color: `rgb(var(--color-${color}))`
+                              }}
+                            >
+                              {category.name}
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    )
+                  })}
                 </div>
               )}
             </div>
