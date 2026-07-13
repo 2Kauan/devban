@@ -1,6 +1,3 @@
-<div align="center">
-  <img src="https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?q=80&w=1200&auto=format&fit=crop" alt="DevBan Header" width="100%" style="border-radius: 12px; margin-bottom: 20px;" />
-  
   <h1>🚀 DevBan</h1>
   <p><strong>A plataforma definitiva de Gestão Ágil para Equipes de Tecnologia e Desenvolvedores.</strong></p>
   
