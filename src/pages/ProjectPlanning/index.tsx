@@ -130,7 +130,16 @@ export default function ProjectPlanning() {
                   <p className="text-xs text-muted-foreground p-3 text-center border border-dashed rounded-lg">Nenhuma tarefa sem data.</p>
                 ) : (
                   noDateCards.map(c => (
-                    <button key={c.id} onClick={() => handleEventClick(c)} className="text-left bg-background border border-border p-3 rounded-lg hover:border-primary/50 transition-colors group">
+                    <button 
+                      key={c.id} 
+                      onClick={() => handleEventClick(c)} 
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData('text/plain', c.id);
+                        e.dataTransfer.effectAllowed = 'move';
+                      }}
+                      className="text-left bg-background border border-border p-3 rounded-lg hover:border-primary/50 transition-colors group cursor-grab active:cursor-grabbing"
+                    >
                       <div className="text-sm font-medium truncate mb-1">{c.title}</div>
                       <div className="text-xs text-muted-foreground">{columns.find(col => col.id === c.column_id)?.title}</div>
                     </button>
@@ -153,7 +162,16 @@ export default function ProjectPlanning() {
                     const dateObj = new Date(c.due_date!);
                     const pad = (n: number) => n.toString().padStart(2, '0');
                     return (
-                      <button key={c.id} onClick={() => handleEventClick(c)} className="text-left bg-background border border-border p-3 rounded-lg hover:border-primary/50 transition-colors group">
+                      <button 
+                        key={c.id} 
+                        onClick={() => handleEventClick(c)} 
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData('text/plain', c.id);
+                          e.dataTransfer.effectAllowed = 'move';
+                        }}
+                        className="text-left bg-background border border-border p-3 rounded-lg hover:border-primary/50 transition-colors group cursor-grab active:cursor-grabbing"
+                      >
                         <div className="text-sm font-medium truncate mb-1">{c.title}</div>
                         <div className="flex justify-between items-center text-xs text-muted-foreground mt-2">
                           <span>{pad(dateObj.getDate())}/{pad(dateObj.getMonth()+1)} - {pad(dateObj.getHours())}:{pad(dateObj.getMinutes())}</span>
@@ -180,7 +198,16 @@ export default function ProjectPlanning() {
                     const dateObj = new Date(c.due_date!);
                     const pad = (n: number) => n.toString().padStart(2, '0');
                     return (
-                      <button key={c.id} onClick={() => handleEventClick(c)} className="text-left bg-red-500/10 border border-red-500/20 p-3 rounded-lg hover:border-red-500/40 transition-colors group">
+                      <button 
+                        key={c.id} 
+                        onClick={() => handleEventClick(c)} 
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData('text/plain', c.id);
+                          e.dataTransfer.effectAllowed = 'move';
+                        }}
+                        className="text-left bg-red-500/10 border border-red-500/20 p-3 rounded-lg hover:border-red-500/40 transition-colors group cursor-grab active:cursor-grabbing"
+                      >
                         <div className="text-sm font-medium truncate text-red-700 dark:text-red-400 mb-1">{c.title}</div>
                         <div className="flex justify-between items-center text-xs text-red-600/70 dark:text-red-400/70 mt-2">
                           <span>{pad(dateObj.getDate())}/{pad(dateObj.getMonth()+1)} - {pad(dateObj.getHours())}:{pad(dateObj.getMinutes())}</span>
