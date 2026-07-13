@@ -293,7 +293,7 @@ export function KanbanBoard({
                 }}
                 isFirstColumn={idx === 0}
                 isLastColumn={idx === localColumns.length - 1}
-                allCards={cards}
+                allCards={localCards}
                 allColumns={localColumns}
                 selectedCardIds={selectedCardIds}
                 onToggleSelect={handleToggleSelect}
