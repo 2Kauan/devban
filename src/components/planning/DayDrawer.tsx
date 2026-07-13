@@ -23,13 +23,13 @@ export function DayDrawer({ isOpen, date, onClose, cards, onEventClick, onNewTas
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop (Mobile only) */}
+          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
+            className="fixed inset-0 bg-background/40 backdrop-blur-sm z-40"
           />
 
           {/* Drawer */}

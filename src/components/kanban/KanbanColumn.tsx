@@ -3,7 +3,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-
 import { CSS } from '@dnd-kit/utilities';
 import type { KanbanColumnType, KanbanCardType } from '@/types/kanban';
 import { KanbanCard } from './KanbanCard';
-import { GripVertical, Plus, Pencil, CheckCircle2 } from 'lucide-react';
+import { GripVertical, Plus, Pencil, CheckCircle2, CheckSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface KanbanColumnProps {
@@ -21,10 +21,11 @@ interface KanbanColumnProps {
   allColumns?: KanbanColumnType[];
   selectedCardIds?: string[];
   onToggleSelect?: (cardId: string) => void;
+  onSelectAll?: () => void;
   isBulkDragging?: boolean;
 }
 
-export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpdateColumn, onDeleteColumn, canEdit = true, onMoveCardMobile, isFirstColumn, isLastColumn, allCards = [], allColumns = [], selectedCardIds = [], onToggleSelect, isBulkDragging }: KanbanColumnProps) => {
+export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpdateColumn, onDeleteColumn, canEdit = true, onMoveCardMobile, isFirstColumn, isLastColumn, allCards = [], allColumns = [], selectedCardIds = [], onToggleSelect, onSelectAll, isBulkDragging }: KanbanColumnProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(column.title);
   const [editColor, setEditColor] = useState(column.color || '');
@@ -196,6 +197,18 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
                 <span className="text-muted-foreground text-xs font-medium shrink-0 mr-auto">
                   {cards.length}
                 </span>
+
+                {/* Select All Button */}
+                {cards.length > 0 && onSelectAll && (
+                  <button
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={onSelectAll}
+                    className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all shrink-0"
+                    title="Selecionar todos os cartões desta coluna"
+                  >
+                    <CheckSquare size={14} />
+                  </button>
+                )}
 
                 {/* Edit Button */}
                 {canEdit && (

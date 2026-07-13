@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Copy, Globe, Lock, ChevronDown, Check } from 'lucide-react';
+import { X, Copy, Globe, Lock, ChevronDown, Check, Trash2 } from 'lucide-react';
 import type { Project } from '@/types/database';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -104,6 +104,37 @@ export function ShareModal({ isOpen, onClose, project, onUpdate }: ShareModalPro
     }
   };
 
+  const updateMemberPermission = async (memberId: string, newPermission: string) => {
+    try {
+      const { error } = await supabase
+        .from('project_members')
+        .update({ permission: newPermission })
+        .eq('id', memberId);
+      if (error) throw error;
+      toast.success('Permissão atualizada');
+      fetchMembers();
+      onUpdate();
+    } catch (error: any) {
+      toast.error('Erro ao atualizar permissão: ' + error.message);
+    }
+  };
+
+  const removeMember = async (memberId: string) => {
+    if (!confirm('Tem certeza que deseja remover este usuário?')) return;
+    try {
+      const { error } = await supabase
+        .from('project_members')
+        .delete()
+        .eq('id', memberId);
+      if (error) throw error;
+      toast.success('Usuário removido do projeto');
+      fetchMembers();
+      onUpdate();
+    } catch (error: any) {
+      toast.error('Erro ao remover usuário: ' + error.message);
+    }
+  };
+
   if (!isOpen || !project) return null;
 
   const isOwner = project.owner_id === user?.id;
@@ -162,21 +193,51 @@ export function ShareModal({ isOpen, onClose, project, onUpdate }: ShareModalPro
                     <div className="text-center py-2"><div className="animate-spin h-4 w-4 border-b-2 border-primary mx-auto rounded-full"></div></div>
                   ) : (
                     members.map(member => (
-                      <div key={member.id} className="flex items-center justify-between">
+                      <div key={member.id} className="flex items-center justify-between group">
                         <div className="flex items-center gap-3">
                           {member.profiles.avatar_url ? (
-                            <img src={member.profiles.avatar_url} alt="" className="w-10 h-10 rounded-full" />
+                            <img src={member.profiles.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover border border-border" />
                           ) : (
-                            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-bold text-muted-foreground">
+                            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-bold text-muted-foreground border border-border">
                               {member.profiles.name?.charAt(0) || 'U'}
                             </div>
                           )}
-                          <div>
+                          <div className="flex flex-col">
                             <p className="text-sm font-medium leading-none">{member.profiles.name}</p>
-                            <p className="text-xs text-muted-foreground mt-1">{member.profiles.email}</p>
+                            <p className="text-xs text-muted-foreground mt-1 truncate max-w-[120px] sm:max-w-[180px]">{member.profiles.email}</p>
                           </div>
                         </div>
-                        <span className="text-xs text-muted-foreground capitalize">{member.permission === 'editor' ? 'Editor' : 'Leitor'}</span>
+                        <div className="flex items-center gap-2">
+                          {isOwner ? (
+                            <div className="relative">
+                              <select 
+                                value={member.permission}
+                                onChange={(e) => updateMemberPermission(member.id, e.target.value)}
+                                className="appearance-none bg-muted/30 border border-border text-xs font-medium rounded-md pl-3 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer hover:bg-muted/50 transition-colors"
+                              >
+                                <option value="admin">Administrador</option>
+                                <option value="editor">Editor</option>
+                                <option value="leitor">Leitor</option>
+                                <option value="cliente">Cliente</option>
+                              </select>
+                              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                            </div>
+                          ) : (
+                            <span className="text-xs bg-muted/50 border border-border px-3 py-1 rounded-md text-muted-foreground capitalize">
+                              {member.permission === 'editor' ? 'Editor' : member.permission}
+                            </span>
+                          )}
+                          
+                          {isOwner && (
+                            <button 
+                              onClick={() => removeMember(member.id)}
+                              className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md opacity-0 group-hover:opacity-100 transition-all focus:opacity-100"
+                              title="Remover acesso"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     ))
                   )}

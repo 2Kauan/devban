@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -20,6 +21,33 @@ export function useCardActivity(cardId: string | undefined) {
   const queryClient = useQueryClient();
 
   const queryKey = ['card_activity', cardId];
+
+  // Realtime subscription
+  useEffect(() => {
+    if (!cardId) return;
+
+    const channel = supabase
+      .channel(`card_activity_${cardId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'comments', filter: `card_id=eq.${cardId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'card_activity_logs', filter: `card_id=eq.${cardId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [cardId, queryClient, queryKey.join(',')]);
 
   const query = useQuery({
     queryKey,

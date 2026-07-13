@@ -30,6 +30,7 @@ export default function ProjectPlanning() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<KanbanCardType | null>(null);
   const [initialDate, setInitialDate] = useState<Date | undefined>(undefined);
+  const [isDraggingOverNoDate, setIsDraggingOverNoDate] = useState(false);
 
   const handlePrev = () => {
     if (view === 'month') setCurrentDate(d => subMonths(d, 1));
@@ -75,6 +76,25 @@ export default function ProjectPlanning() {
     }
   };
 
+  const handleDropRemoveDate = async (e: React.DragEvent) => {
+    e.preventDefault();
+    const cardId = e.dataTransfer.getData('text/plain');
+    if (!cardId) return;
+
+    try {
+      const { error } = await supabase
+        .from('cards')
+        .update({ due_date: null })
+        .eq('id', cardId);
+        
+      if (error) throw error;
+      toast.success('Data removida com sucesso!');
+      refetch();
+    } catch (err: any) {
+      toast.error('Erro ao remover data: ' + err.message);
+    }
+  };
+
   const handleDayClick = (date: Date) => {
     setDrawerDate(date);
     setIsDrawerOpen(true);
@@ -116,14 +136,44 @@ export default function ProjectPlanning() {
       
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar: Task Lists (Desktop only) */}
-        <aside className="w-80 border-r border-border/50 bg-card hidden xl:flex flex-col shrink-0 overflow-y-auto custom-scrollbar">
+        <aside 
+          className="w-80 border-r border-border/50 bg-card hidden xl:flex flex-col shrink-0 overflow-y-auto custom-scrollbar"
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+          }}
+        >
           <div className="p-4 flex-1 flex flex-col gap-6">
             
-            {/* Sem Data */}
-            <div>
+            {/* Sem Data - Drop Zone para remover data */}
+            <div 
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+              }}
+              onDragEnter={(e) => {
+                e.preventDefault();
+                setIsDraggingOverNoDate(true);
+              }}
+              onDragLeave={(e) => {
+                // Só desativa se realmente saiu da div (não entrou num filho)
+                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                  setIsDraggingOverNoDate(false);
+                }
+              }}
+              onDrop={(e) => {
+                setIsDraggingOverNoDate(false);
+                handleDropRemoveDate(e);
+              }}
+              className={`border-2 rounded-xl transition-all p-2 -mx-2 ${
+                isDraggingOverNoDate 
+                  ? 'border-primary bg-primary/10 scale-[1.02] shadow-lg shadow-primary/10' 
+                  : 'border-transparent'
+              }`}
+            >
               <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-muted-foreground" />
-                Sem Data ({noDateCards.length})
+                <span className={`w-2 h-2 rounded-full transition-colors ${isDraggingOverNoDate ? 'bg-primary' : 'bg-muted-foreground'}`} />
+                {isDraggingOverNoDate ? '📥 Solte aqui para remover data' : `Sem Data (${noDateCards.length})`}
               </h3>
               <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
                 {noDateCards.length === 0 ? (

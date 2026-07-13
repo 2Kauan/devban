@@ -38,7 +38,7 @@ export function CardComments({ cardId, canEdit }: CardCommentsProps) {
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Escreva um comentário..."
-              className="w-full min-h-[40px] max-h-[120px] bg-background border border-border rounded-lg pl-3 pr-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-y custom-scrollbar"
+              className="w-full min-h-[40px] max-h-[120px] bg-background border border-border rounded-lg pl-3 pr-11 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none overflow-y-auto custom-scrollbar"
               rows={1}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {

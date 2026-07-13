@@ -39,6 +39,11 @@ export function CalendarEvent({ event, onClick }: CalendarEventProps) {
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragOver={(e) => {
+        // Deixa o evento de drag passar para a célula pai (dia)
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+      }}
       onClick={(e) => {
         e.stopPropagation();
         onClick(event);

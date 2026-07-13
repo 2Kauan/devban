@@ -80,6 +80,60 @@ export function WeekView({ currentDate, cards, onEventClick, onDayClick, onEvent
               const allDayEvents = dayEvents.filter(e => !e.due_date?.includes('T') || e.due_date.endsWith('T00:00:00.000Z'));
               const timedEvents = dayEvents.filter(e => e.due_date?.includes('T') && !e.due_date.endsWith('T00:00:00.000Z'));
 
+              // Cálculo de layout para eventos que se sobrepõem
+              const sortedTimed = [...timedEvents].sort((a, b) => parseISO(a.due_date!).getTime() - parseISO(b.due_date!).getTime());
+              const layouts = sortedTimed.map(event => {
+                const d = parseISO(event.due_date!);
+                const startMins = d.getHours() * 60 + d.getMinutes();
+                return { event, startMins, endMins: startMins + 60, col: 0, maxCol: 1 };
+              });
+
+              const groups: typeof layouts[] = [];
+              let currentGroup: typeof layouts = [];
+
+              layouts.forEach(ev => {
+                if (currentGroup.length === 0) {
+                  currentGroup.push(ev);
+                } else {
+                  const groupMaxEnd = Math.max(...currentGroup.map(e => e.endMins));
+                  if (ev.startMins < groupMaxEnd) {
+                    currentGroup.push(ev);
+                  } else {
+                    groups.push(currentGroup);
+                    currentGroup = [ev];
+                  }
+                }
+              });
+              if (currentGroup.length > 0) groups.push(currentGroup);
+
+              const layoutedEvents: typeof layouts = [];
+              groups.forEach(group => {
+                const cols: typeof group[] = [];
+                group.forEach(ev => {
+                  let placed = false;
+                  for (let i = 0; i < cols.length; i++) {
+                    const col = cols[i];
+                    const lastEv = col[col.length - 1];
+                    if (ev.startMins >= lastEv.endMins) {
+                      col.push(ev);
+                      ev.col = i;
+                      placed = true;
+                      break;
+                    }
+                  }
+                  if (!placed) {
+                    ev.col = cols.length;
+                    cols.push([ev]);
+                  }
+                });
+
+                const numCols = cols.length;
+                group.forEach(ev => {
+                  ev.maxCol = numCols;
+                  layoutedEvents.push(ev);
+                });
+              });
+
               return (
                 <div 
                   key={day.toISOString()} 
@@ -93,6 +147,7 @@ export function WeekView({ currentDate, cards, onEventClick, onDayClick, onEvent
                     <div 
                       key={hour} 
                       className="h-[60px] border-b border-border/20 w-full"
+                      onDragOver={handleDragOver}
                       onDrop={(e) => {
                         e.stopPropagation();
                         handleDrop(e, day, hour);
@@ -101,30 +156,35 @@ export function WeekView({ currentDate, cards, onEventClick, onDayClick, onEvent
                   ))}
 
                   {/* Renderizar Eventos All Day no topo (fixo) */}
-                  <div className="absolute top-0 left-0 w-full px-1 z-20 flex flex-col gap-1 mt-1">
+                  <div className="absolute top-0 left-0 w-full px-1 z-20 flex flex-col gap-1 mt-1 pointer-events-none">
                     {allDayEvents.map(event => (
-                      <CalendarEvent key={event.id} event={event} onClick={onEventClick} />
+                      <div key={event.id} className="pointer-events-auto">
+                        <CalendarEvent event={event} onClick={onEventClick} />
+                      </div>
                     ))}
                   </div>
 
-                  {/* Renderizar Eventos com Hora (Posicionamento Absoluto) */}
-                  {timedEvents.map(event => {
-                    const eventDate = parseISO(event.due_date!);
-                    const startHour = eventDate.getHours();
-                    const startMinute = eventDate.getMinutes();
-                    // Assumimos 1 hora de duração padrão
-                    const durationMinutes = 60; 
-                    
-                    const topPixels = (startHour * 60) + startMinute;
-                    const heightPixels = durationMinutes;
+                  {/* Renderizar Eventos com Hora (Posicionamento Absoluto e Lado a Lado) */}
+                  {layoutedEvents.map(({ event, startMins, col, maxCol }) => {
+                    const topPixels = startMins;
+                    const heightPixels = 60; // 1 hora
+                    const widthPercentage = 100 / maxCol;
+                    const leftPercentage = col * widthPercentage;
 
                     return (
                       <div 
                         key={event.id}
-                        className="absolute left-1 right-1 z-10"
-                        style={{ top: `${topPixels}px`, height: `${heightPixels}px` }}
+                        className="absolute z-10 p-0.5"
+                        style={{ 
+                          top: `${topPixels}px`, 
+                          height: `${heightPixels}px`,
+                          left: `${leftPercentage}%`,
+                          width: `${widthPercentage}%`
+                        }}
                       >
-                         <CalendarEvent event={event} onClick={onEventClick} />
+                         <div className="w-full h-full">
+                           <CalendarEvent event={event} onClick={onEventClick} />
+                         </div>
                       </div>
                     );
                   })}

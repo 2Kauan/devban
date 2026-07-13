@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import type { Project } from '@/types/database';
-import { ArrowLeft, CheckCircle2, Shield, CreditCard, QrCode, Lock, Loader2, Sparkles } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Shield, CreditCard, QrCode, Lock, Loader2, Sparkles, Copy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
@@ -14,6 +14,8 @@ export default function ProjectCheckout() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'credit_card' | 'pix'>('pix');
   const [isSuccess, setIsSuccess] = useState(false);
+  const [pixData, setPixData] = useState<{qrCode: string, encodedImage: string, invoiceUrl: string} | null>(null);
+  const [creditCardUrl, setCreditCardUrl] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchProject() {
@@ -37,32 +39,82 @@ export default function ProjectCheckout() {
     fetchProject();
   }, [id, navigate]);
 
-  const handleSimulatePayment = async () => {
+  const handlePayment = async () => {
     setIsProcessing(true);
-    
-    // Simula o tempo de processamento de um gateway de pagamento (ex: Stripe/Asaas)
-    await new Promise(resolve => setTimeout(resolve, 2000));
 
     try {
       if (!project) return;
       
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error('Usuário não autenticado');
+
+      // 1. Criar o registro de pagamento pendente no banco
+      const { data: paymentRecord, error: insertError } = await supabase
+        .from('payments')
+        .insert({
+          user_id: userData.user.id,
+          project_id: project.id,
+          value: 5.00,
+          method: paymentMethod,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      // 2. Chamar a Edge Function para criar a cobrança no Asaas
+      const { data, error } = await supabase.functions.invoke('create-asaas-payment', {
+        body: { 
+          method: paymentMethod, 
+          paymentId: paymentRecord.id,
+          projectName: project.name,
+          cpfCnpj: '' // Deixamos vazio para testes, pode ser adicionado depois
+        }
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      // 3. Tratar a resposta
+      if (paymentMethod === 'pix') {
+        setPixData({
+          qrCode: data.pixQrCode, // Código Copia e Cola
+          encodedImage: data.pixEncodedImage, // Base64 da imagem
+          invoiceUrl: data.invoiceUrl
+        });
+      } else {
+        // Redireciona para o link de pagamento do cartão no Asaas
+        if (data.invoiceUrl) {
+          setCreditCardUrl(data.invoiceUrl);
+          window.open(data.invoiceUrl, '_blank');
+        }
+      }
+
+    } catch (error: any) {
+      toast.error('Falha ao processar pagamento: ' + error.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleSimulateApproval = async () => {
+    try {
+      setIsProcessing(true);
       const { error } = await supabase
         .from('projects')
         .update({ is_free: false })
-        .eq('id', project.id);
+        .eq('id', project?.id);
 
       if (error) throw error;
 
       setIsSuccess(true);
-      
-      // Aguarda a animação de sucesso antes de redirecionar
       setTimeout(() => {
         toast.success('Pagamento aprovado! Inteligência Artificial liberada.');
-        navigate(`/project/${project.id}/ai`);
+        navigate(`/project/${project?.id}/ai`);
       }, 2500);
-
     } catch (error: any) {
-      toast.error('Falha ao processar pagamento: ' + error.message);
+      toast.error('Erro ao aprovar: ' + error.message);
       setIsProcessing(false);
     }
   };
@@ -131,7 +183,83 @@ export default function ProjectCheckout() {
         <div className="max-w-md w-full">
           <AnimatePresence mode="wait">
             {!isSuccess ? (
-              <motion.div 
+              pixData ? (
+                <motion.div
+                  key="pix-payment"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="bg-card border border-border shadow-2xl rounded-3xl p-8 flex flex-col items-center text-center"
+                >
+                  <h3 className="text-xl font-bold mb-2 text-foreground">Escaneie o QR Code</h3>
+                  <p className="text-sm text-muted-foreground mb-6">Abra o app do seu banco e escaneie o código abaixo para pagar via PIX.</p>
+                  
+                  <div className="bg-white p-4 rounded-xl mb-6">
+                    <img src={`data:image/jpeg;base64,${pixData.encodedImage}`} alt="QR Code PIX" className="w-48 h-48" />
+                  </div>
+
+                  <div className="w-full relative mb-6">
+                    <input 
+                      type="text" 
+                      readOnly 
+                      value={pixData.qrCode} 
+                      className="w-full bg-muted/50 border border-border rounded-lg pl-3 pr-12 py-2 text-xs text-muted-foreground truncate focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(pixData.qrCode);
+                        toast.success('Código PIX copiado!');
+                      }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-background border border-border rounded-md text-foreground hover:bg-muted transition-colors"
+                      title="Copiar código"
+                    >
+                      <Copy size={14} />
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={handleSimulateApproval}
+                    disabled={isProcessing}
+                    className="w-full h-12 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg hover:shadow-primary/40 transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-70 disabled:pointer-events-none"
+                  >
+                    {isProcessing ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
+                    Simular Pagamento Confirmado
+                  </button>
+                </motion.div>
+              ) : creditCardUrl ? (
+                <motion.div
+                  key="credit-card-payment"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="bg-card border border-border shadow-2xl rounded-3xl p-8 flex flex-col items-center text-center"
+                >
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 text-primary">
+                    <CreditCard size={32} />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 text-foreground">Ambiente Seguro</h3>
+                  <p className="text-sm text-muted-foreground mb-6">Uma nova aba foi aberta com o link seguro de pagamento do Asaas. Se não abriu, clique no botão abaixo.</p>
+                  
+                  <a
+                    href={creditCardUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full h-12 bg-primary/10 text-primary font-bold rounded-xl flex items-center justify-center gap-2 mb-4 hover:bg-primary/20 transition-colors"
+                  >
+                    Abrir aba de pagamento
+                  </a>
+
+                  <button
+                    onClick={handleSimulateApproval}
+                    disabled={isProcessing}
+                    className="w-full h-12 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg hover:shadow-primary/40 transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-70 disabled:pointer-events-none"
+                  >
+                    {isProcessing ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
+                    Simular Pagamento Confirmado
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.div 
                 key="checkout-form"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -176,7 +304,7 @@ export default function ProjectCheckout() {
 
                   <div className="pt-4 border-t border-border/50">
                     <button
-                      onClick={handleSimulatePayment}
+                      onClick={handlePayment}
                       disabled={isProcessing}
                       className="w-full h-14 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none flex items-center justify-center gap-2"
                     >
@@ -200,9 +328,10 @@ export default function ProjectCheckout() {
                   </div>
                 </div>
               </motion.div>
-            ) : (
-              <motion.div
-                key="success-message"
+            )
+          ) : (
+            <motion.div
+              key="success-message"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="bg-card border border-border shadow-2xl rounded-3xl p-10 text-center flex flex-col items-center justify-center"

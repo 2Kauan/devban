@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { ChevronRight, LayoutDashboard, Layout, Users, Activity, Settings, Menu, CalendarDays, BrainCircuit } from 'lucide-react';
+import { ChevronRight, LayoutDashboard, Layout, Users, Activity, Settings, Menu, CalendarDays, BrainCircuit, Lock } from 'lucide-react';
 import type { Project } from '@/types/database';
 import { toast } from 'sonner';
 
@@ -95,14 +95,16 @@ export function ProjectLayout() {
     };
   }, [project?.id]);
 
+  const isOwner = project?.owner_id === user?.id;
+
   const tabs = [
-    { name: 'Kanban', path: `/project/${id}`, icon: Layout },
-    { name: 'Planejamento', path: `/project/${id}/planning`, icon: CalendarDays },
-    { name: 'Resumo', path: `/project/${id}/resumo`, icon: LayoutDashboard },
-    { name: project?.is_free ? 'IA (Premium)' : 'IA', path: `/project/${id}/ai`, icon: BrainCircuit },
-    { name: 'Equipe', path: `/project/${id}/team`, icon: Users },
-    { name: 'Atividades', path: `/project/${id}/activity`, icon: Activity },
-    { name: 'Configurações', path: `/project/${id}/settings`, icon: Settings },
+    { name: 'Kanban', path: `/project/${id}`, icon: Layout, restricted: false },
+    { name: 'Planejamento', path: `/project/${id}/planning`, icon: CalendarDays, restricted: false },
+    { name: 'Resumo', path: `/project/${id}/resumo`, icon: LayoutDashboard, restricted: false },
+    { name: project?.is_free ? 'IA (Premium)' : 'IA', path: `/project/${id}/ai`, icon: BrainCircuit, restricted: true },
+    { name: 'Equipe', path: `/project/${id}/team`, icon: Users, restricted: false },
+    { name: 'Atividades', path: `/project/${id}/activity`, icon: Activity, restricted: false },
+    { name: 'Configurações', path: `/project/${id}/settings`, icon: Settings, restricted: true },
   ];
 
   const currentTabName = tabs.find(t => location.pathname === t.path)?.name || 'Kanban';
@@ -143,7 +145,19 @@ export function ProjectLayout() {
             {tabs.map((tab) => {
               const isActive = location.pathname === tab.path;
               const Icon = tab.icon;
-              return (
+              const isLocked = tab.restricted && !isOwner;
+
+              return isLocked ? (
+                <div
+                  key={tab.path}
+                  className="flex items-center gap-2 py-3 px-1 border-b-2 border-transparent text-sm font-bold whitespace-nowrap text-muted-foreground/40 cursor-not-allowed"
+                  title="Acesso restrito ao proprietário"
+                >
+                  <Icon size={16} />
+                  {tab.name}
+                  <Lock size={12} className="ml-1 opacity-70" />
+                </div>
+              ) : (
                 <Link
                   key={tab.path}
                   to={tab.path}

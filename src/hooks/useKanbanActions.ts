@@ -81,7 +81,7 @@ export function useKanbanActions({
 
       const updates = changedCards.map(card => {
         // Remove campos relacionais que não pertencem à tabela 'cards' diretamente
-        const { assignees, categories, ...dbCard } = card;
+        const { assignees, categories, comments_count, ...dbCard } = card as any;
         return dbCard;
       });
 

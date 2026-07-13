@@ -95,6 +95,21 @@ export function KanbanBoard({
     );
   };
 
+  const handleSelectAllColumnCards = (columnId: string) => {
+    const columnCardIds = localCards.filter(c => c.column_id === columnId).map(c => c.id);
+    setSelectedCardIds(prev => {
+      // If all are already selected, unselect them all
+      const allSelected = columnCardIds.every(id => prev.includes(id));
+      if (allSelected) {
+        return prev.filter(id => !columnCardIds.includes(id));
+      }
+      // Otherwise, add any missing ones
+      const newSelected = new Set(prev);
+      columnCardIds.forEach(id => newSelected.add(id));
+      return Array.from(newSelected);
+    });
+  };
+
   const columnIds = useMemo(() => localColumns.map((col) => col.id), [localColumns]);
 
   const sensors = useSensors(
@@ -297,6 +312,7 @@ export function KanbanBoard({
                 allColumns={localColumns}
                 selectedCardIds={selectedCardIds}
                 onToggleSelect={handleToggleSelect}
+                onSelectAll={() => handleSelectAllColumnCards(col.id)}
                 isBulkDragging={!!(activeCard && selectedCardIds.includes(activeCard.id) && selectedCardIds.length > 1)}
               />
             ))}
