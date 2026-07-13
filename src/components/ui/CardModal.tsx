@@ -179,6 +179,22 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
     }
   };
 
+  const handleDeleteSubtask = async (subtaskId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm('Tem certeza que deseja excluir esta sub-tarefa?')) return;
+    try {
+      setIsLoading(true);
+      const { error } = await supabase.from('cards').delete().eq('id', subtaskId);
+      if (error) throw error;
+      toast.success('Sub-tarefa excluída com sucesso');
+      onUpdate();
+    } catch (error) {
+      toast.error('Erro ao excluir sub-tarefa');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   const onSubmit = async (data: any) => {
@@ -832,6 +848,15 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                             {col?.title}
                           </span>
                         </div>
+                        {canEdit && (
+                          <button
+                            onClick={(e) => handleDeleteSubtask(st.id, e)}
+                            className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                            title="Excluir sub-tarefa"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
                       </div>
                     );
                   })}

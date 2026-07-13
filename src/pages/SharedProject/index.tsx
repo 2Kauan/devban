@@ -11,12 +11,17 @@ import { useSharedProjectQuery } from '@/hooks/useSharedProjectQuery';
 import { useEvent } from '@/hooks/useEvent';
 import { useKanbanModals } from '@/hooks/useKanbanModals';
 import { useKanbanActions } from '@/hooks/useKanbanActions';
+import { Loader2 } from 'lucide-react';
 
 export default function SharedProject() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isJoining, setIsJoining] = useState(false);
+  
+  // Guest Account State
+  const [guestName, setGuestName] = useState('');
+  const [isCreatingGuest, setIsCreatingGuest] = useState(false);
 
   const { data, isLoading, refetch, setOptimisticColumns, setOptimisticCards } = useSharedProjectQuery(token);
   const project = data?.project;
@@ -77,6 +82,42 @@ export default function SharedProject() {
     }
   };
 
+  const handleCreateGuestSession = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!guestName.trim()) return;
+    
+    setIsCreatingGuest(true);
+    try {
+      const email = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 7)}@guest.devban.local`;
+      const password = Math.random().toString(36).slice(-8) + 'A1!';
+      
+      const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
+      if (authError) throw authError;
+      
+      if (authData.user) {
+         // Update profile with the chosen name
+         await supabase.from('profiles').update({ name: guestName.trim() }).eq('id', authData.user.id);
+         
+         // Add them to project members implicitly if the project was found
+         if (project?.id) {
+           const perm = project.share_permission === 'edit' ? 'editor' : 'viewer';
+           await supabase.from('project_members').insert({
+             project_id: project.id,
+             user_id: authData.user.id,
+             permission: perm
+           });
+         }
+  
+         toast.success(`Bem-vindo(a), ${guestName.trim()}!`);
+         refetch();
+      }
+    } catch (err: any) {
+      toast.error('Erro ao acessar: ' + err.message);
+    } finally {
+      setIsCreatingGuest(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex-1 h-screen flex items-center justify-center bg-background">
@@ -91,6 +132,42 @@ export default function SharedProject() {
         <h2 className="text-xl font-bold mb-2">Projeto não encontrado</h2>
         <p className="text-muted-foreground mb-4">O link pode ter expirado ou o acesso foi revogado.</p>
         <Link to="/" className="text-primary hover:underline">Ir para a página inicial</Link>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="fixed inset-0 bg-background/95 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="bg-card border border-border shadow-2xl rounded-2xl p-6 w-full max-w-md">
+          <h2 className="text-xl font-bold mb-2">Acesso ao Projeto</h2>
+          <p className="text-sm text-muted-foreground mb-6">
+            Por favor, informe seu nome para acessar este quadro. Você será listado como responsável pelas tarefas que assumir.
+          </p>
+          
+          <form onSubmit={handleCreateGuestSession}>
+            <input 
+              type="text" 
+              required 
+              placeholder="Seu nome (ex: João Silva)" 
+              className="w-full bg-background border border-border rounded-lg px-4 py-3 mb-4 focus:ring-2 focus:ring-primary focus:outline-none transition-all"
+              value={guestName}
+              onChange={(e) => setGuestName(e.target.value)}
+            />
+            <button 
+              type="submit" 
+              disabled={isCreatingGuest || !guestName.trim()}
+              className="w-full bg-primary text-primary-foreground font-semibold rounded-lg py-3 flex justify-center items-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
+              {isCreatingGuest ? <Loader2 className="animate-spin" size={18} /> : 'Acessar Quadro'}
+            </button>
+          </form>
+          <div className="mt-6 text-center border-t border-border/50 pt-4">
+            <Link to={`/login?redirect=/shared/${token}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              Já tenho conta? Fazer login
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
