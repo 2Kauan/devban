@@ -15,21 +15,21 @@ NÃO INCLUA formatação markdown (como \`\`\`json), nem introduções, nem expl
   "columns": [
     {
       "id": "string única (ex: col-1)",
-      "title": "Nome da Coluna (ex: Backlog, To Do, Em Andamento...)",
-      "color": "#HEX_AQUI (Escolha uma cor pastel bonita para esta coluna baseada na categoria/urgência dela. Obrigatório!)",
+      "title": "Nome exato da Coluna exigida no documento",
+      "color": "#HEX_AQUI (Cor pastel baseada na categoria da coluna)",
       "tasks": [
         {
           "id": "string única (ex: task-1)",
-          "title": "Título claro e acionável da tarefa",
-          "description": "Detalhes da tarefa. IMPORTANTE: Se o texto mencionar quem vai fazer isso (responsável/assignee) ou o cargo, escreva no topo da descrição em negrito: **Responsável:** [Nome]. Depois, quebre a linha e explique a tarefa.",
-          "priority": "low" | "medium" | "high",
-          "checklist": ["Passo 1", "Passo 2", "Passo 3"] // OBRIGATÓRIO: Crie sempre 2 a 5 subtarefas práticas se a tarefa for o mínimo complexa.
+          "title": "Título claro e acionável",
+          "description": "Detalhes. IMPORTANTE: Se o texto exigir separação por departamentos/raias (swimlanes), como não temos raias visuais horizontais, especifique a raia/departamento aqui no texto. Ex: **[Raia: Frontend]** ou **Responsável: João**.",
+          "priority": "low" | "medium" | "high", // Obedeça regras de criticidade do texto
+          "checklist": ["Passo 1", "Passo 2"]
         }
       ]
     }
   ],
   "suggested_categories": [
-    { "id": "cat-1", "name": "Frontend", "color": "#3b82f6" }
+    { "id": "cat-1", "name": "Nome da Tag (Use para simular as Raias/Departamentos pedidos)", "color": "#3b82f6" }
   ]
 }
 `;
@@ -39,23 +39,25 @@ NÃO INCLUA formatação markdown (como \`\`\`json), nem introduções, nem expl
   switch (mode) {
     case 'planning':
       modeInstructions = `
-MODO DE GERAÇÃO: Planejamento Macro
-Aja focando na estrutura ampla do projeto. Crie colunas separadas por Grandes Fases ou Áreas de Responsabilidade (ex: "Fundação Técnica", "Backend", "Frontend", "Marketing e Lançamento").
-Evite colunas de fluxo ágil (To Do, Doing). Agrupe as tarefas de acordo com suas categorias e fases de implementação lógica.
+MODO: Planejamento Macro
+INSTRUÇÃO VITAL: Leia o documento do usuário. Se ele definir uma estrutura de fases/colunas próprias (ex: Concepção, Execução, Aprovação, etc), USE EXATAMENTE AS COLUNAS DELE. Não invente.
+Se o documento não sugerir colunas, agrupe por grandes áreas de implementação.
+Se o documento exigir Raias (Swimlanes), simule-as criando "suggested_categories" (Tags) para cada Raia e classifique as tarefas com clareza.
 `;
       break;
     case 'sprint':
       modeInstructions = `
-MODO DE GERAÇÃO: Sprint Backlog
-Aja focando no fluxo de execução ágil do dia a dia. Crie colunas representando os estágios do desenvolvimento (ex: "Backlog", "To Do (Esta Sprint)", "Em Progresso", "Review", "Done").
-Crie tarefas extremamente acionáveis, pequenas e claras. Se algo no texto for grande demais, quebre em múltiplas tarefas.
+MODO: Sprint Backlog
+INSTRUÇÃO VITAL: Leia o documento do usuário. Se ele definir um fluxo específico (ex: Desenvolvimento, Revisão por Pares, Validação Técnica), USE EXATAMENTE AS COLUNAS DELE.
+Nunca junte "Execução" com "Aprovação" se o documento pedir a separação delas.
+Quebre os requisitos complexos do documento em múltiplas tarefas pequenas (action items). Respeite as regras de prioridade citadas no texto.
 `;
       break;
     case 'summary':
       modeInstructions = `
-MODO DE GERAÇÃO: Resumo de Reunião
-Aja focando em extrair "Action Items". Ignore a conversa e o ruído. Encontre o que precisa ser feito, quem (se aplicável) e quando.
-Crie colunas como "Para Fazer Logo", "Para Investigar/Validar", "Bloqueados". Transforme os acordos da reunião diretamente em tarefas práticas.
+MODO: Resumo de Reunião
+INSTRUÇÃO VITAL: Extraia "Action Items" e acordos. Crie colunas precisas baseadas no que foi definido (ex: "Para Fazer Logo", "Bloqueados", "Análise").
+Atribua corretamente os responsáveis no campo "description" (ex: **Responsável: Nome**).
 `;
       break;
   }
