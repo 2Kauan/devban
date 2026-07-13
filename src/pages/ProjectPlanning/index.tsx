@@ -4,7 +4,7 @@ import { useProjectQuery } from '@/hooks/useProjectQuery';
 import { PlanningHeader } from '@/components/planning/PlanningHeader';
 import type { ViewType } from '@/components/planning/PlanningHeader';
 import { addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from 'date-fns';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Inbox } from 'lucide-react';
 import { CardModal } from '@/components/ui/CardModal';
 import { MonthView } from '@/components/planning/MonthView';
 import { WeekView } from '@/components/planning/WeekView';
@@ -173,7 +173,14 @@ export default function ProjectPlanning() {
             >
               <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
                 <span className={`w-2 h-2 rounded-full transition-colors ${isDraggingOverNoDate ? 'bg-primary' : 'bg-muted-foreground'}`} />
-                {isDraggingOverNoDate ? '📥 Solte aqui para remover data' : `Sem Data (${noDateCards.length})`}
+                {isDraggingOverNoDate ? (
+                  <>
+                    <Inbox size={16} className="text-primary" />
+                    Solte aqui para remover data
+                  </>
+                ) : (
+                  `Sem Data (${noDateCards.length})`
+                )}
               </h3>
               <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
                 {noDateCards.length === 0 ? (
