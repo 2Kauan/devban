@@ -98,14 +98,10 @@ export default function SharedProject() {
          // Update profile with the chosen name
          await supabase.from('profiles').update({ name: guestName.trim() }).eq('id', authData.user.id);
          
-         // Add them to project members implicitly if the project was found
-         if (project?.id) {
-           const perm = project.share_permission === 'edit' ? 'editor' : 'viewer';
-           await supabase.from('project_members').insert({
-             project_id: project.id,
-             user_id: authData.user.id,
-             permission: perm
-           });
+         // Use RPC to bypass RLS and add member to the project securely
+         if (token) {
+           const { error: joinError } = await supabase.rpc('join_project_by_token', { p_token: token });
+           if (joinError) console.error('Erro ao injetar membro:', joinError);
          }
   
          toast.success(`Bem-vindo(a), ${guestName.trim()}!`);
