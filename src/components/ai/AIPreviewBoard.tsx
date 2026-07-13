@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { AIKanbanBoard } from '@/types/ai';
 import { useAIImport } from '@/hooks/ai/useAIImport';
-import { Sparkles, ArrowRight, ListChecks } from 'lucide-react';
+import { BrainCircuit, ArrowRight, ListChecks } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface AIPreviewBoardProps {
@@ -37,7 +37,7 @@ export function AIPreviewBoard({ board: initialBoard, projectId, onCancel }: AIP
       <div className="shrink-0 p-6 border-b border-border bg-card flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Sparkles className="text-primary" />
+            <BrainCircuit className="text-primary" />
             Revisão do Planejamento
           </h2>
           <p className="text-muted-foreground mt-1">
