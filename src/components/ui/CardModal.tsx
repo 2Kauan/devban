@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { CardComments } from '../kanban/CardComments';
 import { supabase } from '@/lib/supabase';
 import type { KanbanCardType } from '@/types/kanban';
 import { X, AlignLeft, CheckSquare, Clock, Tag, Flag, Loader2, Plus, Trash2, ChevronDown, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle, Users, ListTree } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { CardComments } from '@/components/kanban/CardComments';
 
 import { TagSelector } from '@/components/ui/TagSelector';
 import type { Category, Profile } from '@/types/database';
@@ -529,9 +529,25 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                   className={`w-full text-2xl font-extrabold bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-lg px-3 py-1.5 -ml-3 text-foreground transition-all ${!canEdit ? 'pointer-events-none' : ''}`}
                 />
               </div>
-              <button onClick={onClose} className="text-muted-foreground hover:text-foreground hover:bg-muted p-1.5 rounded-full transition-colors flex-shrink-0">
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('card', card?.id || '');
+                    navigator.clipboard.writeText(url.toString());
+                    toast.success('Link do cartão copiado para a área de transferência!');
+                  }}
+                  className="text-muted-foreground hover:text-primary hover:bg-primary/10 p-1.5 rounded-full transition-colors flex-shrink-0"
+                  title="Copiar link do cartão"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                </button>
+                <button onClick={onClose} className="text-muted-foreground hover:text-foreground hover:bg-muted p-1.5 rounded-full transition-colors flex-shrink-0">
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 custom-scrollbar flex flex-col gap-8">

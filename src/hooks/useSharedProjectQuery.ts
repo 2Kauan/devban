@@ -37,6 +37,26 @@ export function useSharedProjectQuery(token: string | undefined) {
       const projectData = result.project as ProjectType;
       const colsData = result.columns as KanbanColumnType[];
       const cardsData = result.cards as KanbanCardType[];
+      const cardIds = cardsData.map((c: any) => c.id);
+      let commentsCounts: Record<string, number> = {};
+      
+      if (cardIds.length > 0) {
+        const { data: commentsCountData } = await supabase
+          .from('comments')
+          .select('card_id')
+          .in('card_id', cardIds);
+
+        if (commentsCountData) {
+          commentsCountData.forEach(c => {
+            commentsCounts[c.card_id] = (commentsCounts[c.card_id] || 0) + 1;
+          });
+        }
+      }
+
+      const enrichedCards = cardsData.map((c: any) => ({
+        ...c,
+        comments_count: commentsCounts[c.id] || 0
+      }));
 
       const [categoriesResponse, membersResponse] = await Promise.all([
         supabase.from('categories').select('*').eq('project_id', projectData.id),
@@ -46,7 +66,7 @@ export function useSharedProjectQuery(token: string | undefined) {
       return {
         project: projectData,
         columns: colsData.sort((a, b) => a.position - b.position),
-        cards: cardsData.sort((a, b) => a.position - b.position),
+        cards: enrichedCards.sort((a, b) => a.position - b.position),
         projectCategories: categoriesResponse.data || [],
         projectMembers: (membersResponse.data || []) as unknown as ProjectMember[]
       };

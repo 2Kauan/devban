@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useRef, memo, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { KanbanCardType } from '@/types/kanban';
-import { Clock, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle, ChevronLeft, ChevronRight, ListTree } from 'lucide-react';
+import { Clock, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle, ChevronLeft, ChevronRight, ListTree, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface KanbanCardProps {
@@ -200,6 +200,14 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
               )}
             </AnimatePresence>
           </button>
+        )}
+
+        {/* Comment Count Badge */}
+        {(card.comments_count ?? 0) > 0 && (
+          <div className="absolute top-2.5 right-8 flex items-center gap-1 text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded text-[10px] font-medium" title={`${card.comments_count} comentários`}>
+            <MessageSquare size={10} />
+            <span>{card.comments_count}</span>
+          </div>
         )}
 
         {isOverlay && selectionCount && selectionCount > 1 && (

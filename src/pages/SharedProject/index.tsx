@@ -21,6 +21,7 @@ export default function SharedProject() {
   
   // Guest Account State
   const [guestName, setGuestName] = useState('');
+  const [guestJobTitle, setGuestJobTitle] = useState('');
   const [isCreatingGuest, setIsCreatingGuest] = useState(false);
 
   const { data, isLoading, refetch, setOptimisticColumns, setOptimisticCards } = useSharedProjectQuery(token);
@@ -41,6 +42,19 @@ export default function SharedProject() {
   const [activeCard, setActiveCard] = useState<KanbanCardType | null>(null);
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const { openPrompt, openConfirm, KanbanModals } = useKanbanModals();
+
+  // Auto-open card from URL
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const cardIdParam = searchParams.get('card');
+    if (cardIdParam && cards.length > 0 && !isCardModalOpen && !activeCard) {
+      const cardToOpen = cards.find((c: any) => c.id === cardIdParam);
+      if (cardToOpen) {
+        setActiveCard(cardToOpen);
+        setIsCardModalOpen(true);
+      }
+    }
+  }, [cards.length]);
 
   const {
     handleColumnsChange,
@@ -96,7 +110,8 @@ export default function SharedProject() {
         password,
         options: {
           data: {
-            full_name: guestName.trim()
+            full_name: guestName.trim(),
+            job_title: guestJobTitle.trim()
           }
         }
       });
@@ -143,7 +158,7 @@ export default function SharedProject() {
         <div className="bg-card border border-border shadow-2xl rounded-2xl p-6 w-full max-w-md">
           <h2 className="text-xl font-bold mb-2">Acesso ao Projeto</h2>
           <p className="text-sm text-muted-foreground mb-6">
-            Por favor, informe seu nome para acessar este quadro. Você será listado como responsável pelas tarefas que assumir.
+            Por favor, informe seu nome e cargo para acessar este quadro. Você será listado como responsável pelas tarefas que assumir.
           </p>
           
           <form onSubmit={handleCreateGuestSession}>
@@ -151,9 +166,16 @@ export default function SharedProject() {
               type="text" 
               required 
               placeholder="Seu nome (ex: João Silva)" 
-              className="w-full bg-background border border-border rounded-lg px-4 py-3 mb-4 focus:ring-2 focus:ring-primary focus:outline-none transition-all"
+              className="w-full bg-background border border-border rounded-lg px-4 py-3 mb-3 focus:ring-2 focus:ring-primary focus:outline-none transition-all"
               value={guestName}
               onChange={(e) => setGuestName(e.target.value)}
+            />
+            <input 
+              type="text" 
+              placeholder="Seu cargo (ex: Desenvolvedor, QA, Designer)" 
+              className="w-full bg-background border border-border rounded-lg px-4 py-3 mb-4 focus:ring-2 focus:ring-primary focus:outline-none transition-all"
+              value={guestJobTitle}
+              onChange={(e) => setGuestJobTitle(e.target.value)}
             />
             <button 
               type="submit" 

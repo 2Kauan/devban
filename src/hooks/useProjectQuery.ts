@@ -190,6 +190,19 @@ export function useProjectQuery(projectId: string | undefined) {
           .from('card_assignees')
           .select('card_id, profiles(*)')
           .in('card_id', cardIds);
+          
+        // Fetch comment counts
+        const { data: commentsCountData } = await supabase
+          .from('comments')
+          .select('card_id')
+          .in('card_id', cardIds);
+
+        const commentsCounts: Record<string, number> = {};
+        if (commentsCountData) {
+          commentsCountData.forEach(c => {
+            commentsCounts[c.card_id] = (commentsCounts[c.card_id] || 0) + 1;
+          });
+        }
         
         enrichedCards = cardsData.map(card => {
           let cardCategories: Category[] = [];
@@ -207,7 +220,12 @@ export function useProjectQuery(projectId: string | undefined) {
               .map(ca => ca.profiles as unknown as Profile);
           }
           
-          return { ...card, categories: cardCategories, assignees: cardAssignees };
+          return { 
+            ...card, 
+            categories: cardCategories, 
+            assignees: cardAssignees,
+            comments_count: commentsCounts[card.id] || 0
+          };
         });
       }
 

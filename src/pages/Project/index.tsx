@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import type { KanbanCardType } from '@/types/kanban';
 import { KanbanBoard } from '@/components/kanban/KanbanBoard';
@@ -38,6 +38,19 @@ export default function ProjectPage() {
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isAccessRequestsOpen, setIsAccessRequestsOpen] = useState(false);
+  
+  // Auto-open card from URL
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const cardIdParam = searchParams.get('card');
+    if (cardIdParam && cards.length > 0 && !isCardModalOpen && !activeCard) {
+      const cardToOpen = cards.find((c: any) => c.id === cardIdParam);
+      if (cardToOpen) {
+        setActiveCard(cardToOpen);
+        setIsCardModalOpen(true);
+      }
+    }
+  }, [cards.length]);
   
   const { openPrompt, openConfirm, KanbanModals } = useKanbanModals();
   
