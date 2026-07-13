@@ -39,6 +39,14 @@ interface Checklist {
   items: ChecklistItem[];
 }
 
+const toLocalDatetimeString = (dateObj: Date | string | null | undefined) => {
+  if (!dateObj) return '';
+  const d = new Date(dateObj);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories = [], projectMembers = [], projectId, canEdit = true, allCards = [], columns = [], initialDate, initialColumnId }: CardModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [checklists, setChecklists] = useState<Checklist[]>([]);
@@ -65,7 +73,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
       title: '',
       description: '',
       priority: 'medium',
-      due_date: initialDate ? initialDate.toISOString().split('T')[0] : '',
+      due_date: initialDate ? toLocalDatetimeString(initialDate) : '',
       border_color: '',
       column_id: initialColumnId || (columns?.length > 0 ? columns[0].id : '')
     }
@@ -80,7 +88,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
         title: card.title,
         description: card.description || '',
         priority: card.priority,
-        due_date: card.due_date ? new Date(card.due_date).toISOString().split('T')[0] : '',
+        due_date: card.due_date ? toLocalDatetimeString(card.due_date) : '',
         border_color: card.border_color || '',
       });
       setLocalTags(card.categories || []);
@@ -93,7 +101,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
         title: '',
         description: '',
         priority: 'medium',
-        due_date: initialDate ? initialDate.toISOString().split('T')[0] : '',
+        due_date: initialDate ? toLocalDatetimeString(initialDate) : '',
         border_color: '',
         column_id: initialColumnId || (columns?.length > 0 ? columns[0].id : '')
       });
@@ -183,7 +191,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
             title: data.title,
             description: data.description,
             priority: data.priority,
-            due_date: data.due_date ? new Date(`${data.due_date}T12:00:00`).toISOString() : null,
+            due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
             border_color: data.border_color || null,
           })
           .eq('id', card.id);
@@ -207,7 +215,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
             title: data.title,
             description: data.description,
             priority: data.priority,
-            due_date: data.due_date ? new Date(`${data.due_date}T12:00:00`).toISOString() : null,
+            due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
             border_color: data.border_color || null,
             position
           })
@@ -750,7 +758,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                         PRAZO
                       </label>
                       <input 
-                        type="date"
+                        type="datetime-local"
                         {...register('due_date')}
                         readOnly={!canEdit}
                         className={`w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all ${!canEdit ? 'pointer-events-none opacity-70' : 'cursor-pointer'}`}

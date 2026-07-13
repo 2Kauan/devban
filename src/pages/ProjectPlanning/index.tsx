@@ -91,6 +91,17 @@ export default function ProjectPlanning() {
   const { cards, columns, projectCategories, projectMembers, userPermission } = data;
   const canEdit = userPermission === 'owner' || userPermission === 'admin' || userPermission === 'editor';
 
+  const todayStr = new Date().toISOString();
+  const noDateCards = cards.filter(c => !c.due_date);
+  const upcomingCards = cards.filter(c => c.due_date && c.due_date >= todayStr).sort((a,b) => a.due_date!.localeCompare(b.due_date!));
+  const pastCards = cards.filter(c => {
+    if (!c.due_date) return false;
+    if (c.due_date >= todayStr) return false;
+    const col = columns.find(col => col.id === c.column_id);
+    if (col?.is_completed) return false;
+    return true;
+  }).sort((a,b) => b.due_date!.localeCompare(a.due_date!));
+
   return (
     <div className="flex-1 flex flex-col h-full overflow-y-auto bg-background">
       <PlanningHeader
@@ -104,20 +115,84 @@ export default function ProjectPlanning() {
       />
       
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar: Mini Calendar & Next Tasks (Desktop only) */}
-        <aside className="w-64 border-r border-border/50 bg-card hidden xl:flex flex-col shrink-0 overflow-y-auto custom-scrollbar">
-          <div className="p-4 border-b border-border/50">
-            {/* Mini Calendar placeholder */}
-            <div className="h-48 bg-muted/30 rounded-xl border border-dashed border-border flex items-center justify-center text-muted-foreground text-sm">
-              Mini Calendário
+        {/* Left Sidebar: Task Lists (Desktop only) */}
+        <aside className="w-80 border-r border-border/50 bg-card hidden xl:flex flex-col shrink-0 overflow-y-auto custom-scrollbar">
+          <div className="p-4 flex-1 flex flex-col gap-6">
+            
+            {/* Sem Data */}
+            <div>
+              <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-muted-foreground" />
+                Sem Data ({noDateCards.length})
+              </h3>
+              <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
+                {noDateCards.length === 0 ? (
+                  <p className="text-xs text-muted-foreground p-3 text-center border border-dashed rounded-lg">Nenhuma tarefa sem data.</p>
+                ) : (
+                  noDateCards.map(c => (
+                    <button key={c.id} onClick={() => handleEventClick(c)} className="text-left bg-background border border-border p-3 rounded-lg hover:border-primary/50 transition-colors group">
+                      <div className="text-sm font-medium truncate mb-1">{c.title}</div>
+                      <div className="text-xs text-muted-foreground">{columns.find(col => col.id === c.column_id)?.title}</div>
+                    </button>
+                  ))
+                )}
+              </div>
             </div>
-          </div>
-          <div className="p-4 flex-1">
-            <h3 className="text-sm font-semibold text-foreground mb-3">Próximas Tarefas</h3>
-            {/* Next Tasks placeholder */}
-            <div className="h-48 bg-muted/30 rounded-xl border border-dashed border-border flex items-center justify-center text-muted-foreground text-sm">
-              Lista
+
+            {/* Próximas Tarefas */}
+            <div>
+              <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-500" />
+                Próximas Tarefas ({upcomingCards.length})
+              </h3>
+              <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
+                {upcomingCards.length === 0 ? (
+                  <p className="text-xs text-muted-foreground p-3 text-center border border-dashed rounded-lg">Nenhuma próxima tarefa.</p>
+                ) : (
+                  upcomingCards.map(c => {
+                    const dateObj = new Date(c.due_date!);
+                    const pad = (n: number) => n.toString().padStart(2, '0');
+                    return (
+                      <button key={c.id} onClick={() => handleEventClick(c)} className="text-left bg-background border border-border p-3 rounded-lg hover:border-primary/50 transition-colors group">
+                        <div className="text-sm font-medium truncate mb-1">{c.title}</div>
+                        <div className="flex justify-between items-center text-xs text-muted-foreground mt-2">
+                          <span>{pad(dateObj.getDate())}/{pad(dateObj.getMonth()+1)} - {pad(dateObj.getHours())}:{pad(dateObj.getMinutes())}</span>
+                          <span className="px-1.5 py-0.5 bg-muted rounded truncate max-w-[100px]">{columns.find(col => col.id === c.column_id)?.title}</span>
+                        </div>
+                      </button>
+                    )
+                  })
+                )}
+              </div>
             </div>
+
+            {/* Passados */}
+            <div>
+              <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-destructive" />
+                Passados ({pastCards.length})
+              </h3>
+              <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
+                {pastCards.length === 0 ? (
+                  <p className="text-xs text-muted-foreground p-3 text-center border border-dashed rounded-lg">Nenhuma tarefa atrasada.</p>
+                ) : (
+                  pastCards.map(c => {
+                    const dateObj = new Date(c.due_date!);
+                    const pad = (n: number) => n.toString().padStart(2, '0');
+                    return (
+                      <button key={c.id} onClick={() => handleEventClick(c)} className="text-left bg-red-500/10 border border-red-500/20 p-3 rounded-lg hover:border-red-500/40 transition-colors group">
+                        <div className="text-sm font-medium truncate text-red-700 dark:text-red-400 mb-1">{c.title}</div>
+                        <div className="flex justify-between items-center text-xs text-red-600/70 dark:text-red-400/70 mt-2">
+                          <span>{pad(dateObj.getDate())}/{pad(dateObj.getMonth()+1)} - {pad(dateObj.getHours())}:{pad(dateObj.getMinutes())}</span>
+                          <span className="px-1.5 py-0.5 bg-red-500/10 rounded truncate max-w-[100px]">{columns.find(col => col.id === c.column_id)?.title}</span>
+                        </div>
+                      </button>
+                    )
+                  })
+                )}
+              </div>
+            </div>
+
           </div>
         </aside>
 
