@@ -94,19 +94,10 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
     const style = {
       transition,
       transform: CSS.Transform.toString(transform),
+      opacity: isDragging ? 0.3 : 1,
     };
 
-    if (isDragging) {
-      return (
-        <div
-          ref={setNodeRef}
-          style={style}
-          className="bg-primary/5 border border-primary/20 rounded-lg h-[90px] mb-2 opacity-50"
-        />
-      );
-    }
-
-    if (isBulkDragging && isSelected) {
+    if (isBulkDragging && isSelected && !isDragging) {
       // If a bulk drag is active, and this card is selected (but not the active one, since isDragging is false)
       // We should hide it visually so it looks like it was picked up with the stack
       return (

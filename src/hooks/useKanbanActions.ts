@@ -54,15 +54,29 @@ export function useKanbanActions({
 
   const handleCardsChange = useEvent(async (newCards: KanbanCardType[]) => {
     if (!projectId) return;
+    
+    // Calcula as novas posições matematicamente
     const updatedCards = newCards.map((card, index) => ({
       ...card,
       position: (index + 1) * 1000
     }));
+    
+    // Otimista: atualiza a tela instantaneamente
     setOptimisticCards(updatedCards);
 
     try {
-      const updates = updatedCards.map(card => {
-        // Remove relation fields that don't belong directly in the cards table
+      // OTIMIZAÇÃO CRÍTICA: Só envia pro banco de dados os cards que de fato mudaram de lugar ou coluna.
+      // Isso evita disparar dezenas de eventos Realtime simultâneos e crashear o React (Error 185)
+      const changedCards = updatedCards.filter(updatedCard => {
+        const oldCard = cards.find(c => c.id === updatedCard.id);
+        if (!oldCard) return true;
+        return oldCard.position !== updatedCard.position || oldCard.column_id !== updatedCard.column_id;
+      });
+
+      if (changedCards.length === 0) return; // Nada pra salvar no DB
+
+      const updates = changedCards.map(card => {
+        // Remove campos relacionais que não pertencem à tabela 'cards' diretamente
         const { assignees, categories, ...dbCard } = card;
         return dbCard;
       });
