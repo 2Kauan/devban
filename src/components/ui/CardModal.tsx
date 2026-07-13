@@ -670,12 +670,14 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
 
                       <AnimatePresence>
                         {isPriorityOpen && (
-                          <motion.div 
-                            initial={{ opacity: 0, y: -5 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -5 }}
-                            className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-xl overflow-hidden z-20"
-                          >
+                          <>
+                            <div className="fixed inset-0 z-10" onClick={() => setIsPriorityOpen(false)} />
+                            <motion.div 
+                              initial={{ opacity: 0, y: -5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -5 }}
+                              className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-xl overflow-hidden z-20"
+                            >
                             <button
                               type="button"
                               onClick={() => { setValue('priority', 'low', { shouldDirty: true }); setIsPriorityOpen(false); }}
@@ -705,6 +707,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                               <AlertCircle size={16} className="text-destructive" /> Urgente
                             </button>
                           </motion.div>
+                          </>
                         )}
                       </AnimatePresence>
                     </div>
@@ -729,21 +732,26 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                             <span className="text-muted-foreground font-normal">Nenhum</span>
                           ) : (
                             localAssignees.map(a => (
-                              <img key={a.id} src={a.avatar_url || `https://ui-avatars.com/api/?name=${a.name || 'User'}`} alt={a.name || 'User'} className="w-6 h-6 rounded-full border border-border" title={a.name || 'User'} />
+                              <div key={a.id} className="flex items-center gap-1.5 bg-muted px-2 py-1 rounded-full">
+                                <img src={a.avatar_url || `https://ui-avatars.com/api/?name=${a.name || 'User'}`} alt={a.name || 'User'} className="w-4 h-4 rounded-full border border-border" title={a.name || 'User'} />
+                                <span className="text-xs font-medium truncate max-w-[100px]">{a.name}</span>
+                              </div>
                             ))
                           )}
                         </div>
-                        <ChevronDown size={16} className="text-muted-foreground ml-2" />
+                        <ChevronDown size={16} className="text-muted-foreground ml-2 shrink-0" />
                       </button>
 
                       <AnimatePresence>
                         {isAssigneeOpen && (
-                          <motion.div 
-                            initial={{ opacity: 0, y: -5 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -5 }}
-                            className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-xl overflow-hidden z-20 max-h-[250px] overflow-y-auto custom-scrollbar"
-                          >
+                          <>
+                            <div className="fixed inset-0 z-10" onClick={() => setIsAssigneeOpen(false)} />
+                            <motion.div 
+                              initial={{ opacity: 0, y: -5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -5 }}
+                              className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-xl overflow-hidden z-20 max-h-[250px] overflow-y-auto custom-scrollbar"
+                            >
                             {projectMembers.map(member => {
                               const isSelected = localAssignees.some(a => a.id === member.profiles.id);
                               return (
@@ -771,7 +779,8 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                             {projectMembers.length === 0 && (
                                <div className="p-3 text-sm text-muted-foreground text-center">Nenhum membro no projeto</div>
                             )}
-                          </motion.div>
+                            </motion.div>
+                          </>
                         )}
                       </AnimatePresence>
                     </div>
