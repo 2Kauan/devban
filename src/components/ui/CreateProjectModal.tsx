@@ -98,8 +98,14 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
       )
       .subscribe();
 
+    // Fallback: polling a cada 5 segundos caso o webhook não chegue
+    const pollInterval = setInterval(() => {
+      handleCheckPaymentStatus(true);
+    }, 5000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(pollInterval);
     };
   }, [showPayment, paymentData?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -138,7 +144,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
           .from('payments')
           .insert({
             user_id: user.id,
-            value: 5.00,
+            value: 7.00,
             method: paymentMethod,
             status: 'pending',
           })
@@ -215,9 +221,9 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
     }
   };
 
-  const handleCheckPaymentStatus = async () => {
+  const handleCheckPaymentStatus = async (isPolling = false) => {
     if (!paymentData) return;
-    setIsLoading(true);
+    if (!isPolling) setIsLoading(true);
     try {
       // Chama a edge function que verifica o status direto no Asaas
       const { data: checkData, error: checkError } = await supabase.functions.invoke('check-asaas-payment', {
@@ -253,19 +259,19 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
         await supabase.from('columns').insert(defaultColumns);
         
         localStorage.removeItem(`pending_project_${paymentData.id}`);
-        toast.success('Pagamento confirmado e projeto criado!');
+        toast.success(`Pagamento confirmado! O projeto "${pendingProject.name || ''}" foi criado.`);
         reset();
         setShowPayment(false);
         setPaymentData(null);
         onSuccess();
         onClose();
       } else {
-        toast.info('Pagamento ainda não confirmado. Aguarde alguns instantes.');
+        if (!isPolling) toast.info('Pagamento ainda não confirmado. Aguarde alguns instantes.');
       }
     } catch (error: any) {
-      toast.error('Erro ao checar status: ' + error.message);
+      if (!isPolling) toast.error('Erro ao verificar pagamento: ' + error.message);
     } finally {
-      setIsLoading(false);
+      if (!isPolling) setIsLoading(false);
     }
   };
 

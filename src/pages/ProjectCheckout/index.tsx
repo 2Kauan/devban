@@ -37,7 +37,71 @@ export default function ProjectCheckout() {
       }
     }
     fetchProject();
-  }, [id, navigate]);
+  const [paymentRecordId, setPaymentRecordId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!paymentRecordId) return;
+
+    let isPollingActive = true;
+
+    const handleCheckPaymentStatus = async () => {
+      if (!isPollingActive) return;
+      try {
+        const { data: checkData, error: checkError } = await supabase.functions.invoke('check-asaas-payment', {
+          body: { paymentId: paymentRecordId }
+        });
+        
+        if (checkError || checkData?.error) return;
+        
+        if (checkData?.status === 'confirmed' && isPollingActive) {
+          isPollingActive = false;
+          
+          const { error } = await supabase
+            .from('projects')
+            .update({ is_free: false, payment_id: paymentRecordId })
+            .eq('id', project?.id);
+
+          if (!error) {
+            setIsSuccess(true);
+            setTimeout(() => {
+              toast.success('Pagamento aprovado! Inteligência Artificial liberada.');
+              navigate(`/project/${project?.id}/ai`);
+            }, 2500);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    const channel = supabase
+      .channel(`payment_${paymentRecordId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'payments',
+          filter: `id=eq.${paymentRecordId}`
+        },
+        (payload) => {
+          if (payload.new && payload.new.status === 'confirmed') {
+            handleCheckPaymentStatus();
+          }
+        }
+      )
+      .subscribe();
+
+    const pollInterval = setInterval(() => {
+      handleCheckPaymentStatus();
+    }, 5000);
+
+    return () => {
+      isPollingActive = false;
+      supabase.removeChannel(channel);
+      clearInterval(pollInterval);
+    };
+  }, [paymentRecordId, project?.id, navigate]);
 
   const handlePayment = async () => {
     setIsProcessing(true);
@@ -54,7 +118,7 @@ export default function ProjectCheckout() {
         .insert({
           user_id: userData.user.id,
           project_id: project.id,
-          value: 5.00,
+          value: 7.00,
           method: paymentMethod,
           status: 'pending'
         })
@@ -62,6 +126,8 @@ export default function ProjectCheckout() {
         .single();
 
       if (insertError) throw insertError;
+      
+      setPaymentRecordId(paymentRecord.id);
 
       // 2. Chamar a Edge Function para criar a cobrança no Asaas
       const { data, error } = await supabase.functions.invoke('create-asaas-payment', {
@@ -217,14 +283,21 @@ export default function ProjectCheckout() {
                     </button>
                   </div>
 
-                  <button
-                    onClick={handleSimulateApproval}
-                    disabled={isProcessing}
-                    className="w-full h-12 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg hover:shadow-primary/40 transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-70 disabled:pointer-events-none"
-                  >
-                    {isProcessing ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
-                    Simular Pagamento Confirmado
-                  </button>
+                  <div className="flex flex-col gap-3 w-full">
+                    <button
+                      onClick={handleSimulateApproval}
+                      disabled={isProcessing}
+                      className="w-full h-12 bg-muted text-muted-foreground font-bold rounded-xl hover:bg-muted/80 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:pointer-events-none"
+                    >
+                      {isProcessing ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
+                      Simular Aprovação (Sandbox)
+                    </button>
+                    
+                    <div className="flex items-center justify-center gap-2 text-xs text-primary font-medium animate-pulse">
+                      <Loader2 size={14} className="animate-spin" />
+                      Aguardando confirmação do pagamento...
+                    </div>
+                  </div>
                 </motion.div>
               ) : creditCardUrl ? (
                 <motion.div
@@ -269,7 +342,7 @@ export default function ProjectCheckout() {
                 <div className="flex items-center justify-between mb-8">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-1">Total a pagar</p>
-                    <h2 className="text-4xl font-black text-foreground">R$ 5,00<span className="text-sm font-medium text-muted-foreground ml-1">/único</span></h2>
+                    <h2 className="text-4xl font-black text-foreground">R$ 7,00<span className="text-sm font-medium text-muted-foreground ml-1">/único</span></h2>
                   </div>
                 </div>
 
@@ -316,7 +389,7 @@ export default function ProjectCheckout() {
                       ) : (
                         <>
                           <Lock size={18} />
-                          Pagar R$ 5,00
+                          Pagar R$ 7,00
                         </>
                       )}
                     </button>
