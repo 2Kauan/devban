@@ -1,5 +1,6 @@
 import { CalendarDays, ChevronLeft, ChevronRight, Filter, Search, Plus } from 'lucide-react';
 import { formatMonthYear } from '@/utils/calendar';
+import { isSameMonth, isSameWeek, isSameDay } from 'date-fns';
 
 export type ViewType = 'month' | 'week' | 'day' | 'agenda';
 
@@ -44,18 +45,29 @@ export function PlanningHeader({
           <button 
             onClick={onPrev}
             className="p-1.5 hover:bg-background rounded-md text-muted-foreground hover:text-foreground transition-all"
+            title="Anterior"
           >
             <ChevronLeft size={18} />
           </button>
+          
           <button 
             onClick={onToday}
-            className="px-3 py-1.5 text-sm font-medium hover:bg-background rounded-md text-muted-foreground hover:text-foreground transition-all"
+            disabled={(() => {
+              const today = new Date();
+              if (view === 'month') return isSameMonth(currentDate, today);
+              if (view === 'week') return isSameWeek(currentDate, today);
+              return isSameDay(currentDate, today);
+            })()}
+            className="px-3 py-1.5 text-sm font-medium rounded-md transition-all text-muted-foreground hover:text-foreground hover:bg-background disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+            title="Voltar para a data atual"
           >
             Hoje
           </button>
+          
           <button 
             onClick={onNext}
             className="p-1.5 hover:bg-background rounded-md text-muted-foreground hover:text-foreground transition-all"
+            title="Próximo"
           >
             <ChevronRight size={18} />
           </button>
