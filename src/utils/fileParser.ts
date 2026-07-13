@@ -1,8 +1,10 @@
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Configuração do Worker do PDF.js via CDN público (evita problemas pesados no bundle do Vite)
-// @ts-ignore - Ignorando tipagem estrita para a versão no CDN
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+// Usando o worker local via empacotador Vite ao invés de CDN para garantir que a versão bate 100% e não sofre de bloqueios CORS.
+// @ts-ignore
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 export async function extractTextFromFiles(files: File[]): Promise<string> {
   if (!files || files.length === 0) return '';
