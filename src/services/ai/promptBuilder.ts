@@ -27,7 +27,14 @@ NÃO INCLUA formatação markdown (como \`\`\`json), nem introduções, nem expl
           "tags": [
             { "name": "Nome do Departamento, Raia ou Tag", "color": "#HEX_COR (ATENÇÃO: Use cores SEMPRE diferentes e bem distintas umas das outras para cada tag diferente na lista!)" }
           ],
-          "checklist": ["Passo 1", "Passo 2"]
+          "checklist": ["Passo 1", "Passo 2"],
+          "subtasks": [
+            {
+              "id": "string única (ex: sub-1)",
+              "title": "Título da sub-tarefa",
+              "priority": "low" | "medium" | "high" | "urgent"
+            }
+          ]
         }
       ]
     }
@@ -41,9 +48,10 @@ NÃO INCLUA formatação markdown (como \`\`\`json), nem introduções, nem expl
     case 'planning':
       modeInstructions = `
 MODO: Planejamento Macro
-INSTRUÇÃO VITAL: Leia o documento do usuário. Se ele definir uma estrutura de fases/colunas próprias (ex: Concepção, Execução, Aprovação, etc), USE EXATAMENTE AS COLUNAS DELE. Não invente. Se um gargalo for apontado (ex: revisão por pares), desmembre isso em uma coluna específica para revisão.
+INSTRUÇÃO VITAL: Leia o documento do usuário. Se ele definir uma estrutura de fases/colunas próprias (ex: Concepção, Execução, Aprovação, etc), USE EXATAMENTE AS COLUNAS DELE. Não invente.
 Se o documento não sugerir colunas, agrupe por grandes áreas de implementação.
 Se o documento exigir Raias (Swimlanes) ou separação por departamentos, simule-as usando a array "tags" DENTRO de cada tarefa para classificá-las visualmente.
+NOVIDADE CRÍTICA DE HIERARQUIA: Se o usuário enviar uma lista com um 'título pai' (ex: "ETAPA 2 - UX/UI") e várias tarefas filhas logo abaixo, NÃO crie dezenas de cartões soltos. Crie UM ÚNICO CARTÃO chamado "ETAPA 2 - UX/UI" e coloque todas as tarefas filhas na propriedade "subtasks" (array de sub-tarefas) desse cartão.
 `;
       break;
     case 'sprint':

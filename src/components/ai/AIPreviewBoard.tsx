@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { AIKanbanBoard } from '@/types/ai';
 import { useAIImport } from '@/hooks/ai/useAIImport';
-import { BrainCircuit, ArrowRight, ArrowDownRight, ArrowUpRight, AlertCircle, Clock, ListChecks } from 'lucide-react';
+import { BrainCircuit, ArrowRight, ArrowDownRight, ArrowUpRight, AlertCircle, Clock, ListChecks, ListTree } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface AIPreviewBoardProps {
@@ -164,12 +164,23 @@ export function AIPreviewBoard({ board: initialBoard, projectId, onCancel }: AIP
                     </div>
                   </div>
 
-                  {task.checklist && task.checklist.length > 0 && (
-                    <div className="mt-3 flex items-center gap-1.5 text-[11px] font-medium text-primary bg-primary/5 border border-primary/10 w-fit px-2 py-1 rounded-md">
-                      <ListChecks size={13} />
-                      {task.checklist.length} itens sugeridos
+                  {(task.checklist && task.checklist.length > 0) || (task.subtasks && task.subtasks.length > 0) ? (
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {task.checklist && task.checklist.length > 0 && (
+                        <div className="flex items-center gap-1.5 text-[11px] font-medium text-primary bg-primary/5 border border-primary/10 w-fit px-2 py-1 rounded-md">
+                          <ListChecks size={13} />
+                          {task.checklist.length} itens sugeridos
+                        </div>
+                      )}
+                      
+                      {task.subtasks && task.subtasks.length > 0 && (
+                        <div className="flex items-center gap-1.5 text-[11px] font-medium text-amber-600 bg-amber-500/10 border border-amber-500/20 w-fit px-2 py-1 rounded-md">
+                          <ListTree size={13} />
+                          {task.subtasks.length} sub-tarefas ocultas
+                        </div>
+                      )}
                     </div>
-                  )}
+                  ) : null}
                 </motion.div>
                 );
               })}

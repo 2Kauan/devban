@@ -10,6 +10,7 @@ export interface AIKanbanTask {
   checklist?: string[]; // Simplified checklist items
   tags?: { name: string; color: string }[];
   due_date?: string; // ISO format date
+  subtasks?: Omit<AIKanbanTask, 'subtasks' | 'checklist'>[]; // Array of child cards
 }
 
 export interface AIKanbanColumn {

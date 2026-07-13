@@ -123,6 +123,29 @@ export function useAIImport() {
               await supabase.from('checklist_items').insert(checklistInserts);
             }
           }
+
+          // 5. Insert Subtasks if they exist
+          if (task.subtasks && task.subtasks.length > 0) {
+            let baseSubtaskPosition = 0;
+            const subtaskInserts = task.subtasks.map(sub => {
+              baseSubtaskPosition += 1000;
+              const subPriority = ['low', 'medium', 'high', 'urgent'].includes(sub.priority || '') 
+                ? sub.priority 
+                : 'medium';
+                
+              return {
+                column_id: newCol.id,
+                project_id: projectId,
+                parent_id: newCard.id,
+                title: sub.title,
+                description: sub.description || '',
+                position: baseSubtaskPosition,
+                priority: subPriority
+              };
+            });
+            
+            await supabase.from('cards').insert(subtaskInserts);
+          }
         }
       }
 
