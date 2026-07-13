@@ -61,8 +61,12 @@ export function useKanbanActions({
       position: (index + 1) * 1000
     }));
     
-    // Otimista: atualiza a tela instantaneamente
-    setOptimisticCards(updatedCards);
+    // Otimista: atualiza a tela instantaneamente preservando os cartões ocultos (sub-tarefas)
+    const fullUpdatedCards = cards.map(c => {
+      const updated = updatedCards.find(uc => uc.id === c.id);
+      return updated ? updated : c;
+    });
+    setOptimisticCards(fullUpdatedCards);
 
     try {
       // OTIMIZAÇÃO CRÍTICA: Só envia pro banco de dados os cards que de fato mudaram de lugar ou coluna.
@@ -104,6 +108,17 @@ export function useKanbanActions({
         old_value: { column_title: sourceCol.title },
         new_value: { column_title: destCol.title }
       });
+
+      // Se moveu o cartão pai, move automaticamente todos os cartões filhos (sub-tarefas) para a mesma coluna!
+      const subtasks = cards.filter(c => c.parent_id === cardId);
+      if (subtasks.length > 0) {
+        const subtaskUpdates = subtasks.map(st => ({
+          id: st.id,
+          column_id: destColId
+        }));
+        await supabase.from('cards').upsert(subtaskUpdates);
+        setOptimisticCards(cards.map(c => c.parent_id === cardId ? { ...c, column_id: destColId } : c));
+      }
     } catch (error) {
       console.error('Failed to log move:', error);
     }
