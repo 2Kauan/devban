@@ -188,6 +188,11 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
 
         if (error) throw error;
         
+        // Marca que o usuário já utilizou o seu projeto gratuito
+        if (canCreateFree) {
+          await supabase.from('profiles').update({ free_slot_consumed: true }).eq('id', user.id);
+        }
+        
         const defaultColumns = [
           { project_id: newProject.id, title: 'Ideias', position: 1000, color: '#94a3b8' },
           { project_id: newProject.id, title: 'A Fazer', position: 2000, color: '#3b82f6' },
