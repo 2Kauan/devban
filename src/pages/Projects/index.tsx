@@ -141,6 +141,7 @@ export default function Projects({ favoritesOnly = false }: ProjectsProps) {
   const { user } = useAuth();
   const { favorites } = useFavorites(user?.id);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [stock, setStock] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -161,6 +162,18 @@ export default function Projects({ favoritesOnly = false }: ProjectsProps) {
 
       if (error) throw error;
       setProjects(data || []);
+
+      const { data: payments } = await supabase.from('payments')
+        .select('value')
+        .eq('user_id', user?.id)
+        .eq('status', 'confirmed')
+        .is('project_id', null);
+        
+      const totalPurchasedValue = payments?.reduce((acc, curr) => acc + (curr.value || 0), 0) || 0;
+      const totalPurchasedSlots = Math.floor(totalPurchasedValue / 7.00);
+      const premiumCount = (data || []).filter(p => !p.is_free).length;
+      
+      setStock(Math.max(0, totalPurchasedSlots - premiumCount));
     } catch (error: any) {
       toast.error('Erro ao buscar projetos: ' + error.message);
     } finally {
@@ -216,15 +229,26 @@ export default function Projects({ favoritesOnly = false }: ProjectsProps) {
               </p>
             </div>
             {!favoritesOnly && (
-              <button 
-                onClick={() => document.dispatchEvent(new CustomEvent('open-create-project'))}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg font-bold flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow active:scale-95 whitespace-nowrap w-full sm:w-auto"
-              >
-                <Plus size={18} />
-                Novo Projeto
-              </button>
+              <div className="flex items-center gap-4 w-full sm:w-auto">
+                <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 text-primary rounded-lg font-bold">
+                  Projetos em Estoque: <span className="text-xl leading-none">{stock}</span>
+                </div>
+                <button 
+                  onClick={() => document.dispatchEvent(new CustomEvent('open-create-project'))}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg font-bold flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow active:scale-95 whitespace-nowrap w-full sm:w-auto"
+                >
+                  <Plus size={18} />
+                  Novo Projeto
+                </button>
+              </div>
             )}
           </div>
+          
+          {!favoritesOnly && (
+            <div className="sm:hidden mb-6 flex items-center justify-center gap-2 px-4 py-3 bg-primary/10 border border-primary/20 text-primary rounded-lg font-bold">
+              Projetos em Estoque: <span className="text-xl leading-none">{stock}</span>
+            </div>
+          )}
 
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">

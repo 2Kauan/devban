@@ -45,6 +45,9 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'credit_card'>('pix');
   const [requiresPayment, setRequiresPayment] = useState(false);
   const [isCheckingSlots, setIsCheckingSlots] = useState(true);
+  const [activeTab, setActiveTab] = useState<'create' | 'buy'>('create');
+  const [bulkQuantity, setBulkQuantity] = useState(1);
+  const [bulkCpf, setBulkCpf] = useState('');
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ProjectForm>({
     resolver: zodResolver(projectSchema),
@@ -58,11 +61,20 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
       try {
         const { data: profile } = await supabase.from('profiles').select('free_slot_consumed').eq('id', user.id).single();
         const { count: freeProjects } = await supabase.from('projects').select('*', { count: 'exact', head: true }).eq('owner_id', user.id).eq('is_free', true);
-        const { count: paymentsCount } = await supabase.from('payments').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'confirmed');
+        
+        const { data: payments } = await supabase.from('payments')
+          .select('value')
+          .eq('user_id', user.id)
+          .eq('status', 'confirmed')
+          .is('project_id', null);
+          
+        const totalPurchasedValue = payments?.reduce((acc, curr) => acc + (curr.value || 0), 0) || 0;
+        const totalPurchasedSlots = Math.floor(totalPurchasedValue / 7.00);
+
         const { count: premiumProjects } = await supabase.from('projects').select('*', { count: 'exact', head: true }).eq('owner_id', user.id).eq('is_free', false);
 
         const canCreateFree = freeProjects === 0 && profile?.free_slot_consumed === false;
-        const canCreatePremium = (premiumProjects || 0) < (paymentsCount || 0);
+        const canCreatePremium = (premiumProjects || 0) < totalPurchasedSlots;
 
         setRequiresPayment(!canCreateFree && !canCreatePremium);
       } catch (e) {
@@ -120,14 +132,21 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
       const { count: freeProjects, error: checkFreeError } = await supabase.from('projects').select('*', { count: 'exact', head: true }).eq('owner_id', user.id).eq('is_free', true);
       if (checkFreeError) throw checkFreeError;
 
-      const { count: paymentsCount, error: checkPayError } = await supabase.from('payments').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'confirmed');
+      const { data: payments, error: checkPayError } = await supabase.from('payments')
+        .select('value')
+        .eq('user_id', user.id)
+        .eq('status', 'confirmed')
+        .is('project_id', null);
       if (checkPayError) throw checkPayError;
+      
+      const totalPurchasedValue = payments?.reduce((acc, curr) => acc + (curr.value || 0), 0) || 0;
+      const totalPurchasedSlots = Math.floor(totalPurchasedValue / 7.00);
 
       const { count: premiumProjects, error: checkPremError } = await supabase.from('projects').select('*', { count: 'exact', head: true }).eq('owner_id', user.id).eq('is_free', false);
       if (checkPremError) throw checkPremError;
       
       const canCreateFree = freeProjects === 0 && profile?.free_slot_consumed === false;
-      const canCreatePremium = (premiumProjects || 0) < (paymentsCount || 0);
+      const canCreatePremium = (premiumProjects || 0) < totalPurchasedSlots;
 
       const requiresPayment = !canCreateFree && !canCreatePremium;
 
@@ -221,6 +240,64 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
     }
   };
 
+  const handleBulkPurchase = async () => {
+    if (!user) return;
+    
+    if (!bulkCpf || !isValidCPF(bulkCpf)) {
+      toast.error('Por favor, informe um CPF válido para gerar a cobrança.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const totalValue = bulkQuantity * 7.00;
+      
+      const { data: paymentRecord, error: paymentError } = await supabase
+        .from('payments')
+        .insert({
+          user_id: user.id,
+          value: totalValue,
+          method: paymentMethod,
+          status: 'pending',
+        })
+        .select()
+        .single();
+
+      if (paymentError) throw paymentError;
+
+      let asaasData = null;
+      const { data: funcData, error: funcError } = await supabase.functions.invoke('create-asaas-payment', {
+        body: { paymentId: paymentRecord.id, method: paymentMethod, projectName: `Pacote de ${bulkQuantity} Vagas`, cpfCnpj: bulkCpf }
+      });
+
+      if (funcError || funcData?.error) {
+        const errorMessage = funcData?.error || funcError?.message || "Erro desconhecido";
+        console.warn("Edge Function falhou:", errorMessage);
+        toast.warning(`Erro: ${errorMessage}. Usando PIX de demonstração.`);
+        asaasData = {
+          pixQrCode: "00020126580014br.gov.bcb.pix0136123e4567-e89b-12d3-a456-42665544000052040000530398654045.005802BR5913Kauan Batista6009SAO PAULO62070503***6304E6BC",
+          invoiceUrl: "https://sandbox.asaas.com/i/mock-fatura"
+        };
+      } else {
+        asaasData = funcData;
+      }
+
+      setPaymentData({
+        id: paymentRecord.id,
+        pixQrCode: asaasData.pixQrCode,
+        invoiceUrl: asaasData.invoiceUrl,
+        pixEncodedImage: asaasData.pixEncodedImage
+      });
+      setShowPayment(true);
+      
+      localStorage.setItem(`pending_bulk_${paymentRecord.id}`, JSON.stringify({ quantity: bulkQuantity }));
+    } catch (error: any) {
+      toast.error('Erro ao processar cobrança: ' + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleCheckPaymentStatus = async (isPolling = false) => {
     if (!paymentData) return;
     if (!isPolling) setIsLoading(true);
@@ -236,6 +313,20 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
       let currentStatus = checkData?.status || 'pending';
 
       if (currentStatus === 'confirmed') {
+        const isBulk = localStorage.getItem(`pending_bulk_${paymentData.id}`);
+        
+        if (isBulk) {
+          const bulkData = JSON.parse(isBulk);
+          localStorage.removeItem(`pending_bulk_${paymentData.id}`);
+          toast.success(`Pagamento confirmado! ${bulkData.quantity} vagas adicionadas ao seu estoque.`);
+          reset();
+          setShowPayment(false);
+          setPaymentData(null);
+          onSuccess();
+          onClose();
+          return;
+        }
+
         const pendingProject = JSON.parse(localStorage.getItem(`pending_project_${paymentData.id}`) || '{}');
         
         const { data: newProject, error: projError } = await supabase.from('projects').insert({
@@ -303,13 +394,30 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
               </button>
             </div>
 
+            {!showPayment && !isCheckingSlots && (
+              <div className="flex border-b border-border/50 bg-muted/10">
+                <button
+                  onClick={() => setActiveTab('create')}
+                  className={`flex-1 py-3 text-sm font-bold transition-colors ${activeTab === 'create' ? 'border-b-2 border-primary text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  Criar Projeto
+                </button>
+                <button
+                  onClick={() => setActiveTab('buy')}
+                  className={`flex-1 py-3 text-sm font-bold transition-colors ${activeTab === 'buy' ? 'border-b-2 border-primary text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  Comprar Vagas
+                </button>
+              </div>
+            )}
+
             <div className="p-6 overflow-y-auto custom-scrollbar">
               {isCheckingSlots ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
                   <p className="text-muted-foreground font-medium">Verificando elegibilidade...</p>
                 </div>
-              ) : !showPayment ? (
+              ) : !showPayment && activeTab === 'create' ? (
                 <form onSubmit={handleSubmit(handleCreate)} className="space-y-5">
                   {requiresPayment && (
                     <motion.div 
@@ -318,7 +426,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                       className="p-4 bg-primary/10 border border-primary/20 rounded-xl mb-4"
                     >
                       <h3 className="font-bold text-primary mb-1">Projeto Premium</h3>
-                      <p className="text-sm text-primary/90 leading-relaxed">Você já utilizou seu projeto gratuito. Um novo projeto tem o custo único de <strong className="font-black">R$ 5,00</strong>.</p>
+                      <p className="text-sm text-primary/90 leading-relaxed">Você já utilizou seu projeto gratuito. Um novo projeto tem o custo único de <strong className="font-black">R$ 7,00</strong>.</p>
                     </motion.div>
                   )}
 
@@ -392,12 +500,80 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                       disabled={isLoading}
                       className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary-hover shadow-md hover:shadow-lg transition-all font-bold text-sm flex items-center justify-center min-w-[120px] active:scale-95"
                     >
-                      {isLoading ? <Loader2 size={18} className="animate-spin" /> : (requiresPayment ? 'Pagar R$ 5,00' : 'Criar Projeto')}
+                      {isLoading ? <Loader2 size={18} className="animate-spin" /> : (requiresPayment ? 'Pagar R$ 7,00' : 'Criar Projeto')}
                     </button>
                   </div>
                 </form>
+              ) : !showPayment && activeTab === 'buy' ? (
+                <div className="space-y-6">
+                  <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl text-center">
+                    <h3 className="font-bold text-primary mb-1">Estoque Vagas de Projetos</h3>
+                    <p className="text-sm text-primary/90 leading-relaxed">Cada vaga no pacote tem o custo fixo de <strong className="font-black">R$ 7,00</strong>.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-foreground mb-4 text-center">Quantas vagas deseja comprar?</label>
+                    <div className="flex items-center justify-center gap-6">
+                      <button type="button" onClick={() => setBulkQuantity(Math.max(1, bulkQuantity - 1))} className="w-12 h-12 rounded-full border-2 border-border flex items-center justify-center hover:bg-muted/50 transition-colors text-xl font-bold active:scale-95">-</button>
+                      <span className="text-4xl font-black min-w-[3rem] text-center">{bulkQuantity}</span>
+                      <button type="button" onClick={() => setBulkQuantity(bulkQuantity + 1)} className="w-12 h-12 rounded-full border-2 border-border flex items-center justify-center hover:bg-muted/50 transition-colors text-xl font-bold active:scale-95">+</button>
+                    </div>
+                  </div>
+
+                  <div className="text-center pt-2 pb-4">
+                    <p className="text-sm text-muted-foreground mb-1">Total a pagar:</p>
+                    <p className="text-4xl font-black text-foreground">R$ {(bulkQuantity * 7).toFixed(2).replace('.', ',')}</p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-bold text-foreground mb-1.5">CPF (para emissão da cobrança)</label>
+                    <input
+                      type="text"
+                      value={bulkCpf}
+                      onChange={(e) => {
+                        let value = e.target.value.replace(/\D/g, '');
+                        if (value.length > 11) value = value.slice(0, 11);
+                        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                        setBulkCpf(value);
+                      }}
+                      maxLength={14}
+                      className="w-full px-4 py-3 bg-background border-2 border-border/60 hover:border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-muted-foreground/60 text-foreground font-medium"
+                      placeholder="000.000.000-00"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-foreground mb-2">Forma de pagamento</label>
+                    <div className="flex gap-4">
+                      <label className={`flex-1 flex items-center justify-center p-3 border-2 rounded-xl cursor-pointer transition-all ${paymentMethod === 'pix' ? 'border-primary bg-primary/10 text-primary shadow-sm' : 'border-border/60 text-muted-foreground hover:bg-muted/50 hover:border-border'}`}>
+                        <input type="radio" className="hidden" checked={paymentMethod === 'pix'} onChange={() => setPaymentMethod('pix')} />
+                        <span className="font-bold text-sm">PIX</span>
+                      </label>
+                      <label className={`flex-1 flex items-center justify-center p-3 border-2 rounded-xl cursor-pointer transition-all ${paymentMethod === 'credit_card' ? 'border-primary bg-primary/10 text-primary shadow-sm' : 'border-border/60 text-muted-foreground hover:bg-muted/50 hover:border-border'}`}>
+                        <input type="radio" className="hidden" checked={paymentMethod === 'credit_card'} onChange={() => setPaymentMethod('credit_card')} />
+                        <span className="font-bold text-sm">Cartão</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex justify-end gap-3 border-t border-border/50 pt-4 mt-6">
+                    <button type="button" onClick={onClose} className="px-5 py-3 rounded-xl text-muted-foreground hover:bg-muted transition-colors font-bold text-sm">
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleBulkPurchase}
+                      disabled={isLoading}
+                      className="px-6 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary-hover shadow-md hover:shadow-lg transition-all font-bold text-sm flex items-center justify-center min-w-[120px] active:scale-95"
+                    >
+                      {isLoading ? <Loader2 size={18} className="animate-spin" /> : 'Comprar Vagas'}
+                    </button>
+                  </div>
+                </div>
               ) : (
-                <motion.div 
+                <motion.div  
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   className="space-y-6 text-center"
