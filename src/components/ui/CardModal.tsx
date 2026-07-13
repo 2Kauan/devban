@@ -848,6 +848,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                 >
                   Excluir Cartão
                 </button>
+                <input type="hidden" {...register('column_id')} />
                 <button 
                   onClick={handleSubmit(onSubmit)}
                   disabled={isLoading}
