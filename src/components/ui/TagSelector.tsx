@@ -122,12 +122,29 @@ export function TagSelector({ selectedTags, projectTags, onToggleTag, onCreateTa
                           key={color}
                           type="button"
                           onClick={() => setNewTagColor(color)}
-                          className="w-6 h-6 rounded-full flex items-center justify-center transition-transform hover:scale-110"
+                          className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${newTagColor === color ? 'ring-2 ring-primary ring-offset-1 ring-offset-card scale-110' : 'hover:scale-110'}`}
                           style={{ backgroundColor: color }}
                         >
                           {newTagColor === color && <Check size={14} className="text-white drop-shadow-md" />}
                         </button>
                       ))}
+                      
+                      <div className="w-[1px] h-6 bg-border mx-1" />
+                      
+                      <label className="relative flex items-center justify-center cursor-pointer group" title="Cor personalizada (Hexadecimal)">
+                        <input
+                          type="color"
+                          value={newTagColor || '#ffffff'}
+                          onChange={(e) => setNewTagColor(e.target.value)}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                        />
+                        <div 
+                          className={`w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center border-dashed group-hover:border-primary ${!TAG_COLORS.includes(newTagColor) ? 'border-primary ring-2 ring-primary ring-offset-1 ring-offset-card scale-110' : 'border-muted-foreground/50'}`}
+                          style={{ backgroundColor: !TAG_COLORS.includes(newTagColor) ? newTagColor : 'transparent' }}
+                        >
+                          {!TAG_COLORS.includes(newTagColor) && <Check size={14} className="text-white drop-shadow-md mix-blend-difference" />}
+                        </div>
+                      </label>
                     </div>
                   </div>
                   <div className="flex gap-2 pt-2">
