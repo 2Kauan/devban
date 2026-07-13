@@ -256,9 +256,17 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
 
             {/* Subtasks Progress */}
             {subtasksProgress !== undefined && (
-              <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium" title="Sub-tarefas">
-                <ListTree size={10} />
-                <span>{Math.round(subtasksProgress)}%</span>
+              <div className="flex flex-col w-24 gap-1" title={`Sub-tarefas: ${Math.round(subtasksProgress)}% concluído`}>
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
+                  <ListTree size={10} />
+                  <span>{Math.round(subtasksProgress)}%</span>
+                </div>
+                <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-primary transition-all duration-300 ease-out" 
+                    style={{ width: `${subtasksProgress}%` }} 
+                  />
+                </div>
               </div>
             )}
             
