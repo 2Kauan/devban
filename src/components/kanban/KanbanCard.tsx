@@ -97,12 +97,22 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
       opacity: isDragging ? 0.3 : 1,
     };
 
+    const handleNodeRef = useCallback((node: HTMLDivElement | null) => {
+      localRef.current = node;
+      if (isOverlay) {
+        if (typeof ref === 'function') ref(node);
+        else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+      } else {
+        setNodeRef(node);
+      }
+    }, [isOverlay, ref, setNodeRef]);
+
     if (isBulkDragging && isSelected && !isDragging) {
       // If a bulk drag is active, and this card is selected (but not the active one, since isDragging is false)
       // We should hide it visually so it looks like it was picked up with the stack
       return (
         <div 
-          ref={setNodeRef}
+          ref={handleNodeRef}
           style={{ ...style, display: 'none' }}
         />
       );
@@ -122,16 +132,6 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
       high: ArrowUpRight,
       urgent: AlertCircle,
     }[priorityKey];
-
-    const handleNodeRef = useCallback((node: HTMLDivElement | null) => {
-      localRef.current = node;
-      if (isOverlay) {
-        if (typeof ref === 'function') ref(node);
-        else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
-      } else {
-        setNodeRef(node);
-      }
-    }, [isOverlay, ref, setNodeRef]);
 
     return (
       <div
