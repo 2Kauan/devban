@@ -134,16 +134,33 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
             setNodeRef(node);
           }
         }}
-        style={{
-          ...style,
-        }}
-        onClick={() => onClick(card)}
-        {...attributes} 
-        {...listeners}
-        className={`group bg-card hover:bg-muted/30 p-3 rounded-lg border shadow-sm mb-2 cursor-grab active:cursor-grabbing transition-all relative flex flex-col gap-2 ${
-          isOverlay ? 'shadow-xl ring-1 ring-primary/20' : ''
-        } ${isSelected ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border/60'} ${isCompleted && !isOverlay ? 'opacity-50' : ''}`}
+        style={style}
+        className="relative mb-2"
       >
+        {/* Background Stacked Cards for Bulk Drag */}
+        {isOverlay && selectionCount && selectionCount > 1 && (
+          <>
+            <div 
+              className="absolute inset-0 bg-card rounded-lg border border-border shadow-md pointer-events-none"
+              style={{ transform: `translate(4px, 4px) rotate(2deg)`, zIndex: 0 }}
+            />
+            {selectionCount > 2 && (
+              <div 
+                className="absolute inset-0 bg-card rounded-lg border border-border shadow-md pointer-events-none"
+                style={{ transform: `translate(8px, 8px) rotate(4deg)`, zIndex: -1 }}
+              />
+            )}
+          </>
+        )}
+
+        <div
+          onClick={() => onClick(card)}
+          {...attributes} 
+          {...listeners}
+          className={`group bg-card hover:bg-muted/30 p-3 rounded-lg border shadow-sm cursor-grab active:cursor-grabbing transition-all relative flex flex-col gap-2 z-10 ${
+            isOverlay ? 'shadow-xl ring-1 ring-primary/20' : ''
+          } ${isSelected ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border/60'} ${isCompleted && !isOverlay ? 'opacity-50' : ''}`}
+        >
         {/* Left Color Indicator (Optional based on column or tag) */}
         {columnColor && (
           <div className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ backgroundColor: columnColor, opacity: 0.5 }} />
@@ -285,6 +302,7 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
             </button>
           </div>
         )}
+        </div>
       </div>
     );
   }

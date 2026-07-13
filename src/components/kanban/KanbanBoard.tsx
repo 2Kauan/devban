@@ -313,31 +313,7 @@ export function KanbanBoard({
               />
             )}
             {activeCard && (
-              <div className="relative cursor-grabbing" style={{ filter: 'drop-shadow(0 20px 30px rgb(0 0 0 / 0.2))' }}>
-                {/* Background stacked cards for bulk drag */}
-                {selectedCardIds.includes(activeCard.id) && selectedCardIds.length > 1 && (
-                  <>
-                    <div 
-                      className="absolute inset-0 bg-card rounded-lg border border-border shadow-md pointer-events-none"
-                      style={{
-                        transform: `translate(4px, 4px) rotate(2deg)`,
-                        zIndex: 1
-                      }}
-                    />
-                    {selectedCardIds.length > 2 && (
-                      <div 
-                        className="absolute inset-0 bg-card rounded-lg border border-border shadow-md pointer-events-none"
-                        style={{
-                          transform: `translate(8px, 8px) rotate(4deg)`,
-                          zIndex: 0
-                        }}
-                      />
-                    )}
-                  </>
-                )}
-                
-                {/* Main dragged card */}
-                <div className="relative z-10">
+                <div className="relative cursor-grabbing" style={{ filter: 'drop-shadow(0 20px 30px rgb(0 0 0 / 0.2))' }}>
                   <KanbanCard
                     card={activeCard}
                     onClick={onCardClick}
@@ -346,7 +322,6 @@ export function KanbanBoard({
                     selectionCount={selectedCardIds.includes(activeCard.id) ? selectedCardIds.length : undefined}
                   />
                 </div>
-              </div>
             )}
           </DragOverlay>,
           document.body
