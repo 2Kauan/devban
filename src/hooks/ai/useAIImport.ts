@@ -50,11 +50,12 @@ export function useAIImport() {
             .from('cards')
             .insert({
               column_id: newCol.id,
-              project_id: projectId, // Ensure denormalized project_id if it exists
+              project_id: projectId,
               title: task.title,
               description: task.description || '',
               position: baseCardPosition,
               priority: priority,
+              due_date: task.due_date || null,
             })
             .select()
             .single();
@@ -67,7 +68,6 @@ export function useAIImport() {
           // 3.5 Insert Tags/Categories for this card
           if (task.tags && task.tags.length > 0) {
             for (const tag of task.tags) {
-              // Create category if it doesn't exist
               let categoryId = '';
               const { data: existingCat } = await supabase
                 .from('categories')
@@ -101,15 +101,27 @@ export function useAIImport() {
             }
           }
 
-          // 4. Insert Checklist items if they exist
+          // 4. Insert Checklist items properly with parent Checklist
           if (task.checklist && task.checklist.length > 0) {
-            const checklistInserts = task.checklist.map(item => ({
-              card_id: newCard.id,
-              title: item,
-              is_completed: false
-            }));
-            
-            await supabase.from('checklist_items').insert(checklistInserts);
+            const { data: newChecklist } = await supabase
+              .from('checklists')
+              .insert({
+                card_id: newCard.id,
+                title: 'Checklist'
+              })
+              .select()
+              .single();
+
+            if (newChecklist) {
+              const checklistInserts = task.checklist.map((item, index) => ({
+                checklist_id: newChecklist.id,
+                text: item, // Ensure it's text or title based on DB. CardModal uses item.text
+                checked: false,
+                position: index * 1000
+              }));
+              
+              await supabase.from('checklist_items').insert(checklistInserts);
+            }
           }
         }
       }

@@ -23,6 +23,7 @@ NÃO INCLUA formatação markdown (como \`\`\`json), nem introduções, nem expl
           "title": "Título claro e acionável",
           "description": "Detalhes. IMPORTANTE: Não use gambiarras como [Raia: X] no texto. Use o campo tags para isso. Para atribuir, use no início: **Responsável: Nome**.",
           "priority": "low" | "medium" | "high" | "urgent",
+          "due_date": "2026-12-31T23:59:59Z (Opcional, extraia prazos se mencionados)",
           "tags": [
             { "name": "Nome do Departamento, Raia ou Tag (ex: Marketing, Bug, Crítico)", "color": "#HEX_COR" }
           ],

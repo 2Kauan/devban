@@ -9,6 +9,7 @@ export interface AIKanbanTask {
   priority?: 'low' | 'medium' | 'high' | 'urgent';
   checklist?: string[]; // Simplified checklist items
   tags?: { name: string; color: string }[];
+  due_date?: string; // ISO format date
 }
 
 export interface AIKanbanColumn {
