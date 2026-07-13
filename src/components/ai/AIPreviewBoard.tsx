@@ -24,10 +24,15 @@ export function AIPreviewBoard({ board: initialBoard, projectId, onCancel }: AIP
     }
   };
 
-  // Permite edição leve dos títulos gerados antes da importação
-  const updateTaskTitle = (colIndex: number, taskIndex: number, newTitle: string) => {
+  const updateColumnTitle = (colIndex: number, newTitle: string) => {
     const newBoard = { ...board };
-    newBoard.columns[colIndex].tasks[taskIndex].title = newTitle;
+    newBoard.columns[colIndex].title = newTitle;
+    setBoard(newBoard);
+  };
+
+  const updateTaskField = (colIndex: number, taskIndex: number, field: 'title' | 'description', value: string) => {
+    const newBoard = { ...board };
+    newBoard.columns[colIndex].tasks[taskIndex][field] = value;
     setBoard(newBoard);
   };
 
@@ -70,7 +75,11 @@ export function AIPreviewBoard({ board: initialBoard, projectId, onCancel }: AIP
           <div key={col.id} className="w-[320px] shrink-0 flex flex-col max-h-full">
             {/* Column Header */}
             <div className="bg-muted/40 rounded-t-xl p-3 border-b-2 border-primary/20 mb-3 flex items-center justify-between">
-              <h3 className="font-bold text-foreground">{col.title}</h3>
+              <input 
+                className="font-bold text-foreground bg-transparent focus:outline-none focus:border-b border-primary/50 flex-1 mr-2 min-w-0"
+                value={col.title}
+                onChange={(e) => updateColumnTitle(cIdx, e.target.value)}
+              />
               <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-1 rounded-full">
                 {col.tasks.length}
               </span>
@@ -95,14 +104,16 @@ export function AIPreviewBoard({ board: initialBoard, projectId, onCancel }: AIP
                   <input 
                     className="w-full bg-transparent font-semibold text-foreground focus:outline-none focus:border-b border-primary/50 text-sm mb-2"
                     value={task.title}
-                    onChange={(e) => updateTaskTitle(cIdx, tIdx, e.target.value)}
+                    onChange={(e) => updateTaskField(cIdx, tIdx, 'title', e.target.value)}
                   />
                   
-                  {task.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                      {task.description}
-                    </p>
-                  )}
+                  <textarea 
+                    className="w-full bg-transparent text-xs text-muted-foreground leading-relaxed focus:outline-none focus:ring-1 ring-primary/30 rounded resize-none custom-scrollbar"
+                    value={task.description || ''}
+                    rows={3}
+                    onChange={(e) => updateTaskField(cIdx, tIdx, 'description', e.target.value)}
+                    placeholder="Sem descrição..."
+                  />
                   
                   {task.checklist && task.checklist.length > 0 && (
                     <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-primary bg-primary/5 w-fit px-2 py-1 rounded-md">
