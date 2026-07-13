@@ -91,17 +91,22 @@ export default function SharedProject() {
       const email = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 7)}@guest.devban.local`;
       const password = Math.random().toString(36).slice(-8) + 'A1!';
       
-      const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: guestName.trim()
+          }
+        }
+      });
       if (authError) throw authError;
       
       if (authData.user) {
-         // Update profile with the chosen name
-         await supabase.from('profiles').update({ name: guestName.trim() }).eq('id', authData.user.id);
-         
          // Use RPC to bypass RLS and add member to the project securely
          if (token) {
            const { error: joinError } = await supabase.rpc('join_project_by_token', { p_token: token });
-           if (joinError) console.error('Erro ao injetar membro:', joinError);
+           if (joinError) throw joinError;
          }
   
          toast.success(`Bem-vindo(a), ${guestName.trim()}!`);
