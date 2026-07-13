@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { AIKanbanBoard } from '@/types/ai';
 import { useAIImport } from '@/hooks/ai/useAIImport';
-import { BrainCircuit, ArrowRight, ListChecks } from 'lucide-react';
+import { BrainCircuit, ArrowRight, ArrowDownRight, ArrowUpRight, AlertCircle, Clock, ListChecks } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface AIPreviewBoardProps {
@@ -87,7 +87,23 @@ export function AIPreviewBoard({ board: initialBoard, projectId, onCancel }: AIP
 
             {/* Tasks List */}
             <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar pr-1 pb-4">
-              {col.tasks.map((task, tIdx) => (
+              {col.tasks.map((task, tIdx) => {
+                // Configuração das cores de Prioridade
+                const priorityColors: Record<string, string> = {
+                  low: 'text-muted-foreground',
+                  medium: 'text-blue-500',
+                  high: 'text-amber-500',
+                  urgent: 'text-destructive',
+                };
+                const priorityKey = task.priority || 'medium';
+                const PriorityIcon = {
+                  low: ArrowDownRight,
+                  medium: ArrowRight,
+                  high: ArrowUpRight,
+                  urgent: AlertCircle,
+                }[priorityKey];
+
+                return (
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -95,10 +111,11 @@ export function AIPreviewBoard({ board: initialBoard, projectId, onCancel }: AIP
                   key={task.id} 
                   className="bg-card border border-border rounded-xl p-4 shadow-sm hover:border-primary/30 transition-colors group relative"
                 >
-                  {/* Priority Indicator */}
+                  {/* Left Column Color / Priority Indicator */}
                   <div className={`absolute left-0 top-4 bottom-4 w-1 rounded-r-md ${
-                    task.priority === 'high' ? 'bg-red-500' : 
-                    task.priority === 'medium' ? 'bg-yellow-500' : 'bg-blue-500'
+                    task.priority === 'urgent' ? 'bg-destructive' :
+                    task.priority === 'high' ? 'bg-amber-500' : 
+                    task.priority === 'medium' ? 'bg-blue-500' : 'bg-muted'
                   }`} />
                   
                   <input 
@@ -115,14 +132,47 @@ export function AIPreviewBoard({ board: initialBoard, projectId, onCancel }: AIP
                     placeholder="Sem descrição..."
                   />
                   
+                  <div className="flex items-center justify-between mt-2 pl-1">
+                    <div className="flex items-center gap-2.5">
+                      {/* Priority Icon */}
+                      <span className={`flex items-center ${priorityColors[priorityKey] || ''} opacity-70`} title={`Prioridade: ${priorityKey}`}>
+                        <PriorityIcon size={12} strokeWidth={2.5} />
+                      </span>
+
+                      {/* Tags */}
+                      {task.tags && task.tags.length > 0 && (
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {task.tags.map(tag => (
+                            <div 
+                              key={tag.name}
+                              className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground border border-border/60 rounded px-1.5 py-0.5 bg-muted/20 truncate max-w-[100px]"
+                            >
+                              <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: tag.color }} />
+                              <span className="truncate">{tag.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Due Date */}
+                      {task.due_date && (
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground ml-1" title="Prazo Identificado">
+                          <Clock size={10} />
+                          {new Date(task.due_date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   {task.checklist && task.checklist.length > 0 && (
-                    <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-primary bg-primary/5 w-fit px-2 py-1 rounded-md">
-                      <ListChecks size={14} />
-                      {task.checklist.length} itens de checklist
+                    <div className="mt-3 flex items-center gap-1.5 text-[11px] font-medium text-primary bg-primary/5 border border-primary/10 w-fit px-2 py-1 rounded-md">
+                      <ListChecks size={13} />
+                      {task.checklist.length} itens sugeridos
                     </div>
                   )}
                 </motion.div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))}
