@@ -25,7 +25,7 @@ NÃO INCLUA formatação markdown (como \`\`\`json), nem introduções, nem expl
           "priority": "low" | "medium" | "high" | "urgent",
           "due_date": "2026-12-31T23:59:59Z (Opcional, extraia prazos se mencionados)",
           "tags": [
-            { "name": "Nome do Departamento, Raia ou Tag (ex: Marketing, Bug, Crítico)", "color": "#HEX_COR" }
+            { "name": "Nome do Departamento, Raia ou Tag", "color": "#HEX_COR (ATENÇÃO: Use cores SEMPRE diferentes e bem distintas umas das outras para cada tag diferente na lista!)" }
           ],
           "checklist": ["Passo 1", "Passo 2"]
         }
