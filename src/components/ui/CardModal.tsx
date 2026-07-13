@@ -179,20 +179,27 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
     }
   };
 
-  const handleDeleteSubtask = async (subtaskId: string, e: React.MouseEvent) => {
+  const handleDeleteSubtask = (subtaskId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!window.confirm('Tem certeza que deseja excluir esta sub-tarefa?')) return;
-    try {
-      setIsLoading(true);
-      const { error } = await supabase.from('cards').delete().eq('id', subtaskId);
-      if (error) throw error;
-      toast.success('Sub-tarefa excluída com sucesso');
-      onUpdate();
-    } catch (error) {
-      toast.error('Erro ao excluir sub-tarefa');
-    } finally {
-      setIsLoading(false);
-    }
+    setConfirmConfig({
+      isOpen: true,
+      title: 'Excluir Sub-tarefa',
+      message: 'Tem certeza que deseja excluir esta sub-tarefa? Essa ação não pode ser desfeita.',
+      onConfirm: async () => {
+        try {
+          setIsLoading(true);
+          const { error } = await supabase.from('cards').delete().eq('id', subtaskId);
+          if (error) throw error;
+          toast.success('Sub-tarefa excluída com sucesso');
+          onUpdate();
+        } catch (error) {
+          toast.error('Erro ao excluir sub-tarefa');
+        } finally {
+          setIsLoading(false);
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+        }
+      }
+    });
   };
 
   if (!isOpen) return null;
