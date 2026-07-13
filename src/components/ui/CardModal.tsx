@@ -333,7 +333,12 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
   };
 
   const handleToggleTag = async (tag: Category) => {
-    if (!card) return;
+    if (!card) {
+      const isSelected = localTags.some(c => c.id === tag.id);
+      if (isSelected) setLocalTags(prev => prev.filter(t => t.id !== tag.id));
+      else setLocalTags(prev => [...prev, tag]);
+      return;
+    }
     try {
       const isSelected = localTags.some(c => c.id === tag.id);
       
@@ -364,7 +369,12 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
   };
 
   const handleToggleAssignee = async (profile: Profile) => {
-    if (!card) return;
+    if (!card) {
+      const isSelected = localAssignees.some(a => a.id === profile.id);
+      if (isSelected) setLocalAssignees(prev => prev.filter(a => a.id !== profile.id));
+      else setLocalAssignees(prev => [...prev, profile]);
+      return;
+    }
     try {
       const isSelected = localAssignees.some(a => a.id === profile.id);
       
@@ -459,7 +469,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
 
   return (
     <AnimatePresence>
-      {isOpen && card && (
+      {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <motion.div 
             initial={{ opacity: 0 }}
@@ -509,6 +519,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                 </div>
 
                 {/* Checklist */}
+                {card && (
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2 text-foreground font-semibold">
@@ -591,6 +602,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                     </div>
                   )}
                 </div>
+                )}
               </div>
 
               {/* Sidebar do Card */}
@@ -766,6 +778,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
             </div>
               
             {/* Sub-tarefas (Full Width Bottom) */}
+            {card && (
             <div className="w-full mt-2 pt-6 border-t border-border/50">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-2 text-foreground font-semibold">
@@ -836,18 +849,21 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                   </div>
                 )}
               </div>
+            )}
             </div>
             
             {/* Ações (Sticky Footer) */}
             {canEdit && (
               <div className="px-6 py-4 border-t border-border/50 bg-card flex flex-col sm:flex-row justify-end gap-3 shrink-0">
-                <button 
-                  onClick={handleDelete}
-                  disabled={isLoading}
-                  className="bg-destructive text-destructive-foreground hover:bg-red-700 font-semibold rounded-lg px-6 py-2.5 text-sm transition-all active:scale-95 shadow-md w-full sm:w-auto"
-                >
-                  Excluir Cartão
-                </button>
+                {card && (
+                  <button 
+                    onClick={handleDelete}
+                    disabled={isLoading}
+                    className="bg-destructive text-destructive-foreground hover:bg-red-700 font-semibold rounded-lg px-6 py-2.5 text-sm transition-all active:scale-95 shadow-md w-full sm:w-auto"
+                  >
+                    Excluir Cartão
+                  </button>
+                )}
                 <input type="hidden" {...register('column_id')} />
                 <button 
                   onClick={handleSubmit(onSubmit)}
