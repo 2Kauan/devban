@@ -148,14 +148,18 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
     if (!newSubtaskTitle.trim() || !card || !columns?.length) return;
     try {
       setIsLoading(true);
-      const firstCol = columns[0];
+      const targetColumnId = card.column_id;
+      // Posiciona a sub-tarefa imediatamente abaixo do pai. Somamos a quantidade de sub-tarefas
+      // atuais para que se você criar várias de uma vez, elas fiquem em cascata na ordem correta.
+      const newPosition = card.position + subtasks.length + 1;
+      
       const { error } = await supabase.from('cards').insert({
         project_id: projectId,
-        column_id: firstCol.id,
+        column_id: targetColumnId,
         parent_id: card.id,
         title: newSubtaskTitle.trim(),
         priority: 'medium',
-        position: 1000
+        position: newPosition
       });
       if (error) throw error;
       setNewSubtaskTitle('');
