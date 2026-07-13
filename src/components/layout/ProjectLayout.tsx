@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { ChevronRight, LayoutDashboard, Layout, Users, Activity, Settings, Menu, CalendarDays, Sparkles } from 'lucide-react';
+import { ChevronRight, LayoutDashboard, Layout, Users, Activity, Settings, Menu, CalendarDays, BrainCircuit } from 'lucide-react';
 import type { Project } from '@/types/database';
 import { toast } from 'sonner';
 
@@ -99,7 +99,7 @@ export function ProjectLayout() {
     { name: 'Kanban', path: `/project/${id}`, icon: Layout },
     { name: 'Planejamento', path: `/project/${id}/planning`, icon: CalendarDays },
     { name: 'Resumo', path: `/project/${id}/resumo`, icon: LayoutDashboard },
-    { name: project?.is_free ? 'IA (Premium)' : 'IA', path: `/project/${id}/ai`, icon: Sparkles },
+    { name: project?.is_free ? 'IA (Premium)' : 'IA', path: `/project/${id}/ai`, icon: BrainCircuit },
     { name: 'Equipe', path: `/project/${id}/team`, icon: Users },
     { name: 'Atividades', path: `/project/${id}/activity`, icon: Activity },
     { name: 'Configurações', path: `/project/${id}/settings`, icon: Settings },

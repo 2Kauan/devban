@@ -18,9 +18,8 @@ export const aiService = {
     text: string,
     _files: File[]
   ): Promise<AIKanbanBoard> => {
-    
-    // Fallback if no text is provided but files are (OCR not implemented in frontend demo)
-    const promptText = text.trim() ? text : 'Gere um kanban padrão de exemplo pois apenas arquivos foram enviados e o OCR visual não está implementado neste demo.';
+    // O texto agora já chega concatenado com a extração de PDFs ou arquivos de texto
+    const promptText = text.trim() ? text : 'Gere um kanban padrão baseado nestes arquivos.';
     
     const prompt = buildKanbanPrompt(mode, promptText);
     const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { aiService } from '@/services/ai/aiService';
 import type { AIGenerationMode, AIKanbanBoard, AIProcessingState } from '@/types/ai';
+import { extractTextFromFiles } from '@/utils/fileParser';
 
 export function useAIProcessor(projectId: string) {
   // Tenta carregar da memória rápida
@@ -28,12 +29,15 @@ export function useAIProcessor(projectId: string) {
       setState({ status: 'uploading', progress: 10, message: 'Enviando arquivos...' });
       await new Promise(r => setTimeout(r, 600));
 
-      setState({ status: 'ocr', progress: 40, message: 'Lendo conteúdo (OCR)...' });
-      await new Promise(r => setTimeout(r, 1000));
+      setState({ status: 'ocr', progress: 40, message: 'Lendo conteúdo do PDF (OCR)...' });
+      const extractedText = await extractTextFromFiles(files);
+      const combinedText = (text + '\n\n' + extractedText).trim();
+      
+      await new Promise(r => setTimeout(r, 600));
 
       setState({ status: 'generating', progress: 70, message: 'Inteligência Artificial estruturando o Kanban...' });
       
-      const board = await aiService.generateKanban(projectId, mode, text, files);
+      const board = await aiService.generateKanban(projectId, mode, combinedText, files);
 
       setState({ status: 'success', progress: 100, message: 'Quadro gerado com sucesso!' });
       setResult(board);
