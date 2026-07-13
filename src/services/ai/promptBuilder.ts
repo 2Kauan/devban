@@ -21,7 +21,7 @@ NÃO INCLUA formatação markdown (como \`\`\`json), nem introduções, nem expl
         {
           "id": "string única (ex: task-1)",
           "title": "Título claro e acionável",
-          "description": "Detalhes. IMPORTANTE: Não use gambiarras como [Raia: X] no texto. Use o campo tags para isso. Para atribuir, use no início: **Responsável: Nome**.",
+          "description": "Detalhes. IMPORTANTE: Não use gambiarras como [Raia: X] no texto. Use o campo tags para isso.",
           "priority": "low" | "medium" | "high" | "urgent",
           "due_date": "2026-12-31T23:59:59Z (Opcional, extraia prazos se mencionados)",
           "tags": [
