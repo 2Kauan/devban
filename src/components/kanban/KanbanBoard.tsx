@@ -72,6 +72,7 @@ export function KanbanBoard({
   const [activeCard, setActiveCard] = useState<KanbanCardType | null>(null);
   const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
   const [localCards, setLocalCards] = useState<KanbanCardType[]>(cards);
+  const [localColumns, setLocalColumns] = useState<KanbanColumnType[]>(columns);
 
   // Sincroniza localCards com cards do pai APENAS quando o pai envia dados novos.
   // NÃO depende de activeCard/activeColumn para evitar flash-back:
@@ -82,13 +83,19 @@ export function KanbanBoard({
     }
   }, [cards]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (!activeCard && !activeColumn) {
+      setLocalColumns(columns);
+    }
+  }, [columns]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleToggleSelect = (cardId: string) => {
     setSelectedCardIds(prev => 
       prev.includes(cardId) ? prev.filter(id => id !== cardId) : [...prev, cardId]
     );
   };
 
-  const columnIds = useMemo(() => columns.map((col) => col.id), [columns]);
+  const columnIds = useMemo(() => localColumns.map((col) => col.id), [localColumns]);
 
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -205,9 +212,11 @@ export function KanbanBoard({
 
     if (active.data.current?.type === 'Column') {
       if (activeId === overId) return;
-      const activeColumnIndex = columns.findIndex((col) => col.id === activeId);
-      const overColumnIndex = columns.findIndex((col) => col.id === overId);
-      onColumnsChange(arrayMove(columns, activeColumnIndex, overColumnIndex));
+      const activeColumnIndex = localColumns.findIndex((col) => col.id === activeId);
+      const overColumnIndex = localColumns.findIndex((col) => col.id === overId);
+      const newColumns = arrayMove(localColumns, activeColumnIndex, overColumnIndex);
+      setLocalColumns(newColumns);
+      onColumnsChange(newColumns);
       return;
     }
 
@@ -254,7 +263,7 @@ export function KanbanBoard({
       >
         <div className="flex gap-6 p-4 sm:p-8 pt-2 min-w-max flex-1 min-h-0 h-full">
           <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
-            {columns.map((col, idx) => (
+            {localColumns.map((col, idx) => (
               <KanbanColumn
                 key={col.id}
                 column={col}
@@ -266,8 +275,8 @@ export function KanbanBoard({
                 canEdit={canEdit}
                 onMoveCardMobile={(cardId, direction) => {
                   const destIdx = direction === 'left' ? idx - 1 : idx + 1;
-                  if (destIdx >= 0 && destIdx < columns.length) {
-                    const destColId = columns[destIdx].id;
+                  if (destIdx >= 0 && destIdx < localColumns.length) {
+                    const destColId = localColumns[destIdx].id;
                     const newCards = cards.map(c => 
                       c.id === cardId ? { ...c, column_id: destColId } : c
                     );
@@ -276,9 +285,9 @@ export function KanbanBoard({
                   }
                 }}
                 isFirstColumn={idx === 0}
-                isLastColumn={idx === columns.length - 1}
+                isLastColumn={idx === localColumns.length - 1}
                 allCards={cards}
-                allColumns={columns}
+                allColumns={localColumns}
                 selectedCardIds={selectedCardIds}
                 onToggleSelect={handleToggleSelect}
                 isBulkDragging={!!(activeCard && selectedCardIds.includes(activeCard.id) && selectedCardIds.length > 1)}
