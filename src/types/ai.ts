@@ -6,8 +6,9 @@ export interface AIKanbanTask {
   description?: string;
   category_id?: string;
   assigned_to?: string;
-  priority?: 'low' | 'medium' | 'high';
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
   checklist?: string[]; // Simplified checklist items
+  tags?: { name: string; color: string }[];
 }
 
 export interface AIKanbanColumn {

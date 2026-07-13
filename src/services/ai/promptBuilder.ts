@@ -21,15 +21,15 @@ NÃO INCLUA formatação markdown (como \`\`\`json), nem introduções, nem expl
         {
           "id": "string única (ex: task-1)",
           "title": "Título claro e acionável",
-          "description": "Detalhes. IMPORTANTE: Se o texto exigir separação por departamentos/raias (swimlanes), como não temos raias visuais horizontais, especifique a raia/departamento aqui no texto. Ex: **[Raia: Frontend]** ou **Responsável: João**.",
-          "priority": "low" | "medium" | "high", // Obedeça regras de criticidade do texto
+          "description": "Detalhes. IMPORTANTE: Não use gambiarras como [Raia: X] no texto. Use o campo tags para isso. Para atribuir, use no início: **Responsável: Nome**.",
+          "priority": "low" | "medium" | "high" | "urgent",
+          "tags": [
+            { "name": "Nome do Departamento, Raia ou Tag (ex: Marketing, Bug, Crítico)", "color": "#HEX_COR" }
+          ],
           "checklist": ["Passo 1", "Passo 2"]
         }
       ]
     }
-  ],
-  "suggested_categories": [
-    { "id": "cat-1", "name": "Nome da Tag (Use para simular as Raias/Departamentos pedidos)", "color": "#3b82f6" }
   ]
 }
 `;
@@ -40,9 +40,9 @@ NÃO INCLUA formatação markdown (como \`\`\`json), nem introduções, nem expl
     case 'planning':
       modeInstructions = `
 MODO: Planejamento Macro
-INSTRUÇÃO VITAL: Leia o documento do usuário. Se ele definir uma estrutura de fases/colunas próprias (ex: Concepção, Execução, Aprovação, etc), USE EXATAMENTE AS COLUNAS DELE. Não invente.
+INSTRUÇÃO VITAL: Leia o documento do usuário. Se ele definir uma estrutura de fases/colunas próprias (ex: Concepção, Execução, Aprovação, etc), USE EXATAMENTE AS COLUNAS DELE. Não invente. Se um gargalo for apontado (ex: revisão por pares), desmembre isso em uma coluna específica para revisão.
 Se o documento não sugerir colunas, agrupe por grandes áreas de implementação.
-Se o documento exigir Raias (Swimlanes), simule-as criando "suggested_categories" (Tags) para cada Raia e classifique as tarefas com clareza.
+Se o documento exigir Raias (Swimlanes) ou separação por departamentos, simule-as usando a array "tags" DENTRO de cada tarefa para classificá-las visualmente.
 `;
       break;
     case 'sprint':

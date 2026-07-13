@@ -42,6 +42,10 @@ export function useAIImport() {
         for (const task of col.tasks) {
           baseCardPosition += 1000;
           
+          // Map priority appropriately
+          const validPriorities = ['low', 'medium', 'high', 'urgent'];
+          const priority = validPriorities.includes(task.priority || '') ? task.priority : 'medium';
+          
           const { data: newCard, error: cardError } = await supabase
             .from('cards')
             .insert({
@@ -50,7 +54,7 @@ export function useAIImport() {
               title: task.title,
               description: task.description || '',
               position: baseCardPosition,
-              priority: task.priority || 'medium',
+              priority: priority,
             })
             .select()
             .single();
@@ -58,6 +62,43 @@ export function useAIImport() {
           if (cardError) {
             console.error('Error inserting card:', cardError);
             continue;
+          }
+
+          // 3.5 Insert Tags/Categories for this card
+          if (task.tags && task.tags.length > 0) {
+            for (const tag of task.tags) {
+              // Create category if it doesn't exist
+              let categoryId = '';
+              const { data: existingCat } = await supabase
+                .from('categories')
+                .select('id')
+                .eq('project_id', projectId)
+                .ilike('name', tag.name)
+                .maybeSingle();
+
+              if (existingCat) {
+                categoryId = existingCat.id;
+              } else {
+                const { data: newCat } = await supabase
+                  .from('categories')
+                  .insert({
+                    project_id: projectId,
+                    name: tag.name,
+                    color: tag.color || '#3b82f6'
+                  })
+                  .select()
+                  .single();
+                
+                if (newCat) categoryId = newCat.id;
+              }
+
+              if (categoryId) {
+                await supabase.from('card_categories').insert({
+                  card_id: newCard.id,
+                  category_id: categoryId
+                });
+              }
+            }
           }
 
           // 4. Insert Checklist items if they exist
