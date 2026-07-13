@@ -158,6 +158,8 @@ export function KanbanBoard({
       const activeIndex = localCards.findIndex((t) => t.id === activeId);
       const overIndex = localCards.findIndex((t) => t.id === overId);
       
+      if (activeIndex === -1 || overIndex === -1) return;
+
       let newCards = [...localCards];
       // Clone the object to avoid mutating the original reference
       newCards[activeIndex] = { ...newCards[activeIndex], column_id: localCards[overIndex].column_id };
@@ -167,6 +169,11 @@ export function KanbanBoard({
     if (isActiveCard && isOverColumn) {
       const activeIndex = localCards.findIndex((t) => t.id === activeId);
       const targetCol = overId.toString();
+      
+      if (activeIndex === -1) return;
+      
+      // Se o card JÁ está na coluna alvo, não força ele de volta pro topo em loop infinito
+      if (localCards[activeIndex].column_id === targetCol) return;
       
       let newCards = [...localCards];
       newCards[activeIndex] = { ...newCards[activeIndex], column_id: targetCol };
