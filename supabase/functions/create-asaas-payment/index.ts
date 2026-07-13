@@ -101,6 +101,19 @@ serve(async (req) => {
       customerId = customerCreate.id;
     }
 
+    // Fetch the payment record to get the correct value (prevents frontend tampering)
+    const { data: paymentRecord, error: fetchError } = await supabaseClient
+      .from('payments')
+      .select('value')
+      .eq('id', paymentId)
+      .single();
+
+    if (fetchError || !paymentRecord) {
+      throw new Error(`Erro ao buscar dados do pagamento: ${fetchError?.message || 'Não encontrado'}`);
+    }
+
+    const finalValue = paymentRecord.value || 7.00;
+
     // 2. Create Payment in Asaas
     const dueDate = new Date(Date.now() + 86400000).toISOString().split('T')[0]; // +1 day
     const paymentCreateRes = await fetch(`${asaasBaseUrl}/payments`, {
@@ -109,7 +122,7 @@ serve(async (req) => {
       body: JSON.stringify({
         customer: customerId,
         billingType: method === 'pix' ? 'PIX' : 'CREDIT_CARD', // Ou 'UNDEFINED'
-        value: 5.00,
+        value: finalValue,
         dueDate: dueDate,
         description: projectName ? `DevBan: Criação do Projeto '${projectName}'` : 'Projeto Adicional - Kanban Premium',
         externalReference: paymentId
