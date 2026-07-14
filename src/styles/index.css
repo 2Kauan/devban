@@ -48,6 +48,12 @@
     --border: 240 6% 90%;
     --input: 240 6% 90%;
     --ring: 221 83% 53%;
+
+    /* Capacitor Safe Area Variables */
+    --sat: env(safe-area-inset-top);
+    --sar: env(safe-area-inset-right);
+    --sab: env(safe-area-inset-bottom);
+    --sal: env(safe-area-inset-left);
   }
 
   .dark {
@@ -82,6 +88,23 @@
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    
+    /* Prevent elastic scrolling/pull-to-refresh on mobile */
+    overscroll-behavior-y: none;
+    /* Prevent accidental text selection while dragging */
+    user-select: none;
+    -webkit-user-select: none;
+    /* Add padding for device safe areas (notch/status bar/home indicator) */
+    padding-top: var(--sat, 0px);
+    padding-bottom: var(--sab, 0px);
+    padding-left: var(--sal, 0px);
+    padding-right: var(--sar, 0px);
+  }
+
+  /* Allow text selection inside inputs and textareas */
+  input, textarea, [contenteditable="true"] {
+    user-select: auto;
+    -webkit-user-select: auto;
   }
   
   /* Custom Scrollbar for Webkit */

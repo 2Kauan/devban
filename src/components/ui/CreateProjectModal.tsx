@@ -823,7 +823,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                         if (paymentData?.id && paymentMethod === 'pix') {
                           setIsLoading(true);
                           await supabase.from('payments').update({ status: 'confirmed' }).eq('id', paymentData.id);
-                          handleCheckPaymentStatus(paymentData.id);
+                          handleCheckPaymentStatus(false);
                         }
                       }}
                       disabled={isLoading}

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/lib/supabase';
 import type { KanbanCardType } from '@/types/kanban';
-import { Calendar, UserPlus, Clock, GripVertical, CheckSquare, MessageSquare, Trash2, Tag, Loader2, MoreHorizontal, ArrowRight, Type, CheckCircle2, Circle, Eye, PenLine, CreditCard, Paintbrush, Fingerprint, FolderKanban, Wand2 } from 'lucide-react';
+import { Clock, CheckSquare, Trash2, Tag, Loader2, ArrowRight, X, AlignLeft, Plus, Flag, ChevronDown, ArrowDownRight, ArrowUpRight, AlertCircle, Users, ListTree } from 'lucide-react';
 import { queueMutation, isNetworkError } from '@/lib/offlineSync';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';

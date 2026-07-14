@@ -373,7 +373,7 @@ export default function ProjectTeam() {
 
       <ConfirmModal
         isOpen={confirmConfig.isOpen}
-        onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+        onCancel={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
         onConfirm={confirmConfig.onConfirm}
         title={confirmConfig.title}
         message={confirmConfig.message}

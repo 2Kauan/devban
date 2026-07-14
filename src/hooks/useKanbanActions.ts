@@ -37,14 +37,14 @@ export function useKanbanActions({
     }));
     setOptimisticColumns(updatedColumns);
 
+    const updates = updatedColumns.map(col => ({
+      id: col.id,
+      project_id: col.project_id,
+      title: col.title,
+      position: col.position
+    }));
+    
     try {
-      const updates = updatedColumns.map(col => ({
-        id: col.id,
-        project_id: col.project_id,
-        title: col.title,
-        position: col.position
-      }));
-      
       const { error } = await supabase.from('columns').upsert(updates);
       if (error) throw error;
     } catch (error: any) {
@@ -74,23 +74,23 @@ export function useKanbanActions({
     });
     setOptimisticCards(fullUpdatedCards);
 
+    // OTIMIZAÇÃO CRÍTICA: Só envia pro banco de dados os cards que de fato mudaram de lugar ou coluna.
+    // Isso evita disparar dezenas de eventos Realtime simultâneos e crashear o React (Error 185)
+    const changedCards = updatedCards.filter(updatedCard => {
+      const oldCard = cards.find(c => c.id === updatedCard.id);
+      if (!oldCard) return true;
+      return oldCard.position !== updatedCard.position || oldCard.column_id !== updatedCard.column_id;
+    });
+
+    if (changedCards.length === 0) return; // Nada pra salvar no DB
+
+    const updates = changedCards.map(card => {
+      // Remove campos relacionais que não pertencem à tabela 'cards' diretamente
+      const { assignees, categories, comments_count, ...dbCard } = card as any;
+      return dbCard;
+    });
+
     try {
-      // OTIMIZAÇÃO CRÍTICA: Só envia pro banco de dados os cards que de fato mudaram de lugar ou coluna.
-      // Isso evita disparar dezenas de eventos Realtime simultâneos e crashear o React (Error 185)
-      const changedCards = updatedCards.filter(updatedCard => {
-        const oldCard = cards.find(c => c.id === updatedCard.id);
-        if (!oldCard) return true;
-        return oldCard.position !== updatedCard.position || oldCard.column_id !== updatedCard.column_id;
-      });
-
-      if (changedCards.length === 0) return; // Nada pra salvar no DB
-
-      const updates = changedCards.map(card => {
-        // Remove campos relacionais que não pertencem à tabela 'cards' diretamente
-        const { assignees, categories, comments_count, ...dbCard } = card as any;
-        return dbCard;
-      });
-
       const { error } = await supabase.from('cards').upsert(updates);
       if (error) throw error;
     } catch (error: any) {
