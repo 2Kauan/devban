@@ -115,9 +115,9 @@ export function Sidebar({ onProjectCreated, isOpen, onClose, isProjectView = fal
       <aside className={`fixed inset-y-0 left-0 z-50 w-[260px] h-full border-r border-border/40 bg-background flex flex-col transition-transform duration-300 ease-in-out ${isProjectView ? (isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full') : `md:relative md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}`}>
         
         {/* Workspace Switcher / Brand Header */}
-        <div className="h-14 px-4 flex items-center justify-between border-b border-transparent hover:border-border/40 transition-colors shrink-0">
-          <Link to="/dashboard" className="flex items-center gap-2 group outline-none rounded-md px-1 py-1 hover:bg-muted/50 transition-colors">
-            <img src="/logo-devban.webp" alt="DevBan" className="h-13 w-auto object-contain" />
+        <div className="h-20 px-4 flex items-center justify-between border-b border-transparent hover:border-border/40 transition-colors shrink-0">
+          <Link to="/dashboard" className="flex items-center gap-2 group outline-none rounded-md px-1 py-2 hover:bg-muted/50 transition-colors">
+            <img src="/logo-devban.webp" alt="DevBan" className="h-16 w-auto object-contain" />
           </Link>
           <button onClick={onClose} className="p-1 text-muted-foreground hover:text-foreground md:hidden"><X size={16} /></button>
         </div>
