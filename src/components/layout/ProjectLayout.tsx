@@ -142,22 +142,11 @@ export function ProjectLayout() {
         {/* Project Navigation Tabs */}
         <div className="border-b border-border/40 bg-card shrink-0">
           <div className="flex items-center gap-6 px-6 overflow-x-auto custom-scrollbar no-scrollbar-arrows">
-            {tabs.map((tab) => {
+            {tabs.filter(tab => !(tab.restricted && !isOwner)).map((tab) => {
               const isActive = location.pathname === tab.path;
               const Icon = tab.icon;
-              const isLocked = tab.restricted && !isOwner;
 
-              return isLocked ? (
-                <div
-                  key={tab.path}
-                  className="flex items-center gap-2 py-3 px-1 border-b-2 border-transparent text-sm font-bold whitespace-nowrap text-muted-foreground/40 cursor-not-allowed"
-                  title="Acesso restrito ao proprietário"
-                >
-                  <Icon size={16} />
-                  {tab.name}
-                  <Lock size={12} className="ml-1 opacity-70" />
-                </div>
-              ) : (
+              return (
                 <Link
                   key={tab.path}
                   to={tab.path}

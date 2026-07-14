@@ -135,6 +135,13 @@ export function useSharedProjectQuery(token: string | undefined) {
            queryClient.invalidateQueries({ queryKey: ['sharedProject', token] });
         }
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'project_members', filter: `project_id=eq.${projectId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['sharedProject', token] });
+        }
+      )
       .subscribe();
 
     return () => {
