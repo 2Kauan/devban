@@ -5,6 +5,7 @@ import type { Project as ProjectType, Category, ProjectPermission } from '@/type
 import type { KanbanColumnType, KanbanCardType } from '@/types/kanban';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Profile } from '@/types/database';
+import { cacheBoardData, getCachedBoardData, isNetworkError } from '@/lib/offlineSync';
 
 export interface ProjectMember {
   permission: ProjectPermission;
@@ -31,14 +32,15 @@ export function useProjectQuery(projectId: string | undefined) {
     queryFn: async () => {
       if (!projectId) throw new Error('No project ID');
 
-      // Fetch project
-      const { data: projectData, error: projError } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('id', projectId)
-        .single();
-      
-      if (projError) throw projError;
+      try {
+        // Fetch project
+        const { data: projectData, error: projError } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('id', projectId)
+          .single();
+        
+        if (projError) throw projError;
 
       // Determine permission
       let perm: ProjectPermission = 'viewer';
@@ -229,7 +231,7 @@ export function useProjectQuery(projectId: string | undefined) {
         });
       }
 
-      return {
+      const finalData = {
         project: projectData,
         columns,
         cards: enrichedCards,
@@ -238,6 +240,23 @@ export function useProjectQuery(projectId: string | undefined) {
         pendingRequestsCount: pendingCount,
         projectMembers
       };
+
+      // Guardar na memória local (APK / Offline)
+      cacheBoardData(projectId, columns, enrichedCards, finalData);
+      
+      return finalData;
+
+      } catch (err: any) {
+        if (isNetworkError(err)) {
+           console.log('Sem internet, carregando dados do cache...');
+           const cached = getCachedBoardData(projectId);
+           if (cached && cached.fullData) {
+              return cached.fullData;
+           }
+           throw new Error('Você está offline e não há dados em cache para este projeto.');
+        }
+        throw err;
+      }
     },
     enabled: !!projectId,
     staleTime: 1000 * 60 * 5, // 5 minutes cache

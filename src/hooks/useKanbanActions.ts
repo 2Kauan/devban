@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { useEvent } from './useEvent';
 import type { KanbanColumnType, KanbanCardType } from '@/types/kanban';
 import type { User } from '@supabase/supabase-js';
+import { queueMutation, isNetworkError } from '@/lib/offlineSync';
 
 interface UseKanbanActionsProps {
   projectId: string | undefined;
@@ -47,6 +48,11 @@ export function useKanbanActions({
       const { error } = await supabase.from('columns').upsert(updates);
       if (error) throw error;
     } catch (error: any) {
+      if (isNetworkError(error)) {
+        queueMutation('columns', 'upsert', updates);
+        toast.success('Modo Offline: Nova ordem das colunas salva no dispositivo.');
+        return;
+      }
       toast.error('Erro ao salvar nova ordem das colunas');
       refetch();
     }
@@ -88,6 +94,11 @@ export function useKanbanActions({
       const { error } = await supabase.from('cards').upsert(updates);
       if (error) throw error;
     } catch (error: any) {
+      if (isNetworkError(error)) {
+        queueMutation('cards', 'upsert', updates);
+        toast.success('Modo Offline: Movimentação salva no dispositivo.');
+        return;
+      }
       toast.error('Erro ao salvar posição: ' + error?.message);
       refetch();
     }
@@ -116,11 +127,32 @@ export function useKanbanActions({
           id: st.id,
           column_id: destColId
         }));
-        await supabase.from('cards').upsert(subtaskUpdates);
+        try {
+           const { error } = await supabase.from('cards').upsert(subtaskUpdates);
+           if (error) throw error;
+        } catch (err: any) {
+           if (isNetworkError(err)) {
+              queueMutation('cards', 'upsert', subtaskUpdates);
+           } else {
+              throw err;
+           }
+        }
         setOptimisticCards(cards.map(c => c.parent_id === cardId ? { ...c, column_id: destColId } : c));
       }
-    } catch (error) {
-      console.error('Failed to log move:', error);
+    } catch (error: any) {
+      if (isNetworkError(error)) {
+        // Log is not essential offline, but we could queue it
+        queueMutation('card_activity_logs', 'insert', {
+          card_id: cardId,
+          project_id: projectId,
+          user_id: user.id,
+          action: 'moved_card',
+          old_value: { column_title: sourceCol.title },
+          new_value: { column_title: destCol.title }
+        });
+      } else {
+        console.error('Failed to log move:', error);
+      }
     }
   });
 
@@ -132,6 +164,13 @@ export function useKanbanActions({
       toast.success(`${cardIds.length} cartões excluídos com sucesso`);
       refetch();
     } catch (error: any) {
+      if (isNetworkError(error)) {
+        queueMutation('cards', 'delete', null, { id: cardIds });
+        toast.success(`Modo Offline: Deleção salva no dispositivo.`);
+        // Simulate immediate removal offline
+        setOptimisticCards(cards.filter(c => !cardIds.includes(c.id)));
+        return;
+      }
       toast.error('Erro ao excluir cartões: ' + error?.message);
     }
   });
@@ -147,6 +186,12 @@ export function useKanbanActions({
       toast.success(`${cardIds.length} cartões movidos com sucesso`);
       refetch();
     } catch (error: any) {
+      if (isNetworkError(error)) {
+        queueMutation('cards', 'update', { column_id: targetColumnId }, { id: cardIds });
+        toast.success(`Modo Offline: Movimentação salva no dispositivo.`);
+        setOptimisticCards(cards.map(c => cardIds.includes(c.id) ? { ...c, column_id: targetColumnId } : c));
+        return;
+      }
       toast.error('Erro ao mover cartões: ' + error?.message);
     }
   });

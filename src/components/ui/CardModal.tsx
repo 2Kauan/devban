@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/lib/supabase';
 import type { KanbanCardType } from '@/types/kanban';
-import { X, AlignLeft, CheckSquare, Clock, Tag, Flag, Loader2, Plus, Trash2, ChevronDown, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle, Users, ListTree } from 'lucide-react';
+import { Calendar, UserPlus, Clock, GripVertical, CheckSquare, MessageSquare, Trash2, Tag, Loader2, MoreHorizontal, ArrowRight, Type, CheckCircle2, Circle, Eye, PenLine, CreditCard, Paintbrush, Fingerprint, FolderKanban, Wand2 } from 'lucide-react';
+import { queueMutation, isNetworkError } from '@/lib/offlineSync';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
@@ -174,7 +175,21 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
       setNewSubtaskTitle('');
       onUpdate();
     } catch (error: any) {
-      toast.error('Erro ao criar sub-tarefa');
+      if (isNetworkError(error)) {
+        queueMutation('cards', 'insert', {
+          project_id: projectId,
+          column_id: card.column_id,
+          parent_id: card.id,
+          title: newSubtaskTitle.trim(),
+          priority: 'medium',
+          position: card.position + subtasks.length + 1
+        });
+        toast.success('Modo Offline: Subtarefa guardada.');
+        setNewSubtaskTitle('');
+        onUpdate();
+      } else {
+        toast.error('Erro ao criar sub-tarefa');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -194,7 +209,13 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
           toast.success('Sub-tarefa excluída com sucesso');
           onUpdate();
         } catch (error) {
-          toast.error('Erro ao excluir sub-tarefa');
+          if (isNetworkError(error)) {
+            queueMutation('cards', 'delete', null, { id: subtaskId });
+            toast.success('Modo Offline: Deleção agendada.');
+            onUpdate();
+          } else {
+            toast.error('Erro ao excluir sub-tarefa');
+          }
         } finally {
           setIsLoading(false);
           setConfirmConfig(prev => ({ ...prev, isOpen: false }));
@@ -266,7 +287,35 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
       onUpdate();
       onClose();
     } catch (error: any) {
-      toast.error('Erro ao salvar: ' + error.message);
+      if (isNetworkError(error)) {
+        if (card) {
+          queueMutation('cards', 'update', {
+            title: data.title,
+            description: data.description,
+            priority: data.priority,
+            due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
+            border_color: data.border_color || null,
+          }, { id: card.id });
+          toast.success('Modo Offline: Edição salva.');
+        } else {
+          // Creating offline might have issues with missing IDs for relations, but basic card insert works
+          queueMutation('cards', 'insert', {
+            project_id: projectId,
+            column_id: data.column_id,
+            title: data.title,
+            description: data.description,
+            priority: data.priority,
+            due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
+            border_color: data.border_color || null,
+            position: 1000 // simplification for offline
+          });
+          toast.success('Modo Offline: Criação de cartão salva.');
+        }
+        onUpdate();
+        onClose();
+      } else {
+        toast.error('Erro ao salvar: ' + error.message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -288,7 +337,15 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
           onUpdate();
           onClose();
         } catch (error: any) {
-          toast.error('Erro ao excluir: ' + error.message);
+          if (isNetworkError(error)) {
+            queueMutation('cards', 'delete', null, { id: card!.id });
+            toast.success('Modo Offline: Deleção agendada.');
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+            onUpdate();
+            onClose();
+          } else {
+            toast.error('Erro ao excluir: ' + error.message);
+          }
         } finally {
           setIsLoading(false);
         }
