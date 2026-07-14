@@ -1,0 +1,15 @@
+{
+  "short_name": "DevBan",
+  "name": "DevBan - Kanban Premium",
+  "icons": [
+    {
+      "src": "/logo-devban2.webp",
+      "type": "image/webp",
+      "sizes": "192x192 512x512 any"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
