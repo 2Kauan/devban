@@ -35,18 +35,7 @@ export function Hero() {
 
       <div className="container mx-auto px-4 relative z-10 flex flex-col items-center text-center">
 
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary font-medium text-sm"
-        >
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-          </span>
-          Novo: Inteligência Artificial Integrada ✨
-        </motion.div>
+
 
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
