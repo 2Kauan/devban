@@ -87,11 +87,8 @@ export default function Register() {
         className="w-full max-w-md bg-background rounded-2xl shadow-xl border border-border/50 p-8 relative z-10"
       >
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center justify-center gap-2 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-              <span className="text-primary-foreground font-bold text-xl">D</span>
-            </div>
-            <span className="font-bold text-2xl tracking-tight text-foreground">DevBan</span>
+          <Link to="/" className="inline-flex items-center justify-center gap-2 -mb-2">
+            <img src="/logo-devban.webp" alt="DevBan" className="h-39 w-auto object-contain" />
           </Link>
           <h2 className="text-2xl font-bold text-foreground">Crie sua conta</h2>
           <p className="text-muted-foreground mt-2 text-sm">Junte-se a milhares de equipes produtivas</p>
