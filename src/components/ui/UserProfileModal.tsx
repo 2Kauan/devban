@@ -10,8 +10,8 @@ interface UserProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   userId: string;
-  projectId: string;
-  cards: KanbanCardType[];
+  projectId?: string;
+  cards?: KanbanCardType[];
 }
 
 interface UserProfileData {
@@ -25,12 +25,12 @@ interface UserProfileData {
   activityData: { date: string; count: number }[];
 }
 
-export function UserProfileModal({ isOpen, onClose, userId, projectId, cards }: UserProfileModalProps) {
+export function UserProfileModal({ isOpen, onClose, userId, projectId, cards = [] }: UserProfileModalProps) {
   const [data, setData] = useState<UserProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (isOpen && userId && projectId) {
+    if (isOpen && userId) {
       fetchData();
     }
   }, [isOpen, userId, projectId]);
@@ -38,46 +38,47 @@ export function UserProfileModal({ isOpen, onClose, userId, projectId, cards }: 
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      // Fetch user profile and member info
-      const [profileRes, memberRes] = await Promise.all([
-        supabase.from('profiles').select('name, email, avatar_url').eq('id', userId).single(),
-        supabase.from('project_members').select('permission, job_title').eq('project_id', projectId).eq('user_id', userId).single()
-      ]);
+      // Fetch user profile
+      const { data: profileRes } = await supabase.from('profiles').select('name, email, avatar_url').eq('id', userId).single();
+      const profile = profileRes || { name: 'Desconhecido', email: '', avatar_url: '' };
 
-      const profile = profileRes.data || { name: 'Desconhecido', email: '', avatar_url: '' };
-      const member = memberRes.data || { permission: 'viewer', job_title: '' };
+      let member = { permission: 'viewer', job_title: '' };
+      
+      if (projectId) {
+        const { data: memberRes } = await supabase.from('project_members').select('permission, job_title').eq('project_id', projectId).eq('user_id', userId).single();
+        if (memberRes) member = memberRes;
+      }
 
       // Calculate local stats from cards
       const cardsCreated = cards.filter(c => c.created_by === userId).length;
       const cardsAssigned = cards.filter(c => c.assignees?.some(a => a.id === userId)).length;
 
-      // Fetch last 7 days activity
-      const sevenDaysAgo = subDays(new Date(), 6);
-      sevenDaysAgo.setHours(0, 0, 0, 0);
-
-      const { data: logs } = await supabase
-        .from('card_activity_logs')
-        .select('created_at')
-        .eq('project_id', projectId)
-        .eq('user_id', userId)
-        .gte('created_at', sevenDaysAgo.toISOString());
-
       // Process logs into daily counts
       const dailyCounts: Record<string, number> = {};
-      
-      // Initialize last 7 days with 0
       for (let i = 6; i >= 0; i--) {
         const dateStr = format(subDays(new Date(), i), 'yyyy-MM-dd');
         dailyCounts[dateStr] = 0;
       }
 
-      if (logs) {
-        logs.forEach(log => {
-          const dateStr = format(parseISO(log.created_at), 'yyyy-MM-dd');
-          if (dailyCounts[dateStr] !== undefined) {
-            dailyCounts[dateStr]++;
-          }
-        });
+      if (projectId) {
+        const sevenDaysAgo = subDays(new Date(), 6);
+        sevenDaysAgo.setHours(0, 0, 0, 0);
+
+        const { data: logs } = await supabase
+          .from('card_activity_logs')
+          .select('created_at')
+          .eq('project_id', projectId)
+          .eq('user_id', userId)
+          .gte('created_at', sevenDaysAgo.toISOString());
+
+        if (logs) {
+          logs.forEach(log => {
+            const dateStr = format(parseISO(log.created_at), 'yyyy-MM-dd');
+            if (dailyCounts[dateStr] !== undefined) {
+              dailyCounts[dateStr]++;
+            }
+          });
+        }
       }
 
       const activityData = Object.keys(dailyCounts).map(date => ({

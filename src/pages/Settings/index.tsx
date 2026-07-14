@@ -185,36 +185,7 @@ export default function Settings() {
               </form>
             </div>
 
-            <div className="bg-card border border-border/60 rounded-xl p-6 shadow-sm">
-              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <Monitor size={20} className="text-primary" />
-                Aparência
-              </h2>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button
-                  onClick={() => handleThemeChange('light')}
-                  className={`flex-1 flex flex-col items-center justify-center gap-3 p-6 rounded-xl border-2 transition-all ${
-                    theme === 'light' 
-                      ? 'border-primary bg-primary/5 text-foreground' 
-                      : 'border-border/60 hover:border-primary/50 text-muted-foreground'
-                  }`}
-                >
-                  <Sun size={32} className={theme === 'light' ? 'text-primary' : ''} />
-                  <span className="font-semibold">Modo Claro</span>
-                </button>
-                <button
-                  onClick={() => handleThemeChange('dark')}
-                  className={`flex-1 flex flex-col items-center justify-center gap-3 p-6 rounded-xl border-2 transition-all ${
-                    theme === 'dark' 
-                      ? 'border-primary bg-primary/5 text-foreground' 
-                      : 'border-border/60 hover:border-primary/50 text-muted-foreground'
-                  }`}
-                >
-                  <Moon size={32} className={theme === 'dark' ? 'text-primary' : ''} />
-                  <span className="font-semibold">Modo Escuro</span>
-                </button>
-              </div>
-            </div>
+
 
           </div>
         </div>
