@@ -45,7 +45,7 @@ serve(async (req) => {
       });
     }
 
-    const { method, paymentId, projectName, cpfCnpj } = await req.json();
+    const { method, paymentId, projectName, cpfCnpj, creditCardInfo } = await req.json();
 
     const mode = Deno.env.get('ASAAS_MODE') === 'production' ? 'production' : 'sandbox';
     let asaasApiKey = '';
@@ -116,17 +116,37 @@ serve(async (req) => {
 
     // 2. Create Payment in Asaas
     const dueDate = new Date(Date.now() + 86400000).toISOString().split('T')[0]; // +1 day
+    const paymentPayload: any = {
+      customer: customerId,
+      billingType: method === 'pix' ? 'PIX' : 'CREDIT_CARD',
+      value: finalValue,
+      dueDate: dueDate,
+      description: projectName ? `DevBan: Criação do Projeto '${projectName}'` : 'Projeto Adicional - Kanban Premium',
+      externalReference: paymentId
+    };
+
+    if (method === 'credit_card' && creditCardInfo) {
+      paymentPayload.creditCard = {
+        holderName: creditCardInfo.holderName,
+        number: creditCardInfo.number,
+        expiryMonth: creditCardInfo.expiryMonth,
+        expiryYear: creditCardInfo.expiryYear,
+        ccv: creditCardInfo.ccv
+      };
+      paymentPayload.creditCardHolderInfo = {
+        name: creditCardInfo.holderName,
+        email: user.email,
+        cpfCnpj: cpfCnpj ? cpfCnpj.replace(/\D/g, '') : '',
+        postalCode: '01311000',
+        addressNumber: '1000',
+        phone: '11999999999'
+      };
+    }
+
     const paymentCreateRes = await fetch(`${asaasBaseUrl}/payments`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'access_token': asaasApiKey },
-      body: JSON.stringify({
-        customer: customerId,
-        billingType: method === 'pix' ? 'PIX' : 'CREDIT_CARD', // Ou 'UNDEFINED'
-        value: finalValue,
-        dueDate: dueDate,
-        description: projectName ? `DevBan: Criação do Projeto '${projectName}'` : 'Projeto Adicional - Kanban Premium',
-        externalReference: paymentId
-      })
+      body: JSON.stringify(paymentPayload)
     });
     const paymentData = await paymentCreateRes.json();
     if (paymentData.errors) throw new Error(paymentData.errors[0].description);
@@ -166,7 +186,7 @@ serve(async (req) => {
       .from("payments")
       .update({
         asaas_payment_id: paymentData.id,
-        status: "pending",
+        status: paymentData.status === 'CONFIRMED' || paymentData.status === 'RECEIVED' ? 'confirmed' : 'pending',
         invoice_url: paymentData.invoiceUrl,
         pix_qr_code: pixQrCode,
         pix_copy_paste: pixQrCode

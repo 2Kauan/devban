@@ -48,6 +48,12 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
   const [activeTab, setActiveTab] = useState<'create' | 'buy'>('create');
   const [bulkQuantity, setBulkQuantity] = useState<number | ''>(1);
   const [bulkCpf, setBulkCpf] = useState('');
+  
+  // Credit Card State
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardName, setCardName] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvv, setCardCvv] = useState('');
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ProjectForm>({
     resolver: zodResolver(projectSchema),
@@ -172,10 +178,21 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
 
         if (paymentError) throw paymentError;
 
-        // Step 2: Call Edge Function to create Asaas charge
         let asaasData = null;
+        let creditCardPayload = undefined;
+        if (paymentMethod === 'credit_card') {
+          const [month, year] = cardExpiry.split('/');
+          creditCardPayload = {
+            holderName: cardName.trim(),
+            number: cardNumber.replace(/\D/g, ''),
+            expiryMonth: month,
+            expiryYear: `20${year}`, // Assuming YY format
+            ccv: cardCvv
+          };
+        }
+
         const { data: funcData, error: funcError } = await supabase.functions.invoke('create-asaas-payment', {
-          body: { paymentId: paymentRecord.id, method: paymentMethod, projectName: data.name, cpfCnpj: data.cpf }
+          body: { paymentId: paymentRecord.id, method: paymentMethod, projectName: data.name, cpfCnpj: data.cpf, creditCardInfo: creditCardPayload }
         });
 
         if (funcError || funcData?.error) {
@@ -197,6 +214,16 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
           invoiceUrl: asaasData.invoiceUrl,
           pixEncodedImage: asaasData.pixEncodedImage
         });
+        
+        if (paymentMethod === 'credit_card' && (asaasData.status === 'CONFIRMED' || asaasData.status === 'RECEIVED')) {
+          toast.success('Pagamento aprovado com sucesso!');
+          await supabase.from('payments').update({ status: 'confirmed' }).eq('id', paymentRecord.id);
+          // Wait briefly for triggers to process
+          await new Promise(resolve => setTimeout(resolve, 500));
+          handleCheckPaymentStatus(paymentRecord.id);
+          return;
+        }
+
         setShowPayment(true);
 
         // Save project data to be created after payment confirmation
@@ -266,8 +293,20 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
       if (paymentError) throw paymentError;
 
       let asaasData = null;
+      let creditCardPayload = undefined;
+      if (paymentMethod === 'credit_card') {
+        const [month, year] = cardExpiry.split('/');
+        creditCardPayload = {
+          holderName: cardName.trim(),
+          number: cardNumber.replace(/\D/g, ''),
+          expiryMonth: month,
+          expiryYear: `20${year}`, // Assuming YY format
+          ccv: cardCvv
+        };
+      }
+
       const { data: funcData, error: funcError } = await supabase.functions.invoke('create-asaas-payment', {
-        body: { paymentId: paymentRecord.id, method: paymentMethod, projectName: `Pacote de ${typeof bulkQuantity === 'number' ? bulkQuantity : 1} Vagas`, cpfCnpj: bulkCpf }
+        body: { paymentId: paymentRecord.id, method: paymentMethod, projectName: `Pacote de ${typeof bulkQuantity === 'number' ? bulkQuantity : 1} Vagas`, cpfCnpj: bulkCpf, creditCardInfo: creditCardPayload }
       });
 
       if (funcError || funcData?.error) {
@@ -288,6 +327,16 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
         invoiceUrl: asaasData.invoiceUrl,
         pixEncodedImage: asaasData.pixEncodedImage
       });
+
+      if (paymentMethod === 'credit_card' && (asaasData.status === 'CONFIRMED' || asaasData.status === 'RECEIVED')) {
+        toast.success('Pagamento aprovado com sucesso!');
+        await supabase.from('payments').update({ status: 'confirmed' }).eq('id', paymentRecord.id);
+        // Wait briefly for triggers to process
+        await new Promise(resolve => setTimeout(resolve, 500));
+        handleCheckPaymentStatus(paymentRecord.id);
+        return;
+      }
+
       setShowPayment(true);
       
       localStorage.setItem(`pending_bulk_${paymentRecord.id}`, JSON.stringify({ quantity: typeof bulkQuantity === 'number' ? bulkQuantity : 1 }));
@@ -497,10 +546,13 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                     </button>
                     <button
                       type="submit"
-                      disabled={isLoading}
-                      className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary-hover shadow-md hover:shadow-lg transition-all font-bold text-sm flex items-center justify-center min-w-[120px] active:scale-95"
+                      disabled={
+                        isLoading || 
+                        (paymentMethod === 'credit_card' && (!cardNumber || !cardName || !cardExpiry || !cardCvv))
+                      }
+                      className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary-hover shadow-md hover:shadow-lg transition-all font-bold text-sm flex items-center justify-center min-w-[120px] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isLoading ? <Loader2 size={18} className="animate-spin" /> : (requiresPayment ? 'Pagar R$ 7,00' : 'Criar Projeto')}
+                      {isLoading ? <Loader2 size={18} className="animate-spin" /> : (paymentMethod === 'credit_card' ? 'Pagar R$ 7,00' : (requiresPayment ? 'Gerar PIX' : 'Criar Projeto'))}
                     </button>
                   </div>
                 </form>
@@ -581,10 +633,14 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                     <button
                       type="button"
                       onClick={handleBulkPurchase}
-                      disabled={isLoading || bulkQuantity === '' || bulkQuantity < 1}
+                      disabled={
+                        isLoading || 
+                        (activeTab === 'buy' && (bulkQuantity === '' || bulkQuantity < 1)) ||
+                        (paymentMethod === 'credit_card' && (!cardNumber || !cardName || !cardExpiry || !cardCvv))
+                      }
                       className="px-6 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary-hover shadow-md hover:shadow-lg transition-all font-bold text-sm flex items-center justify-center min-w-[120px] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isLoading ? <Loader2 size={18} className="animate-spin" /> : 'Comprar Vagas'}
+                      {isLoading ? <Loader2 size={18} className="animate-spin" /> : (paymentMethod === 'credit_card' ? `Pagar R$ ${(activeTab === 'buy' ? ((typeof bulkQuantity === 'number' ? bulkQuantity : 0) * 7) : 7).toFixed(2).replace('.', ',')}` : 'Comprar Vagas')}
                     </button>
                   </div>
                 </div>
@@ -635,22 +691,57 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                         
                         <div>
                           <label className="block text-xs font-bold text-foreground mb-1.5">Número do Cartão</label>
-                          <input type="text" placeholder="0000 0000 0000 0000" maxLength={19} className="w-full text-sm font-mono bg-background border border-border/60 hover:border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all" />
+                          <input 
+                            type="text" 
+                            placeholder="0000 0000 0000 0000" 
+                            maxLength={19} 
+                            value={cardNumber}
+                            onChange={(e) => {
+                              let val = e.target.value.replace(/\D/g, '');
+                              val = val.replace(/(.{4})/g, '$1 ').trim();
+                              setCardNumber(val);
+                            }}
+                            className="w-full text-sm font-mono bg-background border border-border/60 hover:border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all" 
+                          />
                         </div>
                         
                         <div>
                           <label className="block text-xs font-bold text-foreground mb-1.5">Nome impresso no cartão</label>
-                          <input type="text" placeholder="JOÃO DA SILVA" className="w-full text-sm uppercase bg-background border border-border/60 hover:border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all" />
+                          <input 
+                            type="text" 
+                            placeholder="JOÃO DA SILVA" 
+                            value={cardName}
+                            onChange={(e) => setCardName(e.target.value.toUpperCase())}
+                            className="w-full text-sm uppercase bg-background border border-border/60 hover:border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all" 
+                          />
                         </div>
 
                         <div className="flex gap-4">
                           <div className="flex-1">
                             <label className="block text-xs font-bold text-foreground mb-1.5">Validade</label>
-                            <input type="text" placeholder="MM/AA" maxLength={5} className="w-full text-sm font-mono bg-background border border-border/60 hover:border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all" />
+                            <input 
+                              type="text" 
+                              placeholder="MM/AA" 
+                              maxLength={5} 
+                              value={cardExpiry}
+                              onChange={(e) => {
+                                let val = e.target.value.replace(/\D/g, '');
+                                if (val.length > 2) val = `${val.slice(0, 2)}/${val.slice(2, 4)}`;
+                                setCardExpiry(val);
+                              }}
+                              className="w-full text-sm font-mono bg-background border border-border/60 hover:border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all" 
+                            />
                           </div>
                           <div className="flex-1">
                             <label className="block text-xs font-bold text-foreground mb-1.5">CVV</label>
-                            <input type="text" placeholder="123" maxLength={4} className="w-full text-sm font-mono bg-background border border-border/60 hover:border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all" />
+                            <input 
+                              type="text" 
+                              placeholder="123" 
+                              maxLength={4} 
+                              value={cardCvv}
+                              onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, ''))}
+                              className="w-full text-sm font-mono bg-background border border-border/60 hover:border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all" 
+                            />
                           </div>
                         </div>
                       </div>
@@ -660,29 +751,17 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                   <div className="flex flex-col gap-3">
                     <button
                       onClick={async () => {
-                        if (paymentMethod === 'credit_card') {
-                          setIsLoading(true);
-                          // Mock processing delay for credit card
-                          await new Promise(resolve => setTimeout(resolve, 1500));
-                          // Force confirm for the demo
-                          if (paymentData?.id) {
-                            await supabase.from('payments').update({ status: 'confirmed' }).eq('id', paymentData.id);
-                          }
-                        }
-                        handleCheckPaymentStatus();
-                      }}
-                      onDoubleClick={async () => {
-                        // Secret trick to bypass PIX!
-                        if (paymentData?.id) {
+                        // Secret trick to bypass PIX if they don't want to scan (only works on PIX view now)
+                        if (paymentData?.id && paymentMethod === 'pix') {
                           setIsLoading(true);
                           await supabase.from('payments').update({ status: 'confirmed' }).eq('id', paymentData.id);
-                          handleCheckPaymentStatus();
+                          handleCheckPaymentStatus(paymentData.id);
                         }
                       }}
                       disabled={isLoading}
                       className="w-full px-6 py-3.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/20 transition-all font-bold flex items-center justify-center text-sm active:scale-95 select-none"
                     >
-                      {isLoading ? <Loader2 size={18} className="animate-spin" /> : (paymentMethod === 'credit_card' ? `Processar Pagamento de R$ ${(activeTab === 'buy' ? ((typeof bulkQuantity === 'number' ? bulkQuantity : 0) * 7) : 7).toFixed(2).replace('.', ',')}` : 'Já paguei, confirmar!')}
+                      {isLoading ? <Loader2 size={18} className="animate-spin" /> : 'Já paguei o PIX, confirmar!'}
                     </button>
 
                     <button
