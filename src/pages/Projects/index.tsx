@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopHeader } from '@/components/layout/TopHeader';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, MoreVertical, Folder, Star, Users, CheckCircle2, Trash2 } from 'lucide-react';
+import { Plus, MoreVertical, Folder, Star, Users, CheckCircle2, Trash2, FolderKanban } from 'lucide-react';
 import type { Project } from '@/types/database';
 import { toast } from 'sonner';
 import { useFavorites } from '@/hooks/useFavorites';
@@ -133,13 +133,10 @@ function ProjectCard({ project, onDelete, onComplete }: { project: Project, onDe
   );
 }
 
-interface ProjectsProps {
-  favoritesOnly?: boolean;
-}
-
-export default function Projects({ favoritesOnly = false }: ProjectsProps) {
+export default function Projects() {
   const { user } = useAuth();
   const { favorites } = useFavorites(user?.id);
+  const [filter, setFilter] = useState<'all' | 'favorites'>('all');
   const [projects, setProjects] = useState<Project[]>([]);
   const [stock, setStock] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -188,7 +185,9 @@ export default function Projects({ favoritesOnly = false }: ProjectsProps) {
     }
   };
 
-  const displayedProjects = favoritesOnly 
+  const isFavorites = filter === 'favorites';
+
+  const displayedProjects = isFavorites 
     ? projects.filter(p => favorites.includes(p.id))
     : projects;
 
@@ -221,41 +220,53 @@ export default function Projects({ favoritesOnly = false }: ProjectsProps) {
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto custom-scrollbar bg-background">
         
         {/* Modern App Header */}
-        <TopHeader title={favoritesOnly ? 'Favoritos' : 'Meus Projetos'} onOpenSidebar={() => setIsSidebarOpen(true)} />
+        <TopHeader title="Meus Projetos" onOpenSidebar={() => setIsSidebarOpen(true)} />
 
         <div className="p-4 sm:p-8 max-w-[1400px] mx-auto w-full">
           
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
               <h1 className="text-3xl font-bold text-foreground tracking-tight flex items-center gap-3">
-                {favoritesOnly ? <Star className="text-yellow-500" size={28} /> : null}
-                {favoritesOnly ? 'Favoritos' : 'Meus Projetos'}
+                <FolderKanban className="text-primary" size={28} />
+                Meus Projetos
               </h1>
               <p className="text-muted-foreground mt-1">
-                {favoritesOnly ? 'Seus projetos favoritados com acesso rápido.' : 'Gerencie e acompanhe todos os seus projetos.'}
+                Gerencie e acompanhe todos os seus projetos.
               </p>
             </div>
-            {!favoritesOnly && (
-              <div className="flex items-center gap-4 w-full sm:w-auto">
-                <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 text-primary rounded-lg font-bold">
-                  Projetos em Estoque: <span className="text-xl leading-none">{stock}</span>
-                </div>
-                <button 
-                  onClick={() => document.dispatchEvent(new CustomEvent('open-create-project'))}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg font-bold flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow active:scale-95 whitespace-nowrap w-full sm:w-auto"
-                >
-                  <Plus size={18} />
-                  Novo Projeto
-                </button>
+            <div className="flex items-center gap-4 w-full sm:w-auto">
+              <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 text-primary rounded-lg font-bold">
+                Projetos em Estoque: <span className="text-xl leading-none">{stock}</span>
               </div>
-            )}
+              <button 
+                onClick={() => document.dispatchEvent(new CustomEvent('open-create-project'))}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg font-bold flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow active:scale-95 whitespace-nowrap w-full sm:w-auto"
+              >
+                <Plus size={18} />
+                Novo Projeto
+              </button>
+            </div>
           </div>
           
-          {!favoritesOnly && (
-            <div className="sm:hidden mb-6 flex items-center justify-center gap-2 px-4 py-3 bg-primary/10 border border-primary/20 text-primary rounded-lg font-bold">
-              Projetos em Estoque: <span className="text-xl leading-none">{stock}</span>
-            </div>
-          )}
+          <div className="flex items-center gap-2 mb-8 bg-muted/30 p-1 rounded-lg w-max border border-border/50">
+            <button 
+              onClick={() => setFilter('all')} 
+              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${filter === 'all' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              Todos
+            </button>
+            <button 
+              onClick={() => setFilter('favorites')} 
+              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${filter === 'favorites' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              <Star size={14} className={filter === 'favorites' ? "text-yellow-500 fill-yellow-500" : ""} />
+              Favoritos
+            </button>
+          </div>
+          
+          <div className="sm:hidden mb-6 flex items-center justify-center gap-2 px-4 py-3 bg-primary/10 border border-primary/20 text-primary rounded-lg font-bold">
+            Projetos em Estoque: <span className="text-xl leading-none">{stock}</span>
+          </div>
 
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
@@ -266,36 +277,46 @@ export default function Projects({ favoritesOnly = false }: ProjectsProps) {
           ) : displayedProjects.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
-                {favoritesOnly ? <Star size={32} /> : <Folder size={32} />}
+                {isFavorites ? <Star size={32} /> : <FolderKanban size={32} />}
               </div>
               <h3 className="text-xl font-bold text-foreground mb-2">
-                {favoritesOnly ? 'Nenhum favorito' : 'Nenhum projeto'}
+                {isFavorites ? 'Nenhum favorito' : 'Nenhum projeto'}
               </h3>
               <p className="text-muted-foreground max-w-sm mb-6">
-                {favoritesOnly 
+                {isFavorites 
                   ? 'Você ainda não adicionou nenhum projeto aos favoritos. Clique na estrela de um projeto para favoritá-lo.' 
                   : 'Você ainda não possui projetos. Crie seu primeiro projeto para começar.'}
               </p>
-              {!favoritesOnly && (
+              {!isFavorites && (
                 <button 
                   onClick={() => document.dispatchEvent(new CustomEvent('open-create-project'))}
-                  className="bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 rounded-lg font-medium transition-colors"
                 >
                   Criar Primeiro Projeto
                 </button>
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-              {displayedProjects.map((project) => (
-                <ProjectCard 
-                  key={project.id} 
-                  project={project} 
-                  onDelete={setProjectToDelete}
-                  onComplete={handleToggleComplete}
-                />
-              ))}
-            </div>
+            <motion.div layout className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+              <AnimatePresence mode="popLayout">
+                {displayedProjects.map((project) => (
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.2, type: "spring", bounce: 0.3 }}
+                    key={project.id}
+                  >
+                    <ProjectCard 
+                      project={project} 
+                      onDelete={setProjectToDelete}
+                      onComplete={handleToggleComplete}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
           )}
 
         </div>

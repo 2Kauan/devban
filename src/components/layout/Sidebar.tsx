@@ -157,14 +157,7 @@ export function Sidebar({ onProjectCreated, isOpen, onClose, isProjectView = fal
               Dashboard
             </Link>
             <Link 
-              to="/favorites" 
-              className={`flex items-center gap-3 px-3 py-3 rounded-md text-sm transition-colors ${isActive('/favorites') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
-            >
-              <Star className="h-4 w-4" />
-              Favoritos
-            </Link>
-            <Link 
-              to="/calendar" 
+              to="/calendar"  
               className={`flex items-center gap-3 px-3 py-3 rounded-md text-sm transition-colors ${isActive('/calendar') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
             >
               <Calendar className="h-4 w-4" />

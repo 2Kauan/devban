@@ -49,7 +49,7 @@ export function AppRoutes() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/projects" element={<Projects />} />
-            <Route path="/favorites" element={<Projects favoritesOnly />} />
+
             <Route path="/team" element={<Team />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/calendar" element={<Calendar />} />
