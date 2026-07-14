@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { AppRoutes } from '@/routes';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { processSyncQueue } from '@/lib/offlineSync';
+import { NotificationService } from '@/services/notifications/notificationService';
 
 export default function App() {
   useEffect(() => {
@@ -12,6 +13,9 @@ export default function App() {
     if (navigator.onLine) {
       processSyncQueue();
     }
+
+    // Pede permissão para notificações no dispositivo móvel
+    NotificationService.requestPermissions();
     
     return () => {
       window.removeEventListener('online', processSyncQueue);

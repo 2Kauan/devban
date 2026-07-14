@@ -11,6 +11,8 @@ import { CardComments } from '@/components/kanban/CardComments';
 
 import { TagSelector } from '@/components/ui/TagSelector';
 import type { Category, Profile } from '@/types/database';
+import { RichTextEditor } from './RichTextEditor';
+import { NotificationService } from '@/services/notifications/notificationService';
 import type { ProjectMember } from '@/hooks/useProjectQuery';
 
 interface CardModalProps {
@@ -242,6 +244,14 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
           .eq('id', card.id);
 
         if (error) throw error;
+        
+        // Agendar ou cancelar notificação baseado na data de vencimento
+        if (data.due_date) {
+          NotificationService.scheduleTaskReminder(card.id, data.title, data.due_date);
+        } else {
+          NotificationService.cancelTaskReminder(card.id);
+        }
+        
         toast.success('Cartão atualizado!');
       } else {
         if (!projectId || !data.column_id) {
@@ -279,6 +289,11 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
           await supabase.from('card_assignees').insert(
             localAssignees.map(user => ({ card_id: newCard.id, user_id: user.id }))
           );
+        }
+
+        // Agendar notificação se o cartão novo tiver data de vencimento
+        if (data.due_date) {
+          NotificationService.scheduleTaskReminder(newCard.id, data.title, data.due_date);
         }
 
         toast.success('Cartão criado!');
