@@ -3,13 +3,17 @@ import { useOutletContext } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import type { Project } from '@/types/database';
 import { ShareModal } from '@/components/ui/ShareModal';
-import { Users, UserPlus, Settings, Trash2 } from 'lucide-react';
+import { Users, UserPlus, Settings, Trash2, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
+import { UserProfileModal } from '@/components/ui/UserProfileModal';
+import type { KanbanCardType } from '@/types/kanban';
 
 interface Member {
   user_id: string;
   permission: string;
+  job_title: string | null;
   created_at: string;
   profiles: {
     name: string;
@@ -20,9 +24,19 @@ interface Member {
 
 export default function ProjectTeam() {
   const { project } = useOutletContext<{ project: Project }>();
+  const { user } = useAuth();
+  const isOwner = project.owner_id === user?.id;
+
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  
+  // Para armazenar mudanças pendentes antes de salvar
+  const [pendingChanges, setPendingChanges] = useState<Record<string, { permission?: string, job_title?: string }>>({});
+  const [isSaving, setIsSaving] = useState(false);
+  
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+  const [projectCards, setProjectCards] = useState<KanbanCardType[]>([]);
 
   useEffect(() => {
     if (project?.id) {
@@ -38,6 +52,7 @@ export default function ProjectTeam() {
         .select(`
           user_id,
           permission,
+          job_title,
           created_at,
           profiles (
             name,
@@ -65,6 +80,7 @@ export default function ProjectTeam() {
         memberList.unshift({
           user_id: project.owner_id,
           permission: 'owner',
+          job_title: 'Fundador',
           created_at: project.created_at,
           profiles: {
             name: ownerData.name,
@@ -74,6 +90,20 @@ export default function ProjectTeam() {
       }
 
       setMembers(memberList);
+
+      // Fetch cards for stats
+      const { data: cardsData } = await supabase
+        .from('cards')
+        .select(`*, assignees:card_assignees(user_id)`)
+        .eq('project_id', project.id);
+        
+      if (cardsData) {
+        setProjectCards(cardsData.map((c: any) => ({
+          ...c,
+          assignees: c.assignees?.map((a: any) => ({ id: a.user_id })) || []
+        })));
+      }
+
     } catch (error: any) {
       toast.error('Erro ao buscar membros: ' + error.message);
     } finally {
@@ -104,31 +134,43 @@ export default function ProjectTeam() {
     }
   };
 
-  const handleChangePermission = async (memberId: string, newPerm: string) => {
+  const handleChangePermission = (memberId: string, newPerm: string) => {
     if (memberId === project.owner_id) {
       toast.error('Não é possível alterar a permissão do desenvolvedor/dono do projeto.');
       return;
     }
-
-    const previousMembers = [...members];
     
-    // Optimistic update
+    setPendingChanges(prev => ({ ...prev, [memberId]: { ...prev[memberId], permission: newPerm } }));
     setMembers(members.map(m => m.user_id === memberId ? { ...m, permission: newPerm } : m));
+  };
 
+  const handleChangeJobTitle = (memberId: string, newTitle: string) => {
+    setPendingChanges(prev => ({ ...prev, [memberId]: { ...prev[memberId], job_title: newTitle } }));
+    setMembers(members.map(m => m.user_id === memberId ? { ...m, job_title: newTitle } : m));
+  };
+
+  const handleSaveChanges = async () => {
+    if (Object.keys(pendingChanges).length === 0) return;
+    setIsSaving(true);
+    
     try {
-      const { error } = await supabase
-        .from('project_members')
-        .update({ permission: newPerm })
-        .eq('project_id', project.id)
-        .eq('user_id', memberId);
-
-      if (error) throw error;
-      toast.success('Permissão alterada com sucesso!');
+      for (const [userId, changes] of Object.entries(pendingChanges)) {
+        await supabase
+          .from('project_members')
+          .update(changes)
+          .eq('project_id', project.id)
+          .eq('user_id', userId);
+      }
+      setPendingChanges({});
+      toast.success('Alterações salvas com sucesso!');
     } catch (error: any) {
-      setMembers(previousMembers);
-      toast.error('Erro ao alterar permissão: ' + error.message);
+      toast.error('Erro ao salvar alterações: ' + error.message);
+    } finally {
+      setIsSaving(false);
     }
   };
+
+  const hasPendingChanges = Object.keys(pendingChanges).length > 0;
 
   return (
     <div className="p-4 sm:p-8 w-full max-w-5xl mx-auto h-full overflow-y-auto">
@@ -140,13 +182,30 @@ export default function ProjectTeam() {
         <p className="text-muted-foreground mt-2 mb-4">
           Gerencie quem tem acesso a este projeto e defina suas permissões.
         </p>
-        <button
-          onClick={() => setIsShareModalOpen(true)}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 px-5 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors w-full sm:w-auto shadow-sm"
-        >
-          <UserPlus size={18} />
-          Convidar Membro
-        </button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          {isOwner && (
+            <button
+              onClick={() => setIsShareModalOpen(true)}
+              className="bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 px-5 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors shadow-sm"
+            >
+              <UserPlus size={18} />
+              Convidar Membro
+            </button>
+          )}
+          
+          {isOwner && hasPendingChanges && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              onClick={handleSaveChanges}
+              disabled={isSaving}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 px-5 py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
+            >
+              <Save size={18} className={isSaving ? 'animate-pulse' : ''} />
+              {isSaving ? 'Salvando...' : 'Salvar Alterações'}
+            </motion.button>
+          )}
+        </div>
       </div>
 
       <div className="bg-card border border-border/50 rounded-xl overflow-hidden shadow-sm w-full">
@@ -155,6 +214,7 @@ export default function ProjectTeam() {
             <thead className="bg-muted/30 text-muted-foreground text-xs uppercase font-semibold">
               <tr>
                 <th className="px-6 py-4">Membro</th>
+                <th className="px-6 py-4">Cargo</th>
                 <th className="px-6 py-4">Papel / Permissão</th>
                 <th className="px-6 py-4">Data de Entrada</th>
                 <th className="px-6 py-4 text-right">Ações</th>
@@ -196,12 +256,17 @@ export default function ProjectTeam() {
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 overflow-hidden flex items-center justify-center shrink-0 text-primary font-bold">
-                          {member.profiles?.avatar_url ? (
-                            <img src={member.profiles.avatar_url} alt={member.profiles?.name} className="w-full h-full object-cover" />
-                          ) : (
-                            member.profiles?.name?.charAt(0).toUpperCase() || 'U'
-                          )}
+                        <div className="flex-shrink-0 h-10 w-10 relative group cursor-pointer" onClick={() => setSelectedProfileId(member.user_id)}>
+                          <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span className="text-white text-[10px] font-medium leading-tight text-center">Ver Perfil</span>
+                          </div>
+                          <div className="w-full h-full rounded-full bg-primary/10 border border-primary/20 overflow-hidden flex items-center justify-center shrink-0 text-primary font-bold">
+                            {member.profiles?.avatar_url ? (
+                              <img src={member.profiles.avatar_url} alt={member.profiles?.name} className="w-full h-full object-cover" />
+                            ) : (
+                              member.profiles?.name?.charAt(0).toUpperCase() || 'U'
+                            )}
+                          </div>
                         </div>
                         <div>
                           <div className="font-semibold text-foreground flex items-center gap-2">
@@ -216,10 +281,27 @@ export default function ProjectTeam() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
+                      {isOwner && member.permission !== 'owner' ? (
+                        <input
+                          type="text"
+                          placeholder="Ex: Desenvolvedor"
+                          value={member.job_title || ''}
+                          onChange={(e) => handleChangeJobTitle(member.user_id, e.target.value)}
+                          className="bg-muted/30 border border-border/60 rounded-lg text-sm px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-foreground transition-all w-32 sm:w-40"
+                        />
+                      ) : (
+                        <span className="text-sm text-muted-foreground">{member.job_title || '-'}</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
                       {member.permission === 'owner' ? (
                         <div className="flex items-center gap-2 text-muted-foreground capitalize cursor-default" title="Permissão do dono não pode ser alterada">
                           <Settings size={14} /> Proprietário
                         </div>
+                      ) : !isOwner ? (
+                        <span className="text-xs font-semibold bg-muted/50 border border-border px-3 py-1 rounded-md text-muted-foreground capitalize cursor-not-allowed">
+                          {member.permission === 'editor' ? 'Editor' : member.permission}
+                        </span>
                       ) : (
                         <div className="relative">
                           <select
@@ -260,11 +342,19 @@ export default function ProjectTeam() {
         </div>
       </div>
 
-      <ShareModal
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
+      <ShareModal 
+        isOpen={isShareModalOpen} 
+        onClose={() => setIsShareModalOpen(false)} 
         project={project}
         onUpdate={fetchMembers}
+      />
+
+      <UserProfileModal
+        isOpen={!!selectedProfileId}
+        onClose={() => setSelectedProfileId(null)}
+        userId={selectedProfileId || ''}
+        projectId={project.id}
+        cards={projectCards}
       />
     </div>
   );

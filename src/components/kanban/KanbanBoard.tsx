@@ -24,6 +24,7 @@ import type { KanbanColumnType, KanbanCardType } from '@/types/kanban';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 const dropAnimationConfig: DropAnimation = {
   duration: 250,
@@ -142,7 +143,10 @@ export function KanbanBoard({
   };
 
   function onDragStart(event: DragStartEvent) {
-    if (!canEdit) return;
+    if (!canEdit) {
+      toast.error('Você tem permissão apenas de Leitor. Solicite acesso ao dono para modificar o Kanban.');
+      return;
+    }
     if (event.active.data.current?.type === 'Column') {
       setActiveColumn(event.active.data.current.column);
       return;
@@ -155,6 +159,7 @@ export function KanbanBoard({
   }
 
   function onDragOver(event: DragOverEvent) {
+    if (!canEdit) return;
     const { active, over } = event;
     if (!over) return;
 
@@ -205,6 +210,8 @@ export function KanbanBoard({
   function onDragEnd(event: DragEndEvent) {
     setActiveColumn(null);
     setActiveCard(null);
+
+    if (!canEdit) return;
 
     const { active, over } = event;
 
@@ -277,6 +284,7 @@ export function KanbanBoard({
   return (
     <div className="flex-1 w-full h-full min-h-0 flex flex-col overflow-x-auto overflow-y-hidden custom-scrollbar bg-background">
       <DndContext
+        id="kanban-board-dnd-context"
         sensors={sensors}
         collisionDetection={customCollisionDetection}
         onDragStart={onDragStart}

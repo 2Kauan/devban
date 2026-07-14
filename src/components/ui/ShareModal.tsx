@@ -204,7 +204,9 @@ export function ShareModal({ isOpen, onClose, project, onUpdate }: ShareModalPro
                           )}
                           <div className="flex flex-col">
                             <p className="text-sm font-medium leading-none">{member.profiles.name}</p>
-                            <p className="text-xs text-muted-foreground mt-1 truncate max-w-[120px] sm:max-w-[180px]">{member.profiles.email}</p>
+                            {!member.profiles.email?.includes('devban.local') && (
+                              <p className="text-xs text-muted-foreground mt-1 truncate max-w-[120px] sm:max-w-[180px]">{member.profiles.email}</p>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">

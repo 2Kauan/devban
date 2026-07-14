@@ -55,7 +55,10 @@ export function ProjectHeader({
       if (error) throw error;
       
       toast.success('Projeto excluído permanentemente.');
-      navigate('/projects');
+      setShowDeleteConfirm(false);
+      setTimeout(() => {
+        navigate('/projects');
+      }, 300); // Wait for modal exit animation to prevent insertBefore DOM error
     } catch (error: any) {
       toast.error('Erro ao excluir projeto: ' + error.message);
       setIsDeleting(false);

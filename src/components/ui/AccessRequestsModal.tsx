@@ -15,6 +15,7 @@ interface RequestType {
   user_id: string;
   status: string;
   created_at: string;
+  job_title: string;
   profiles: {
     name: string;
     email: string;
@@ -25,7 +26,7 @@ export function AccessRequestsModal({ isOpen, onClose, projectId }: AccessReques
   const [requests, setRequests] = useState<RequestType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
-  const [selectedRole, setSelectedRole] = useState<{ [key: string]: { permission: string, job_title: string } }>({});
+  const [selectedRole, setSelectedRole] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     if (isOpen) {
@@ -43,6 +44,7 @@ export function AccessRequestsModal({ isOpen, onClose, projectId }: AccessReques
           user_id,
           status,
           created_at,
+          job_title,
           profiles (
             name,
             email
@@ -58,9 +60,9 @@ export function AccessRequestsModal({ isOpen, onClose, projectId }: AccessReques
       setRequests(reqs);
       
       // Init roles state
-      const rolesInit: { [key: string]: { permission: string, job_title: string } } = {};
+      const rolesInit: { [key: string]: string } = {};
       reqs.forEach(r => {
-        rolesInit[r.id] = { permission: 'viewer', job_title: '' };
+        rolesInit[r.id] = 'viewer';
       });
       setSelectedRole(rolesInit);
       
@@ -84,14 +86,15 @@ export function AccessRequestsModal({ isOpen, onClose, projectId }: AccessReques
 
       // Se aprovado, insere o usuário na equipe
       if (action === 'approved') {
-        const roleData = selectedRole[requestId] || { permission: 'viewer', job_title: '' };
+        const reqData = requests.find(r => r.id === requestId);
+        const permission = selectedRole[requestId] || 'viewer';
         const { error: memberError } = await supabase
           .from('project_members')
           .insert({
             project_id: projectId,
             user_id: userId,
-            permission: roleData.permission,
-            job_title: roleData.job_title || null
+            permission: permission,
+            job_title: reqData?.job_title || null
           });
         
         if (memberError) throw memberError;
@@ -124,7 +127,7 @@ export function AccessRequestsModal({ isOpen, onClose, projectId }: AccessReques
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-card rounded-2xl shadow-2xl z-[70] overflow-hidden border border-border"
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-lg bg-card rounded-2xl shadow-2xl z-[70] overflow-hidden border border-border"
           >
             <div className="p-6 border-b border-border flex items-center justify-between">
               <h2 className="text-xl font-bold">Solicitações de Acesso</h2>
@@ -149,28 +152,26 @@ export function AccessRequestsModal({ isOpen, onClose, projectId }: AccessReques
                 <div className="space-y-4">
                   {requests.map((req) => (
                     <div key={req.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-muted/30 border border-border rounded-xl gap-4">
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <p className="font-semibold">{req.profiles?.name || 'Usuário Sem Nome'}</p>
-                        <p className="text-sm text-muted-foreground mb-2">{req.profiles?.email}</p>
+                        {!req.profiles?.email?.includes('devban.local') && (
+                          <p className="text-sm text-muted-foreground mb-2 truncate">{req.profiles?.email}</p>
+                        )}
+                        {req.job_title && (
+                          <p className="text-xs font-medium text-primary mb-2 mt-1 bg-primary/10 inline-block px-2 py-0.5 rounded-full">Cargo: {req.job_title}</p>
+                        )}
                         
-                        <div className="flex flex-col sm:flex-row gap-2 mt-2">
+                        <div className="mt-2">
                           <select 
-                            value={selectedRole[req.id]?.permission || 'viewer'}
-                            onChange={(e) => setSelectedRole(prev => ({...prev, [req.id]: { ...prev[req.id], permission: e.target.value }}))}
-                            className="text-xs bg-background border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary"
+                            value={selectedRole[req.id] || 'viewer'}
+                            onChange={(e) => setSelectedRole(prev => ({...prev, [req.id]: e.target.value }))}
+                            className="text-xs bg-background border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary w-32"
                           >
                             <option value="viewer">Leitor</option>
                             <option value="editor">Editor</option>
                             <option value="admin">Administrador</option>
                             <option value="client">Cliente</option>
                           </select>
-                          <input 
-                            type="text" 
-                            placeholder="Cargo (ex: QA, Dev)"
-                            value={selectedRole[req.id]?.job_title || ''}
-                            onChange={(e) => setSelectedRole(prev => ({...prev, [req.id]: { ...prev[req.id], job_title: e.target.value }}))}
-                            className="text-xs bg-background border border-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary flex-1"
-                          />
                         </div>
                       </div>
                       <div className="flex items-center gap-2 justify-end sm:justify-start">
