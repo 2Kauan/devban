@@ -117,9 +117,7 @@ export function Sidebar({ onProjectCreated, isOpen, onClose, isProjectView = fal
         {/* Workspace Switcher / Brand Header */}
         <div className="h-14 px-4 flex items-center justify-between border-b border-transparent hover:border-border/40 transition-colors shrink-0">
           <Link to="/dashboard" className="flex items-center gap-2 group outline-none rounded-md px-1 py-1 hover:bg-muted/50 transition-colors">
-            <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center shadow-sm">
-              <span className="text-primary-foreground font-bold text-xs leading-none">D</span>
-            </div>
+            <img src="/logo-devban.webp" alt="DevBan" className="w-7 h-7 object-contain" />
             <span className="font-semibold text-sm tracking-tight text-foreground group-hover:text-primary transition-colors">DevBan</span>
           </Link>
           <button onClick={onClose} className="p-1 text-muted-foreground hover:text-foreground md:hidden"><X size={16} /></button>

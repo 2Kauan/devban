@@ -25,9 +25,7 @@ export function Navbar() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-            <span className="text-primary-foreground font-bold text-lg leading-none">D</span>
-          </div>
+          <img src="/logo-devban.webp" alt="DevBan" className="w-8 h-8 object-contain group-hover:scale-105 transition-transform" />
           <span className="font-bold text-xl tracking-tight">DevBan</span>
         </Link>
 
