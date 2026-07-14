@@ -31,7 +31,7 @@ export default function SharedProject() {
   const projectCategories = data?.projectCategories || [];
   const projectMembers = data?.projectMembers || [];
   
-  const isMember = user && projectMembers.some(m => m.profiles.id === user.id && m.permission !== 'pending');
+  const isMember = user && projectMembers.some(m => m.profiles.id === user.id && (m.permission as string) !== 'pending');
   const isOwner = user && project?.owner_id === user.id;
 
   useEffect(() => {
