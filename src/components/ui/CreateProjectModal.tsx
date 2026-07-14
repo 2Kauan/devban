@@ -46,7 +46,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
   const [requiresPayment, setRequiresPayment] = useState(false);
   const [isCheckingSlots, setIsCheckingSlots] = useState(true);
   const [activeTab, setActiveTab] = useState<'create' | 'buy'>('create');
-  const [bulkQuantity, setBulkQuantity] = useState(1);
+  const [bulkQuantity, setBulkQuantity] = useState<number | ''>(1);
   const [bulkCpf, setBulkCpf] = useState('');
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ProjectForm>({
@@ -514,21 +514,31 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                   <div>
                     <label className="block text-sm font-bold text-foreground mb-4 text-center">Quantas vagas deseja comprar?</label>
                     <div className="flex items-center justify-center gap-6">
-                      <button type="button" onClick={() => setBulkQuantity(Math.max(1, bulkQuantity - 1))} className="w-12 h-12 rounded-full border-2 border-border flex items-center justify-center hover:bg-muted/50 transition-colors text-xl font-bold active:scale-95">-</button>
+                      <button type="button" onClick={() => setBulkQuantity(Math.max(1, (typeof bulkQuantity === 'number' ? bulkQuantity : 1) - 1))} className="w-12 h-12 rounded-full border-2 border-border flex items-center justify-center hover:bg-muted/50 transition-colors text-xl font-bold active:scale-95">-</button>
                       <input 
                         type="number" 
                         min="1" 
                         value={bulkQuantity} 
-                        onChange={(e) => setBulkQuantity(Math.max(1, parseInt(e.target.value) || 1))} 
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === '') {
+                            setBulkQuantity('');
+                          } else {
+                            setBulkQuantity(parseInt(val, 10) || 0);
+                          }
+                        }} 
                         className="text-4xl font-black min-w-[3rem] max-w-[5rem] text-center bg-transparent border-none focus:outline-none p-0 m-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
-                      <button type="button" onClick={() => setBulkQuantity(bulkQuantity + 1)} className="w-12 h-12 rounded-full border-2 border-border flex items-center justify-center hover:bg-muted/50 transition-colors text-xl font-bold active:scale-95">+</button>
+                      <button type="button" onClick={() => setBulkQuantity((typeof bulkQuantity === 'number' ? bulkQuantity : 1) + 1)} className="w-12 h-12 rounded-full border-2 border-border flex items-center justify-center hover:bg-muted/50 transition-colors text-xl font-bold active:scale-95">+</button>
                     </div>
+                    {(bulkQuantity === '' || bulkQuantity < 1) && (
+                      <p className="text-destructive text-sm font-bold text-center mt-3">A quantidade mínima é de 1 vaga.</p>
+                    )}
                   </div>
 
                   <div className="text-center pt-2 pb-4">
                     <p className="text-sm text-muted-foreground mb-1">Total a pagar:</p>
-                    <p className="text-4xl font-black text-foreground">R$ {(bulkQuantity * 7).toFixed(2).replace('.', ',')}</p>
+                    <p className="text-4xl font-black text-foreground">R$ {((typeof bulkQuantity === 'number' ? bulkQuantity : 0) * 7).toFixed(2).replace('.', ',')}</p>
                   </div>
                   
                   <div>
@@ -571,8 +581,8 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                     <button
                       type="button"
                       onClick={handleBulkPurchase}
-                      disabled={isLoading}
-                      className="px-6 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary-hover shadow-md hover:shadow-lg transition-all font-bold text-sm flex items-center justify-center min-w-[120px] active:scale-95"
+                      disabled={isLoading || bulkQuantity === '' || bulkQuantity < 1}
+                      className="px-6 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary-hover shadow-md hover:shadow-lg transition-all font-bold text-sm flex items-center justify-center min-w-[120px] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isLoading ? <Loader2 size={18} className="animate-spin" /> : 'Comprar Vagas'}
                     </button>
