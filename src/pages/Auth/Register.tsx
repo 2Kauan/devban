@@ -84,47 +84,47 @@ export default function Register() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md bg-background rounded-2xl shadow-xl border border-border/50 p-8 relative z-10"
+        className="w-full max-w-md bg-background rounded-2xl shadow-xl border border-border/50 p-6 relative z-10"
       >
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center justify-center gap-2 -mb-2">
+        <div className="text-center mb-4">
+          <Link to="/" className="inline-flex items-center justify-center gap-2 -mb-16">
             <img src="/logo-devban.webp" alt="DevBan" className="h-39 w-auto object-contain" />
           </Link>
           <h2 className="text-2xl font-bold text-foreground">Crie sua conta</h2>
-          <p className="text-muted-foreground mt-2 text-sm">Junte-se a milhares de equipes produtivas</p>
+          <p className="text-muted-foreground mt-1 text-sm">Junte-se a milhares de equipes produtivas</p>
         </div>
 
-        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-          <div className="space-y-2">
+        <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
+          <div className="space-y-1">
             <label className="text-sm font-medium text-foreground">Nome completo</label>
             <input 
               type="text" 
               placeholder="João da Silva" 
               {...register('name')}
-              className="w-full h-11 px-4 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              className="w-full h-10 px-4 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
             />
             {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             <label className="text-sm font-medium text-foreground">E-mail</label>
             <input 
               type="email" 
               placeholder="seu@email.com" 
               {...register('email')}
-              className="w-full h-11 px-4 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              className="w-full h-10 px-4 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
             />
             {errors.email && <p className="text-xs text-destructive mt-1">{errors.email.message}</p>}
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-1">
             <label className="text-sm font-medium text-foreground">Senha</label>
             <div className="relative">
               <input 
                 type={showPassword ? 'text' : 'password'} 
                 placeholder="••••••••" 
                 {...register('password')}
-                className="w-full h-11 pl-4 pr-10 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                className="w-full h-10 pl-4 pr-10 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
               />
               <button
                 type="button"

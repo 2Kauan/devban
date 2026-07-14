@@ -104,7 +104,7 @@ export default function Login() {
         className="w-full max-w-md bg-background rounded-2xl shadow-xl border border-border/50 p-8 relative z-10"
       >
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center justify-center gap-2 -mb-2">
+          <Link to="/" className="inline-flex items-center justify-center gap-2 -mb-16">
             <img src="/logo-devban.webp" alt="DevBan" className="h-39 w-auto object-contain" />
           </Link>
           <h2 className="text-2xl font-bold text-foreground">
