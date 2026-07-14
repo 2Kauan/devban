@@ -515,7 +515,13 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                     <label className="block text-sm font-bold text-foreground mb-4 text-center">Quantas vagas deseja comprar?</label>
                     <div className="flex items-center justify-center gap-6">
                       <button type="button" onClick={() => setBulkQuantity(Math.max(1, bulkQuantity - 1))} className="w-12 h-12 rounded-full border-2 border-border flex items-center justify-center hover:bg-muted/50 transition-colors text-xl font-bold active:scale-95">-</button>
-                      <span className="text-4xl font-black min-w-[3rem] text-center">{bulkQuantity}</span>
+                      <input 
+                        type="number" 
+                        min="1" 
+                        value={bulkQuantity} 
+                        onChange={(e) => setBulkQuantity(Math.max(1, parseInt(e.target.value) || 1))} 
+                        className="text-4xl font-black min-w-[3rem] max-w-[5rem] text-center bg-transparent border-none focus:outline-none p-0 m-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
                       <button type="button" onClick={() => setBulkQuantity(bulkQuantity + 1)} className="w-12 h-12 rounded-full border-2 border-border flex items-center justify-center hover:bg-muted/50 transition-colors text-xl font-bold active:scale-95">+</button>
                     </div>
                   </div>
