@@ -631,7 +631,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                       </>
                     ) : (
                       <div className="text-left space-y-4">
-                        <p className="text-sm text-muted-foreground mb-4 text-center">Insira os dados do seu cartão para concluir a compra de R$ 5,00.</p>
+                        <p className="text-sm text-muted-foreground mb-4 text-center">Insira os dados do seu cartão para concluir a compra de R$ {(activeTab === 'buy' ? ((typeof bulkQuantity === 'number' ? bulkQuantity : 0) * 7) : 7).toFixed(2).replace('.', ',')}.</p>
                         
                         <div>
                           <label className="block text-xs font-bold text-foreground mb-1.5">Número do Cartão</label>
@@ -682,7 +682,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                       disabled={isLoading}
                       className="w-full px-6 py-3.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/20 transition-all font-bold flex items-center justify-center text-sm active:scale-95 select-none"
                     >
-                      {isLoading ? <Loader2 size={18} className="animate-spin" /> : (paymentMethod === 'credit_card' ? 'Processar Pagamento de R$ 5,00' : 'Já paguei, confirmar!')}
+                      {isLoading ? <Loader2 size={18} className="animate-spin" /> : (paymentMethod === 'credit_card' ? `Processar Pagamento de R$ ${(activeTab === 'buy' ? ((typeof bulkQuantity === 'number' ? bulkQuantity : 0) * 7) : 7).toFixed(2).replace('.', ',')}` : 'Já paguei, confirmar!')}
                     </button>
 
                     <button
