@@ -10,8 +10,8 @@ const features = [
   },
   {
     icon: <Zap className="h-6 w-6 text-primary" />,
-    title: 'Tempo Real',
-    description: 'Colaboração instantânea, sem telas de carregamento.',
+    title: 'Automação com IA',
+    description: 'Leia imagens, importe PDFs e gere quadros kanban inteiros magicamente com Inteligência Artificial.',
     colSpan: 'md:col-span-1',
   },
   {
@@ -23,7 +23,7 @@ const features = [
   {
     icon: <MessageSquare className="h-6 w-6 text-primary" />,
     title: 'Equipe e Comentários',
-    description: 'Comunique-se no contexto da tarefa.',
+    description: 'Colaboração instantânea e comunicação no contexto da tarefa.',
     colSpan: 'md:col-span-1',
   },
   {
@@ -34,8 +34,8 @@ const features = [
   },
   {
     icon: <CreditCard className="h-6 w-6 text-primary" />,
-    title: 'Pagamento Integrado',
-    description: 'Compre projetos adicionais rapidamente via PIX ou Cartão.',
+    title: 'Pagamento Sob Demanda',
+    description: 'Compre pacotes de projetos e desbloqueie a IA rapidamente via PIX, sem assinatura.',
     colSpan: 'md:col-span-1',
   },
   {

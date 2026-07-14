@@ -35,6 +35,19 @@ export function Hero() {
 
       <div className="container mx-auto px-4 relative z-10 flex flex-col items-center text-center">
 
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mb-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary font-medium text-sm"
+        >
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+          </span>
+          Novo: Inteligência Artificial Integrada ✨
+        </motion.div>
+
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -50,7 +63,7 @@ export function Hero() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-10"
         >
-          O DevBan organiza seus projetos com um Kanban poderoso e intuitivo. A plataforma definitiva com uma interface premium e minimalista.
+          O DevBan é um Kanban poderoso impulsionado por <b>Inteligência Artificial</b>. Transforme textos e imagens em tarefas automaticamente em uma plataforma premium e minimalista.
         </motion.p>
 
         <motion.div

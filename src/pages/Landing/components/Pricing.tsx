@@ -53,13 +53,13 @@ export function Pricing() {
                 <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
                   <Check className="w-3 h-3 text-primary" />
                 </div>
-                <span className="text-muted-foreground">Membros de Equipe Ilimitados</span>
+                <span className="text-muted-foreground">Membros e Tarefas Ilimitados</span>
               </li>
               <li className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                  <Check className="w-3 h-3 text-primary" />
+                <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center shrink-0">
+                  <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
                 </div>
-                <span className="text-muted-foreground">Cards e Tarefas Ilimitados</span>
+                <span className="text-muted-foreground/60 line-through">IA e Ferramentas Premium</span>
               </li>
             </ul>
 
@@ -87,10 +87,10 @@ export function Pricing() {
               <h3 className="text-2xl font-bold mb-2">Plano Expansão</h3>
               <div className="flex items-baseline gap-1 mb-4">
                 <span className="text-lg text-muted-foreground font-bold">R$</span>
-                <span className="text-4xl font-extrabold text-foreground">5,00</span>
+                <span className="text-4xl font-extrabold text-foreground">7,00</span>
                 <span className="text-muted-foreground font-medium">/ projeto extra</span>
               </div>
-              <p className="text-muted-foreground">Cresceu? Compre projetos adicionais pontualmente, sem assinatura.</p>
+              <p className="text-muted-foreground">Cresceu? Compre pacotes de projetos adicionais ou desbloqueie a IA pontualmente.</p>
             </div>
 
             <ul className="space-y-4 mb-8 flex-1">
@@ -98,19 +98,19 @@ export function Pricing() {
                 <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
                   <Check className="w-3 h-3 text-primary" />
                 </div>
-                <span className="text-foreground font-medium">Tudo do Plano Inicial</span>
+                <span className="text-foreground font-medium">Projetos em Lote Sob Demanda</span>
               </li>
               <li className="flex items-center gap-3">
                 <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
                   <Check className="w-3 h-3 text-primary" />
                 </div>
-                <span className="text-foreground">Projetos Extras Sob Demanda</span>
+                <span className="text-foreground">Desbloqueio de IA por Projeto</span>
               </li>
               <li className="flex items-center gap-3">
                 <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
                   <Check className="w-3 h-3 text-primary" />
                 </div>
-                <span className="text-foreground">Pagamento Único (PIX ou Cartão)</span>
+                <span className="text-foreground">Pagamento Único (PIX Automático)</span>
               </li>
             </ul>
 
