@@ -169,11 +169,18 @@ export default function Projects({ favoritesOnly = false }: ProjectsProps) {
         .eq('status', 'confirmed')
         .is('project_id', null);
         
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('consumed_premium_slots')
+        .eq('id', user?.id)
+        .single();
+
+      const consumedSlots = profile?.consumed_premium_slots || 0;
       const totalPurchasedValue = payments?.reduce((acc, curr) => acc + (curr.value || 0), 0) || 0;
       const totalPurchasedSlots = Math.floor(totalPurchasedValue / 7.00);
       const premiumCount = (data || []).filter(p => !p.is_free).length;
       
-      setStock(Math.max(0, totalPurchasedSlots - premiumCount));
+      setStock(Math.max(0, totalPurchasedSlots - premiumCount - consumedSlots));
     } catch (error: any) {
       toast.error('Erro ao buscar projetos: ' + error.message);
     } finally {
