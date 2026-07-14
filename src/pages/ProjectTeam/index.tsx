@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserProfileModal } from '@/components/ui/UserProfileModal';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import type { KanbanCardType } from '@/types/kanban';
 
 interface Member {
@@ -37,6 +38,12 @@ export default function ProjectTeam() {
   
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [projectCards, setProjectCards] = useState<KanbanCardType[]>([]);
+  const [confirmConfig, setConfirmConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {}
+  });
 
   useEffect(() => {
     if (project?.id) {
@@ -111,27 +118,34 @@ export default function ProjectTeam() {
     }
   };
 
-  const handleRemoveMember = async (userId: string) => {
+  const handleRemoveMember = (userId: string) => {
     if (userId === project.owner_id) {
       toast.error('Não é possível remover o dono do projeto.');
       return;
     }
     
-    if (!confirm('Deseja realmente remover este membro do projeto?')) return;
+    setConfirmConfig({
+      isOpen: true,
+      title: 'Remover Membro',
+      message: 'Deseja realmente remover este membro do projeto? Ele perderá acesso imediato a todas as funcionalidades do Kanban.',
+      onConfirm: async () => {
+        try {
+          const { error } = await supabase
+            .from('project_members')
+            .delete()
+            .eq('project_id', project.id)
+            .eq('user_id', userId);
 
-    try {
-      const { error } = await supabase
-        .from('project_members')
-        .delete()
-        .eq('project_id', project.id)
-        .eq('user_id', userId);
-
-      if (error) throw error;
-      toast.success('Membro removido com sucesso!');
-      fetchMembers();
-    } catch (error: any) {
-      toast.error('Erro ao remover membro: ' + error.message);
-    }
+          if (error) throw error;
+          toast.success('Membro removido com sucesso!');
+          fetchMembers();
+        } catch (error: any) {
+          toast.error('Erro ao remover membro: ' + error.message);
+        } finally {
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+        }
+      }
+    });
   };
 
   const handleChangePermission = (memberId: string, newPerm: string) => {
@@ -355,6 +369,14 @@ export default function ProjectTeam() {
         userId={selectedProfileId || ''}
         projectId={project.id}
         cards={projectCards}
+      />
+
+      <ConfirmModal
+        isOpen={confirmConfig.isOpen}
+        onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmConfig.onConfirm}
+        title={confirmConfig.title}
+        message={confirmConfig.message}
       />
     </div>
   );
