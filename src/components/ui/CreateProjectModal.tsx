@@ -250,7 +250,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
 
     setIsLoading(true);
     try {
-      const totalValue = bulkQuantity * 7.00;
+      const totalValue = (typeof bulkQuantity === 'number' ? bulkQuantity : 1) * 7.00;
       
       const { data: paymentRecord, error: paymentError } = await supabase
         .from('payments')
@@ -267,7 +267,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
 
       let asaasData = null;
       const { data: funcData, error: funcError } = await supabase.functions.invoke('create-asaas-payment', {
-        body: { paymentId: paymentRecord.id, method: paymentMethod, projectName: `Pacote de ${bulkQuantity} Vagas`, cpfCnpj: bulkCpf }
+        body: { paymentId: paymentRecord.id, method: paymentMethod, projectName: `Pacote de ${typeof bulkQuantity === 'number' ? bulkQuantity : 1} Vagas`, cpfCnpj: bulkCpf }
       });
 
       if (funcError || funcData?.error) {
@@ -290,7 +290,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
       });
       setShowPayment(true);
       
-      localStorage.setItem(`pending_bulk_${paymentRecord.id}`, JSON.stringify({ quantity: bulkQuantity }));
+      localStorage.setItem(`pending_bulk_${paymentRecord.id}`, JSON.stringify({ quantity: typeof bulkQuantity === 'number' ? bulkQuantity : 1 }));
     } catch (error: any) {
       toast.error('Erro ao processar cobrança: ' + error.message);
     } finally {
