@@ -540,6 +540,70 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                     </div>
                   )}
 
+                  {requiresPayment && paymentMethod === 'credit_card' && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="text-left space-y-4 pt-2"
+                    >
+                      <div>
+                        <label className="block text-xs font-bold text-foreground mb-1.5">Número do Cartão</label>
+                        <input 
+                          type="text" 
+                          placeholder="0000 0000 0000 0000" 
+                          maxLength={19} 
+                          value={cardNumber}
+                          onChange={(e) => {
+                            let val = e.target.value.replace(/\D/g, '');
+                            val = val.replace(/(.{4})/g, '$1 ').trim();
+                            setCardNumber(val);
+                          }}
+                          className="w-full text-sm font-mono bg-background border border-border/60 hover:border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all" 
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-xs font-bold text-foreground mb-1.5">Nome impresso no cartão</label>
+                        <input 
+                          type="text" 
+                          placeholder="JOÃO DA SILVA" 
+                          value={cardName}
+                          onChange={(e) => setCardName(e.target.value.toUpperCase())}
+                          className="w-full text-sm uppercase bg-background border border-border/60 hover:border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all" 
+                        />
+                      </div>
+
+                      <div className="flex gap-4">
+                        <div className="flex-1">
+                          <label className="block text-xs font-bold text-foreground mb-1.5">Validade (MM/AA)</label>
+                          <input 
+                            type="text" 
+                            placeholder="12/29" 
+                            maxLength={5} 
+                            value={cardExpiry}
+                            onChange={(e) => {
+                              let val = e.target.value.replace(/\D/g, '');
+                              if (val.length > 2) val = `${val.slice(0, 2)}/${val.slice(2, 4)}`;
+                              setCardExpiry(val);
+                            }}
+                            className="w-full text-sm font-mono bg-background border border-border/60 hover:border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all" 
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="block text-xs font-bold text-foreground mb-1.5">CVV</label>
+                          <input 
+                            type="text" 
+                            placeholder="123" 
+                            maxLength={4} 
+                            value={cardCvv}
+                            onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, ''))}
+                            className="w-full text-sm font-mono bg-background border border-border/60 hover:border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all" 
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
                   <div className="pt-2 flex justify-end gap-3">
                     <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl text-muted-foreground hover:bg-muted transition-colors font-bold text-sm">
                       Cancelar
@@ -626,6 +690,70 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                     </div>
                   </div>
 
+                  {paymentMethod === 'credit_card' && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="text-left space-y-4 pt-2"
+                    >
+                      <div>
+                        <label className="block text-xs font-bold text-foreground mb-1.5">Número do Cartão</label>
+                        <input 
+                          type="text" 
+                          placeholder="0000 0000 0000 0000" 
+                          maxLength={19} 
+                          value={cardNumber}
+                          onChange={(e) => {
+                            let val = e.target.value.replace(/\D/g, '');
+                            val = val.replace(/(.{4})/g, '$1 ').trim();
+                            setCardNumber(val);
+                          }}
+                          className="w-full text-sm font-mono bg-background border border-border/60 hover:border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all" 
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-xs font-bold text-foreground mb-1.5">Nome impresso no cartão</label>
+                        <input 
+                          type="text" 
+                          placeholder="JOÃO DA SILVA" 
+                          value={cardName}
+                          onChange={(e) => setCardName(e.target.value.toUpperCase())}
+                          className="w-full text-sm uppercase bg-background border border-border/60 hover:border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all" 
+                        />
+                      </div>
+
+                      <div className="flex gap-4">
+                        <div className="flex-1">
+                          <label className="block text-xs font-bold text-foreground mb-1.5">Validade (MM/AA)</label>
+                          <input 
+                            type="text" 
+                            placeholder="12/29" 
+                            maxLength={5} 
+                            value={cardExpiry}
+                            onChange={(e) => {
+                              let val = e.target.value.replace(/\D/g, '');
+                              if (val.length > 2) val = `${val.slice(0, 2)}/${val.slice(2, 4)}`;
+                              setCardExpiry(val);
+                            }}
+                            className="w-full text-sm font-mono bg-background border border-border/60 hover:border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all" 
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="block text-xs font-bold text-foreground mb-1.5">CVV</label>
+                          <input 
+                            type="text" 
+                            placeholder="123" 
+                            maxLength={4} 
+                            value={cardCvv}
+                            onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, ''))}
+                            className="w-full text-sm font-mono bg-background border border-border/60 hover:border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all" 
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
                   <div className="pt-2 flex justify-end gap-3 border-t border-border/50 pt-4 mt-6">
                     <button type="button" onClick={onClose} className="px-5 py-3 rounded-xl text-muted-foreground hover:bg-muted transition-colors font-bold text-sm">
                       Cancelar
@@ -652,7 +780,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                 >
                   <div className="p-6 bg-muted/30 rounded-2xl border border-border/50">
                     <h3 className="font-bold text-foreground mb-2">Instruções de Pagamento</h3>
-                    {paymentMethod === 'pix' ? (
+                    {paymentMethod === 'pix' && (
                       <>
                         <p className="text-sm text-muted-foreground mb-6">Escaneie o QR Code ou copie o código PIX para liberar seu acesso.</p>
                         
@@ -685,66 +813,6 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                           </div>
                         </div>
                       </>
-                    ) : (
-                      <div className="text-left space-y-4">
-                        <p className="text-sm text-muted-foreground mb-4 text-center">Insira os dados do seu cartão para concluir a compra de R$ {(activeTab === 'buy' ? ((typeof bulkQuantity === 'number' ? bulkQuantity : 0) * 7) : 7).toFixed(2).replace('.', ',')}.</p>
-                        
-                        <div>
-                          <label className="block text-xs font-bold text-foreground mb-1.5">Número do Cartão</label>
-                          <input 
-                            type="text" 
-                            placeholder="0000 0000 0000 0000" 
-                            maxLength={19} 
-                            value={cardNumber}
-                            onChange={(e) => {
-                              let val = e.target.value.replace(/\D/g, '');
-                              val = val.replace(/(.{4})/g, '$1 ').trim();
-                              setCardNumber(val);
-                            }}
-                            className="w-full text-sm font-mono bg-background border border-border/60 hover:border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all" 
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-xs font-bold text-foreground mb-1.5">Nome impresso no cartão</label>
-                          <input 
-                            type="text" 
-                            placeholder="JOÃO DA SILVA" 
-                            value={cardName}
-                            onChange={(e) => setCardName(e.target.value.toUpperCase())}
-                            className="w-full text-sm uppercase bg-background border border-border/60 hover:border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all" 
-                          />
-                        </div>
-
-                        <div className="flex gap-4">
-                          <div className="flex-1">
-                            <label className="block text-xs font-bold text-foreground mb-1.5">Validade</label>
-                            <input 
-                              type="text" 
-                              placeholder="MM/AA" 
-                              maxLength={5} 
-                              value={cardExpiry}
-                              onChange={(e) => {
-                                let val = e.target.value.replace(/\D/g, '');
-                                if (val.length > 2) val = `${val.slice(0, 2)}/${val.slice(2, 4)}`;
-                                setCardExpiry(val);
-                              }}
-                              className="w-full text-sm font-mono bg-background border border-border/60 hover:border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all" 
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <label className="block text-xs font-bold text-foreground mb-1.5">CVV</label>
-                            <input 
-                              type="text" 
-                              placeholder="123" 
-                              maxLength={4} 
-                              value={cardCvv}
-                              onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, ''))}
-                              className="w-full text-sm font-mono bg-background border border-border/60 hover:border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all" 
-                            />
-                          </div>
-                        </div>
-                      </div>
                     )}
                   </div>
 
