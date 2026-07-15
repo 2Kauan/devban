@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Loader2, BarChart2, LayoutDashboard, CheckSquare, Camera } from 'lucide-react';
+import { X, Loader2, BarChart2, LayoutDashboard, CheckSquare, Camera, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -34,7 +34,7 @@ export function UserProfileModal({ isOpen, onClose, userId, projectId, cards = [
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { updateProfile, user } = useAuth();
+  const { updateProfile, user, signOut } = useAuth();
   
   // Is this the logged-in user?
   const isMe = user?.id === userId;
@@ -344,6 +344,22 @@ export function UserProfileModal({ isOpen, onClose, userId, projectId, cards = [
                       })}
                     </div>
                   </div>
+
+                  {/* Log Out Button */}
+                  {isMe && (
+                    <div className="mt-6 border-t border-border/50 pt-4 flex justify-center">
+                      <button
+                        onClick={async () => {
+                          await signOut();
+                          onClose();
+                        }}
+                        className="text-sm font-semibold text-red-500 hover:text-red-600 hover:bg-red-500/10 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 w-full"
+                      >
+                        <LogOut size={16} />
+                        Mudar de Conta / Sair
+                      </button>
+                    </div>
+                  )}
                 </>
               )}
             </div>
