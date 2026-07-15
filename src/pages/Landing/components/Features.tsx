@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { LayoutList, Zap, Shield, CheckSquare, Smartphone, Moon, CreditCard, MessageSquare } from 'lucide-react';
+import { LayoutList, Zap, Shield, CheckSquare, Smartphone, CreditCard, MessageSquare } from 'lucide-react';
 
 const features = [
   {
@@ -44,12 +44,7 @@ const features = [
     description: 'Acesse em qualquer dispositivo. Em breve, APK Android.',
     colSpan: 'md:col-span-1',
   },
-  {
-    icon: <Moon className="h-6 w-6 text-primary" />,
-    title: 'Modo Escuro Nativo',
-    description: 'Foco no trabalho com uma interface premium e amigável aos olhos.',
-    colSpan: 'md:col-span-1',
-  },
+
 ];
 
 export function Features() {
