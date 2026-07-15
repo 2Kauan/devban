@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2, BarChart2, LayoutDashboard, CheckSquare } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -133,22 +134,23 @@ export function UserProfileModal({ isOpen, onClose, userId, projectId, cards = [
   // Find max value for chart scaling
   const maxActivity = data ? Math.max(...data.activityData.map(d => d.count), 1) : 1;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
+          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[80]"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]"
             onClick={onClose}
           />
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-md bg-card rounded-2xl shadow-2xl z-[90] overflow-hidden border border-border"
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-md bg-card rounded-2xl shadow-2xl z-[110] overflow-hidden border border-border"
           >
             {/* Header / Banner */}
             <div className="h-24 bg-gradient-to-r from-primary/80 to-primary w-full relative">
@@ -238,6 +240,7 @@ export function UserProfileModal({ isOpen, onClose, userId, projectId, cards = [
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
