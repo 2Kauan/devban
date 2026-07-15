@@ -162,6 +162,44 @@ export default function TeamPage() {
               <div className="flex items-center justify-center h-full">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
+            ) : (
+              <div className="max-w-3xl mx-auto">
+                {logs.length === 0 ? (
+                  <div className="text-center py-12">
+                    <History className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+                    <h3 className="text-lg font-bold">Nenhuma atividade recente</h3>
+                    <p className="text-muted-foreground">Crie ou mova cartões para começar a registrar atividades.</p>
+                  </div>
+                ) : (
+                  <div className="relative border-l-2 border-border/60 ml-4 space-y-8 pb-8">
+                    {logs.map((log, idx) => (
+                      <motion.div 
+                        key={log.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="relative pl-6"
+                      >
+                        <div className="absolute -left-[17px] top-1 bg-background p-1 rounded-full border-2 border-border/60">
+                          {log.profiles?.avatar_url ? (
+                            <img src={log.profiles.avatar_url} alt="" className="w-6 h-6 rounded-full" />
+                          ) : (
+                            <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold">
+                              {log.profiles?.name?.charAt(0) || 'U'}
+                            </div>
+                          )}
+                        </div>
+                        <div className="bg-card border border-border/60 rounded-xl p-4 shadow-sm hover:border-border transition-colors">
+                          <p className="text-sm text-muted-foreground">
+                            {renderActionText(log)}
+                          </p>
+                          <p className="text-xs text-muted-foreground/70 mt-2 font-medium">
+                            {formatDistanceToNow(new Date(log.created_at), { addSuffix: true, locale: ptBR })}
+                          </p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
                 )}
               </div>
             )}
