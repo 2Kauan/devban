@@ -352,6 +352,7 @@ export function UserProfileModal({ isOpen, onClose, userId, projectId, cards = [
                         onClick={async () => {
                           await signOut();
                           onClose();
+                          window.location.href = '/login';
                         }}
                         className="text-sm font-semibold text-red-500 hover:text-red-600 hover:bg-red-500/10 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 w-full"
                       >
