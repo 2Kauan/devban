@@ -24,6 +24,7 @@ interface UserProfileData {
   cardsCreated: number;
   cardsAssigned: number;
   activityData: { date: string; count: number }[];
+  projects: { id: string; name: string }[];
 }
 
 export function UserProfileModal({ isOpen, onClose, userId, projectId, cards = [] }: UserProfileModalProps) {
@@ -49,6 +50,21 @@ export function UserProfileModal({ isOpen, onClose, userId, projectId, cards = [
         const { data: memberRes } = await supabase.from('project_members').select('permission, job_title').eq('project_id', projectId).eq('user_id', userId).single();
         if (memberRes) member = memberRes;
       }
+
+      // Fetch user's projects globally
+      const { data: userProjectsRes } = await supabase
+        .from('project_members')
+        .select(`
+          projects (
+            id,
+            name
+          )
+        `)
+        .eq('user_id', userId);
+        
+      const userProjects = (userProjectsRes || [])
+        .map((pm: any) => pm.projects)
+        .filter((p: any) => p != null) as { id: string; name: string }[];
 
       let cardsCreated = 0;
       let cardsAssigned = 0;
@@ -110,7 +126,8 @@ export function UserProfileModal({ isOpen, onClose, userId, projectId, cards = [
         job_title: member.job_title || 'Membro da Equipe',
         cardsCreated,
         cardsAssigned,
-        activityData
+        activityData,
+        projects: userProjects
       });
 
     } catch (error) {
@@ -177,12 +194,28 @@ export function UserProfileModal({ isOpen, onClose, userId, projectId, cards = [
                       className="w-24 h-24 rounded-full border-4 border-card shadow-lg object-cover bg-muted"
                     />
                     <h2 className="text-xl font-bold text-foreground mt-3 text-center">{data.name}</h2>
-                    <p className="text-sm text-primary font-medium">{data.job_title}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border/50">
-                        {getPermissionLabel(data.permission)}
-                      </span>
-                    </div>
+                    {projectId ? (
+                      <>
+                        <p className="text-sm text-primary font-medium">{data.job_title}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border/50">
+                            {getPermissionLabel(data.permission)}
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex flex-wrap items-center justify-center gap-2 mt-3 w-full px-4">
+                        {data.projects.length > 0 ? (
+                          data.projects.map(p => (
+                            <span key={p.id} className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded bg-primary/10 text-primary border border-primary/20">
+                              {p.name}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-muted-foreground">Nenhuma equipe</span>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Stats Row */}
