@@ -29,6 +29,8 @@ export default function ProjectTeam() {
   const isOwner = project.owner_id === user?.id;
 
   const [members, setMembers] = useState<Member[]>([]);
+  const isAdmin = members.find(m => m.user_id === user?.id)?.permission === 'admin';
+  const canManage = isOwner || isAdmin;
   const [isLoading, setIsLoading] = useState(true);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   
@@ -197,7 +199,7 @@ export default function ProjectTeam() {
           Gerencie quem tem acesso a este projeto e defina suas permissões.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-          {isOwner && (
+          {canManage && (
             <button
               onClick={() => setIsShareModalOpen(true)}
               className="bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 px-5 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors shadow-sm"
@@ -207,7 +209,7 @@ export default function ProjectTeam() {
             </button>
           )}
           
-          {isOwner && hasPendingChanges && (
+          {canManage && hasPendingChanges && (
             <motion.button
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -295,7 +297,7 @@ export default function ProjectTeam() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      {isOwner && member.permission !== 'owner' ? (
+                      {canManage && member.permission !== 'owner' ? (
                         <input
                           type="text"
                           placeholder="Ex: Desenvolvedor"
@@ -312,7 +314,7 @@ export default function ProjectTeam() {
                         <div className="flex items-center gap-2 text-muted-foreground capitalize cursor-default" title="Permissão do dono não pode ser alterada">
                           <Settings size={14} /> Proprietário
                         </div>
-                      ) : !isOwner ? (
+                      ) : !canManage ? (
                         <span className="text-xs font-semibold bg-muted/50 border border-border px-3 py-1 rounded-md text-muted-foreground capitalize cursor-not-allowed">
                           {member.permission === 'editor' ? 'Editor' : member.permission}
                         </span>
@@ -338,7 +340,7 @@ export default function ProjectTeam() {
                       {new Date(member.created_at).toLocaleDateString('pt-BR')}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {member.user_id !== project.owner_id && (
+                      {canManage && member.user_id !== project.owner_id && (
                         <button
                           onClick={() => handleRemoveMember(member.user_id)}
                           className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"

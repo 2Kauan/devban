@@ -102,13 +102,15 @@ export function ProjectHeader({
           />
         </div>
         <div className="w-px h-6 bg-border mx-1"></div>
-        <button 
-          onClick={onOpenShare}
-          className="flex items-center gap-2 px-3 py-2 bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-primary-foreground font-medium rounded-lg transition-colors text-sm whitespace-nowrap"
-        >
-          <Share2 size={16} />
-          <span className="hidden sm:inline">Compartilhar</span>
-        </button>
+        {(userPermission === 'owner' || userPermission === 'admin') && (
+          <button 
+            onClick={onOpenShare}
+            className="flex items-center gap-2 px-3 py-2 bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-primary-foreground font-medium rounded-lg transition-colors text-sm whitespace-nowrap"
+          >
+            <Share2 size={16} />
+            <span className="hidden sm:inline">Compartilhar</span>
+          </button>
+        )}
 
         {userPermission === 'owner' && (
           <button 
