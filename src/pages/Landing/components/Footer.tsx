@@ -7,8 +7,8 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           {/* Logo & Info */}
           <div className="md:col-span-1 flex flex-col gap-4">
-            <Link to="/" className="block w-fit">
-              <img src="/logo-devban.webp" alt="DevBan" className="h-20 w-auto object-contain object-left -ml-4" />
+            <Link to="/" className="block w-fit -ml-6 sm:-ml-8">
+              <img src="/logo-devban.webp" alt="DevBan" className="h-20 w-auto object-contain object-left" />
             </Link>
             <p className="text-sm text-muted-foreground mt-2">
               O quadro Kanban premium focado na velocidade e clareza do seu fluxo de trabalho.
