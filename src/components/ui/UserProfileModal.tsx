@@ -49,9 +49,21 @@ export function UserProfileModal({ isOpen, onClose, userId, projectId, cards = [
         if (memberRes) member = memberRes;
       }
 
-      // Calculate local stats from cards
-      const cardsCreated = cards.filter(c => c.created_by === userId).length;
-      const cardsAssigned = cards.filter(c => c.assignees?.some(a => a.id === userId)).length;
+      let cardsCreated = 0;
+      let cardsAssigned = 0;
+
+      if (projectId) {
+        cardsCreated = (cards || []).filter(c => c.created_by === userId).length;
+        cardsAssigned = (cards || []).filter(c => c.assignees?.some(a => a.id === userId)).length;
+      } else {
+        // Busca os totais globais no banco
+        const [{ count: cCount }, { count: aCount }] = await Promise.all([
+          supabase.from('cards').select('*', { count: 'exact', head: true }).eq('created_by', userId),
+          supabase.from('card_assignees').select('*', { count: 'exact', head: true }).eq('user_id', userId)
+        ]);
+        cardsCreated = cCount || 0;
+        cardsAssigned = aCount || 0;
+      }
 
       // Process logs into daily counts
       const dailyCounts: Record<string, number> = {};
@@ -60,25 +72,28 @@ export function UserProfileModal({ isOpen, onClose, userId, projectId, cards = [
         dailyCounts[dateStr] = 0;
       }
 
+      const sevenDaysAgo = subDays(new Date(), 6);
+      sevenDaysAgo.setHours(0, 0, 0, 0);
+
+      let query = supabase
+        .from('card_activity_logs')
+        .select('created_at')
+        .eq('user_id', userId)
+        .gte('created_at', sevenDaysAgo.toISOString());
+
       if (projectId) {
-        const sevenDaysAgo = subDays(new Date(), 6);
-        sevenDaysAgo.setHours(0, 0, 0, 0);
+        query = query.eq('project_id', projectId);
+      }
 
-        const { data: logs } = await supabase
-          .from('card_activity_logs')
-          .select('created_at')
-          .eq('project_id', projectId)
-          .eq('user_id', userId)
-          .gte('created_at', sevenDaysAgo.toISOString());
+      const { data: logs } = await query;
 
-        if (logs) {
-          logs.forEach(log => {
-            const dateStr = format(parseISO(log.created_at), 'yyyy-MM-dd');
-            if (dailyCounts[dateStr] !== undefined) {
-              dailyCounts[dateStr]++;
-            }
-          });
-        }
+      if (logs) {
+        logs.forEach(log => {
+          const dateStr = format(parseISO(log.created_at), 'yyyy-MM-dd');
+          if (dailyCounts[dateStr] !== undefined) {
+            dailyCounts[dateStr]++;
+          }
+        });
       }
 
       const activityData = Object.keys(dailyCounts).map(date => ({
