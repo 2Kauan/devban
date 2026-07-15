@@ -22,7 +22,7 @@ export function Navbar() {
           : 'bg-transparent border-transparent'
       }`}
     >
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+      <div className="container mx-auto px-4 h-16 flex items-center justify-center md:justify-between relative">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 group">
           <img src="/logo-devban.webp" alt="DevBan" className="h-24 w-auto object-contain group-hover:scale-105 transition-transform" />
@@ -48,15 +48,9 @@ export function Navbar() {
         </nav>
 
         {/* CTA */}
-        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-          <Link to="/login" className="hidden sm:block text-sm font-medium hover:text-primary transition-colors">
+        <div className="hidden md:flex items-center gap-2 sm:gap-4 shrink-0">
+          <Link to="/login" className="text-sm font-medium bg-primary text-primary-foreground px-3 py-2 sm:px-4 sm:py-2 rounded-md hover:bg-primary/90 transition-colors shadow-sm whitespace-nowrap">
             Entrar
-          </Link>
-          <Link 
-            to="/register" 
-            className="text-sm font-medium bg-primary text-primary-foreground px-3 py-2 sm:px-4 sm:py-2 rounded-md hover:bg-primary/90 transition-colors shadow-sm whitespace-nowrap"
-          >
-            Começar Grátis
           </Link>
         </div>
       </div>
