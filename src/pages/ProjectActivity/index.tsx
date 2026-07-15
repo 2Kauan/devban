@@ -65,13 +65,17 @@ export default function ProjectActivity() {
   };
 
   const getActionText = (log: ActivityLog) => {
-    const cardTitle = log.cards?.title || 'tarefa desconhecida';
+    // Se o cartão foi excluído e está nulo, pegamos o nome salvo em old_value
+    const oldTitle = (log.old_value as any)?.title;
+    const cardTitle = log.cards?.title || oldTitle || 'tarefa desconhecida';
+    
     switch (log.action) {
       case 'created': return `criou a tarefa "${cardTitle}"`;
       case 'updated_status': return `moveu a tarefa "${cardTitle}" para "${log.new_value}"`;
       case 'updated_description': return `atualizou a descrição da tarefa "${cardTitle}"`;
       case 'added_comment': return `comentou na tarefa "${cardTitle}"`;
       case 'added_attachment': return `anexou um arquivo em "${cardTitle}"`;
+      case 'deleted': return `excluiu a tarefa "${cardTitle}"`;
       default: return `atualizou a tarefa "${cardTitle}"`;
     }
   };

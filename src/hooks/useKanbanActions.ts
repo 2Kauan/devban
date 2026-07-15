@@ -159,6 +159,19 @@ export function useKanbanActions({
   const handleBulkDelete = useEvent(async (cardIds: string[]) => {
     if (!projectId || cardIds.length === 0) return;
     try {
+      // Create activity logs for deletions before the actual deletion
+      const cardsToDelete = cards.filter(c => cardIds.includes(c.id));
+      if (cardsToDelete.length > 0 && user) {
+        const logs = cardsToDelete.map(c => ({
+          project_id: projectId,
+          card_id: c.id,
+          user_id: user.id,
+          action: 'deleted',
+          old_value: { title: c.title }
+        }));
+        await supabase.from('card_activity_logs').insert(logs);
+      }
+
       const { error } = await supabase.from('cards').delete().in('id', cardIds);
       if (error) throw error;
       toast.success(`${cardIds.length} cartões excluídos com sucesso`);
