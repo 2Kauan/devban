@@ -26,7 +26,7 @@ export function Hero() {
   }, [mouseX, mouseY]);
 
   return (
-    <section className="relative pt-48 pb-20 md:pt-56 md:pb-32 overflow-hidden">
+    <section className="relative pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden">
       {/* Background Glow following mouse */}
       <motion.div 
         style={{ x: springX, y: springY }}
@@ -41,7 +41,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="mt-32 md:mt-40 text-5xl md:text-7xl font-extrabold tracking-tight text-foreground max-w-4xl leading-[1.1] mb-6"
+          className="mt-8 md:mt-12 text-5xl md:text-7xl font-extrabold tracking-tight text-foreground max-w-4xl leading-[1.1] mb-6"
         >
           Organize ideias. Entregue resultados.
         </motion.h1>
