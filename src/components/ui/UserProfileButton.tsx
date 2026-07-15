@@ -1,7 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, LogOut } from 'lucide-react';
+import { useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserProfileModal } from '@/components/ui/UserProfileModal';
 

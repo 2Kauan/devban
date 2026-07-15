@@ -1,5 +1,5 @@
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { Capacitor } from '@capacitor/core';
+
 import { subHours, isPast } from 'date-fns';
 
 export class NotificationService {

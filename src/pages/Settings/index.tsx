@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopHeader } from '@/components/layout/TopHeader';
 import { useAuth } from '@/contexts/AuthContext';
-import { Save, User, Mail, Loader2, Camera, Moon, Sun, Monitor } from 'lucide-react';
+import { Save, User, Mail, Loader2, Camera } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { ImageCropModal } from '@/components/ui/ImageCropModal';
@@ -25,23 +25,6 @@ export default function Settings() {
     }
   }, [profile]);
 
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-    }
-    return 'light';
-  });
-
-  const handleThemeChange = (newTheme: 'light' | 'dark') => {
-    setTheme(newTheme);
-    if (newTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-      localStorage.theme = 'dark';
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.theme = 'light';
-    }
-  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();

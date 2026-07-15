@@ -11,7 +11,6 @@ import { CardComments } from '@/components/kanban/CardComments';
 
 import { TagSelector } from '@/components/ui/TagSelector';
 import type { Category, Profile } from '@/types/database';
-import { RichTextEditor } from './RichTextEditor';
 import { NotificationService } from '@/services/notifications/notificationService';
 import type { ProjectMember } from '@/hooks/useProjectQuery';
 
