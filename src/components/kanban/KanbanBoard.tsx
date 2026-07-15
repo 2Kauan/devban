@@ -376,7 +376,7 @@ export function KanbanBoard({
             animate={{ y: 0, scale: 1, borderRadius: 9999, opacity: 1 }}
             exit={{ y: 100, scale: 0.3, borderRadius: 100, opacity: 0 }}
             transition={{ type: 'spring', damping: 15, stiffness: 300 }}
-            className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-card/90 backdrop-blur-md border border-border shadow-2xl px-6 py-3 flex items-center gap-4 z-50 overflow-hidden whitespace-nowrap"
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-card/90 backdrop-blur-md border border-border shadow-2xl px-6 py-3 flex items-center gap-4 z-[100] overflow-hidden whitespace-nowrap"
           >
             <div className="flex items-center gap-2 border-r border-border/60 pr-4">
               <div className="bg-primary text-primary-foreground text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">

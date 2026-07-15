@@ -112,17 +112,17 @@ export default function TeamPage() {
       case 'created_card':
         return (
           <span className="leading-tight">
-            <strong className="text-foreground">{userName}</strong> criou <strong className="text-foreground">"{cardTitle}"</strong> em <span className="text-primary truncate max-w-[100px] inline-flex align-bottom">{projectName}</span>
+            <strong className="text-foreground">{userName}</strong> criou o card <strong className="text-foreground">"{cardTitle}"</strong> no projeto <span className="text-primary truncate max-w-[100px] inline-flex align-bottom">{projectName}</span>
           </span>
         );
       case 'moved_card':
         return (
           <span className="leading-tight">
-            <strong className="text-foreground">{userName}</strong> moveu <strong className="text-foreground truncate max-w-[120px] inline-flex align-bottom">"{cardTitle}"</strong> para <span className="text-foreground font-medium">{log.new_value?.column_title}</span>
+            <strong className="text-foreground">{userName}</strong> movimentou o card <strong className="text-foreground truncate max-w-[120px] inline-flex align-bottom">"{cardTitle}"</strong> para a coluna <span className="text-foreground font-medium">"{log.new_value?.column_title}"</span>
           </span>
         );
       default:
-        return <span className="leading-tight"><strong className="text-foreground">{userName}</strong> atualizou <strong className="text-foreground">"{cardTitle}"</strong></span>;
+        return <span className="leading-tight"><strong className="text-foreground">{userName}</strong> atualizou o card <strong className="text-foreground">"{cardTitle}"</strong></span>;
     }
   };
 
