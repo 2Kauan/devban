@@ -376,7 +376,19 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
           return;
         }
 
-        const pendingProject = JSON.parse(localStorage.getItem(`pending_project_${paymentData.id}`) || '{}');
+        const pendingProjectRaw = localStorage.getItem(`pending_project_${paymentData.id}`);
+        if (!pendingProjectRaw) {
+          // O projeto já foi criado por outro aviso simultâneo (ex: webhook + polling)! Ignoramos.
+          reset();
+          setShowPayment(false);
+          setPaymentData(null);
+          onSuccess();
+          onClose();
+          return;
+        }
+        
+        const pendingProject = JSON.parse(pendingProjectRaw);
+        localStorage.removeItem(`pending_project_${paymentData.id}`); // TRAVA: Apaga imediatamente para bloquear duplicatas
         
         const { data: newProject, error: projError } = await supabase.from('projects').insert({
           owner_id: user?.id,
