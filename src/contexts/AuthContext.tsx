@@ -9,6 +9,7 @@ interface AuthContextType {
   profile: Profile | null;
   isLoading: boolean;
   signOut: () => Promise<void>;
+  updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -17,6 +18,7 @@ const AuthContext = createContext<AuthContextType>({
   profile: null,
   isLoading: true,
   signOut: async () => {},
+  updateProfile: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -74,8 +76,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut();
   };
 
+  const updateProfile = async (updates: Partial<Profile>) => {
+    if (!user) return;
+    setProfile(prev => prev ? { ...prev, ...updates } : null);
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id);
+        
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      fetchProfile(user.id); // Revert on error
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ session, user, profile, isLoading, signOut }}>
+    <AuthContext.Provider value={{ session, user, profile, isLoading, signOut, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

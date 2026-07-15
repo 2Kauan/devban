@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Loader2, BarChart2, LayoutDashboard, CheckSquare } from 'lucide-react';
+import { X, Loader2, BarChart2, LayoutDashboard, CheckSquare, Camera } from 'lucide-react';
+import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import type { KanbanCardType } from '@/types/kanban';
 import { format, subDays, parseISO } from 'date-fns';
@@ -30,6 +32,12 @@ interface UserProfileData {
 export function UserProfileModal({ isOpen, onClose, userId, projectId, cards = [] }: UserProfileModalProps) {
   const [data, setData] = useState<UserProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { updateProfile, user } = useAuth();
+  
+  // Is this the logged-in user?
+  const isMe = user?.id === userId;
 
   useEffect(() => {
     if (isOpen && userId) {
@@ -137,6 +145,51 @@ export function UserProfileModal({ isOpen, onClose, userId, projectId, cards = [
     }
   };
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    
+    // Validar tipo e tamanho (max 5MB)
+    if (!file.type.startsWith('image/')) {
+      toast.error('O arquivo precisa ser uma imagem.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('A imagem precisa ter no máximo 5MB.');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // Enviar para o bucket 'avatars'
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Pegar a URL pública
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Atualizar o profile e o contexto global
+      await updateProfile({ avatar_url: publicUrl });
+      
+      // Atualizar o state local
+      setData(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
+      toast.success('Foto de perfil atualizada com sucesso!');
+    } catch (error: any) {
+      toast.error('Erro ao fazer upload da imagem: ' + error.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const getPermissionLabel = (perm: string) => {
     const labels: Record<string, string> = {
       'owner': 'Proprietário',
@@ -188,11 +241,35 @@ export function UserProfileModal({ isOpen, onClose, userId, projectId, cards = [
                 <>
                   {/* Avatar and Basic Info */}
                   <div className="flex flex-col items-center -mt-12 mb-6">
-                    <img 
-                      src={data.avatar_url} 
-                      alt={data.name} 
-                      className="w-24 h-24 rounded-full border-4 border-card shadow-lg object-cover bg-muted"
-                    />
+                    <div className="relative group">
+                      <img 
+                        src={data.avatar_url} 
+                        alt={data.name} 
+                        className="w-24 h-24 rounded-full border-4 border-card shadow-lg object-cover bg-muted"
+                      />
+                      {isMe && (
+                        <>
+                          <div 
+                            className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer overflow-hidden border-4 border-transparent"
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            {isUploading ? (
+                              <Loader2 className="animate-spin text-white w-6 h-6" />
+                            ) : (
+                              <Camera className="text-white w-6 h-6" />
+                            )}
+                          </div>
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            className="hidden" 
+                            ref={fileInputRef}
+                            onChange={handleAvatarUpload}
+                            disabled={isUploading}
+                          />
+                        </>
+                      )}
+                    </div>
                     <h2 className="text-xl font-bold text-foreground mt-3 text-center">{data.name}</h2>
                     {projectId ? (
                       <>
