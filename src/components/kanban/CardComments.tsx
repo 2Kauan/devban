@@ -47,11 +47,11 @@ export function CardComments({ cardId, canEdit }: CardCommentsProps) {
                 }
               }}
             />
-            <button
-              type="submit"
-              disabled={isAdding || !newComment.trim()}
-              className="absolute right-1.5 bottom-1.5 p-1.5 bg-primary text-primary-foreground rounded-md disabled:opacity-50 hover:bg-primary/90 transition-colors"
-            >
+              <button
+                type="submit"
+                disabled={isAdding || !newComment.trim()}
+                className="absolute right-1.5 top-2/5 -translate-y-1/2 p-1.5 bg-primary text-primary-foreground rounded-md disabled:opacity-50 hover:bg-primary/90 transition-colors"
+              >
               <Send size={14} />
             </button>
           </div>
@@ -93,7 +93,7 @@ export function CardComments({ cardId, canEdit }: CardCommentsProps) {
 
               // type === 'comment'
               return (
-                <div key={item.id} className="flex gap-4 relative items-start">
+                <div key={item.id} className="flex gap-6 relative items-start">
                   <div className="w-8 h-8 rounded-full bg-background border-2 border-border flex items-center justify-center shrink-0 z-10 overflow-hidden mt-0.5">
                     {item.user?.avatar_url ? (
                       <img src={item.user.avatar_url} alt={item.user.name || ''} className="w-full h-full object-cover" />

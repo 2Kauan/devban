@@ -25,4 +25,5 @@ export interface KanbanCardType {
   assignees?: Profile[];
   categories?: Category[];
   comments_count?: number;
+  external_link?: string | null;
 }

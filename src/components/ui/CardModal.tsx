@@ -75,12 +75,13 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
     defaultValues: {
       title: '',
       description: '',
-      priority: 'medium',
-      due_date: initialDate ? toLocalDatetimeString(initialDate) : '',
-      border_color: '',
-      column_id: initialColumnId || (columns?.length > 0 ? columns[0].id : '')
-    }
-  });
+        priority: 'medium',
+        due_date: initialDate ? toLocalDatetimeString(initialDate) : '',
+        external_link: '',
+        border_color: '',
+        column_id: initialColumnId || (columns?.length > 0 ? columns[0].id : '')
+      }
+    });
 
   const priorityValue = watch('priority');
 
@@ -92,6 +93,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
         description: card.description || '',
         priority: card.priority,
         due_date: card.due_date ? toLocalDatetimeString(card.due_date) : '',
+        external_link: card.external_link || '',
         border_color: card.border_color || '',
       });
       setLocalTags(card.categories || []);
@@ -238,6 +240,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
             description: data.description,
             priority: data.priority,
             due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
+            external_link: data.external_link || null,
             border_color: data.border_color || null,
           })
           .eq('id', card.id);
@@ -270,6 +273,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
             description: data.description,
             priority: data.priority,
             due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
+            external_link: data.external_link || null,
             border_color: data.border_color || null,
             position
           })
@@ -308,6 +312,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
             description: data.description,
             priority: data.priority,
             due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
+            external_link: data.external_link || null,
             border_color: data.border_color || null,
           }, { id: card.id });
           toast.success('Modo Offline: Edição salva.');
@@ -320,6 +325,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
             description: data.description,
             priority: data.priority,
             due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
+            external_link: data.external_link || null,
             border_color: data.border_color || null,
             position: 1000 // simplification for offline
           });
@@ -601,20 +607,6 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                 />
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <button 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const url = new URL(window.location.href);
-                    url.searchParams.set('card', card?.id || '');
-                    navigator.clipboard.writeText(url.toString());
-                    toast.success('Link do cartão copiado para a área de transferência!');
-                  }}
-                  className="text-muted-foreground hover:text-primary hover:bg-primary/10 p-1.5 rounded-full transition-colors flex-shrink-0"
-                  title="Copiar link do cartão"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                </button>
                 <button onClick={onClose} className="text-muted-foreground hover:text-foreground hover:bg-muted p-1.5 rounded-full transition-colors flex-shrink-0">
                   <X size={20} />
                 </button>
@@ -888,6 +880,35 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                         readOnly={!canEdit}
                         className={`w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all ${!canEdit ? 'pointer-events-none opacity-70' : 'cursor-pointer'}`}
                       />
+                    </div>
+                    
+                    {/* Link Externo */}
+                    <div>
+                      <label className="flex items-center gap-2 text-xs font-semibold text-foreground mb-2">
+                        <div className="p-1 rounded-full bg-primary/10">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                        </div>
+                        LINK EXTERNO
+                      </label>
+                      <div className="flex gap-2">
+                        <input 
+                          type="url"
+                          {...register('external_link')}
+                          readOnly={!canEdit}
+                          placeholder="https://..."
+                          className={`flex-1 bg-background border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all ${!canEdit ? 'pointer-events-none opacity-70' : ''}`}
+                        />
+                        {watch('external_link') && (
+                          <a 
+                            href={watch('external_link')} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="p-2.5 bg-muted rounded-lg hover:bg-border transition-colors flex-shrink-0"
+                          >
+                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                          </a>
+                        )}
+                      </div>
                     </div>
                     
                     {/* Categorias */}
