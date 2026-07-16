@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { isSameDay, parseISO } from 'date-fns';
 import type { KanbanCardType } from '@/types/kanban';
 import { getWeekDays, getEventsForDay } from '@/utils/calendar';
@@ -15,6 +15,7 @@ interface WeekViewProps {
 export function WeekView({ currentDate, cards, onEventClick, onDayClick, onEventDrop }: WeekViewProps) {
   const weekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
   const hours = Array.from({ length: 24 }, (_, i) => i);
+  const [hoveredSlot, setHoveredSlot] = useState<string | null>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -23,6 +24,7 @@ export function WeekView({ currentDate, cards, onEventClick, onDayClick, onEvent
 
   const handleDrop = (e: React.DragEvent, date: Date, hour?: number) => {
     e.preventDefault();
+    setHoveredSlot(null);
     const cardId = e.dataTransfer.getData('text/plain');
     if (cardId) {
       // Create a new date with the specific hour if dropped on a time slot
@@ -143,17 +145,30 @@ export function WeekView({ currentDate, cards, onEventClick, onDayClick, onEvent
                   onClick={() => onDayClick(day)}
                 >
                   {/* Linhas Horizontais de cada hora */}
-                  {hours.map(hour => (
-                    <div 
-                      key={hour} 
-                      className="h-[60px] border-b border-border/20 w-full"
-                      onDragOver={handleDragOver}
-                      onDrop={(e) => {
-                        e.stopPropagation();
-                        handleDrop(e, day, hour);
-                      }}
-                    />
-                  ))}
+                  {hours.map(hour => {
+                    const slotId = `${day.toISOString()}-${hour}`;
+                    const isHovered = hoveredSlot === slotId;
+                    return (
+                      <div 
+                        key={hour} 
+                        className={`
+                          h-[60px] border-b border-border/20 w-full transition-all duration-200
+                          ${isHovered ? 'bg-primary/5 border-primary/20 scale-[1.02] shadow-inner' : ''}
+                        `}
+                        onDragOver={handleDragOver}
+                        onDragEnter={() => setHoveredSlot(slotId)}
+                        onDragLeave={(e) => {
+                          if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget as Node)) {
+                            setHoveredSlot(null);
+                          }
+                        }}
+                        onDrop={(e) => {
+                          e.stopPropagation();
+                          handleDrop(e, day, hour);
+                        }}
+                      />
+                    );
+                  })}
 
                   {/* Renderizar Eventos All Day no topo (fixo) */}
                   <div className="absolute top-0 left-0 w-full px-1 z-20 flex flex-col gap-1 mt-1 pointer-events-none">

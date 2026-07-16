@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { isSameMonth, isSameDay, format } from 'date-fns';
 import type { KanbanCardType } from '@/types/kanban';
 import { getMonthDays, getEventsForDay } from '@/utils/calendar';
@@ -14,6 +14,7 @@ interface MonthViewProps {
 
 export function MonthView({ currentDate, cards, onEventClick, onDayClick, onEventDrop }: MonthViewProps) {
   const days = useMemo(() => getMonthDays(currentDate), [currentDate]);
+  const [hoveredDay, setHoveredDay] = useState<string | null>(null);
   
   const weekDaysHeader = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
@@ -24,6 +25,7 @@ export function MonthView({ currentDate, cards, onEventClick, onDayClick, onEven
 
   const handleDrop = (e: React.DragEvent, date: Date) => {
     e.preventDefault();
+    setHoveredDay(null);
     const cardId = e.dataTransfer.getData('text/plain');
     if (cardId) {
       onEventDrop(cardId, date);
@@ -51,17 +53,25 @@ export function MonthView({ currentDate, cards, onEventClick, onDayClick, onEven
           const maxVisible = 3;
           const visibleEvents = dayEvents.slice(0, maxVisible);
           const hiddenCount = dayEvents.length - maxVisible;
+          const isHovered = hoveredDay === day.toISOString();
 
           return (
             <div
               key={day.toISOString()}
               onDragOver={handleDragOver}
+              onDragEnter={() => setHoveredDay(day.toISOString())}
+              onDragLeave={(e) => {
+                if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget as Node)) {
+                  setHoveredDay(null);
+                }
+              }}
               onDrop={(e) => handleDrop(e, day)}
               onClick={() => onDayClick(day)}
               className={`
-                min-h-[80px] p-1 sm:p-2 border-r border-b border-border/40 transition-colors cursor-pointer
+                min-h-[80px] p-1 sm:p-2 border-r border-b border-border/40 transition-all duration-200 cursor-pointer
                 ${isCurrentMonth ? 'bg-background hover:bg-muted/10' : 'bg-muted/5 hover:bg-muted/20'}
                 ${i % 7 === 6 ? 'border-r-0' : ''}
+                ${isHovered ? 'scale-[1.05] border-primary z-10 shadow-lg bg-muted/20' : ''}
               `}
             >
               {/* Day Number */}
