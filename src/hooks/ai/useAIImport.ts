@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import type { AIKanbanBoard } from '@/types/ai';
 import { toast } from 'sonner';
 
 export function useAIImport() {
   const [isImporting, setIsImporting] = useState(false);
+  const queryClient = useQueryClient();
 
   const importBoard = async (projectId: string, board: AIKanbanBoard) => {
     setIsImporting(true);
@@ -148,6 +150,9 @@ export function useAIImport() {
           }
         }
       }
+
+      // Invalidate project query to force fresh fetch
+      await queryClient.invalidateQueries({ queryKey: ['project', projectId] });
 
       toast.success('Kanban importado com sucesso!');
       return true;

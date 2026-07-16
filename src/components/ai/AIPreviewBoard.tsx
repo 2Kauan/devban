@@ -63,7 +63,7 @@ export function AIPreviewBoard({ board: initialBoard, projectId, onCancel }: AIP
             disabled={isImporting}
             className="px-6 py-2 bg-primary text-primary-foreground rounded-xl font-bold shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-70 disabled:hover:scale-100"
           >
-            {isImporting ? 'Importando...' : 'Importar para o Projeto'}
+            {isImporting ? 'Implementando...' : 'Implementar'}
             {!isImporting && <ArrowRight size={18} />}
           </button>
         </div>

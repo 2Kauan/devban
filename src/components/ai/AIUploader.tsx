@@ -166,7 +166,7 @@ export function AIUploader({ onGenerate }: AIUploaderProps) {
         <button 
           onClick={handleGenerate}
           disabled={!inputText.trim() && files.length === 0}
-          className="absolute right-3 bottom-3 p-2.5 bg-primary text-primary-foreground rounded-xl shadow-md hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center"
+          className="absolute right-1/2 translate-x-1/2 bottom-3 p-2.5 bg-primary text-primary-foreground rounded-xl shadow-md hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center"
         >
           <Send size={18} />
         </button>
