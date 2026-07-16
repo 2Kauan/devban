@@ -15,6 +15,7 @@ interface UseKanbanActionsProps {
   setOptimisticColumns: (columns: KanbanColumnType[]) => void;
   setOptimisticCards: (cards: KanbanCardType[]) => void;
   refetch: () => void;
+  onCardCreated?: (card: KanbanCardType) => void;
 }
 
 export function useKanbanActions({
@@ -26,7 +27,8 @@ export function useKanbanActions({
   openConfirm,
   setOptimisticColumns,
   setOptimisticCards,
-  refetch
+  refetch,
+  onCardCreated
 }: UseKanbanActionsProps) {
 
   const handleColumnsChange = useEvent(async (newColumns: KanbanColumnType[]) => {
@@ -298,6 +300,8 @@ export function useKanbanActions({
             action: 'created_card'
           });
         }
+
+        onCardCreated?.(data);
       } catch (error: any) {
         toast.error('Erro ao criar cartão: ' + error.message);
       }

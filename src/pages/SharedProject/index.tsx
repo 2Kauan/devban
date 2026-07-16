@@ -73,7 +73,11 @@ export default function SharedProject() {
     openConfirm,
     setOptimisticColumns,
     setOptimisticCards,
-    refetch
+    refetch,
+    onCardCreated: (card) => {
+      setActiveCard(card);
+      setIsCardModalOpen(true);
+    }
   });
 
   const handleCardClick = useEvent((card: KanbanCardType) => {
