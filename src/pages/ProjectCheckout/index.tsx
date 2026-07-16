@@ -13,6 +13,7 @@ export default function ProjectCheckout() {
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'credit_card' | 'pix'>('pix');
+  const [cpfCnpj, setCpfCnpj] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [pixData, setPixData] = useState<{qrCode: string, encodedImage: string, invoiceUrl: string} | null>(null);
   const [creditCardUrl, setCreditCardUrl] = useState<string | null>(null);
@@ -106,6 +107,11 @@ export default function ProjectCheckout() {
   }, [paymentRecordId, project?.id, navigate]);
 
   const handlePayment = async () => {
+    if (!cpfCnpj) {
+      toast.error('Por favor, preencha o CPF ou CNPJ para continuar.');
+      return;
+    }
+    
     setIsProcessing(true);
 
     try {
@@ -137,7 +143,7 @@ export default function ProjectCheckout() {
           method: paymentMethod, 
           paymentId: paymentRecord.id,
           projectName: project.name,
-          cpfCnpj: '' // Deixamos vazio para testes, pode ser adicionado depois
+          cpfCnpj: cpfCnpj // Enviando o CPF/CNPJ preenchido
         }
       });
 
@@ -377,12 +383,23 @@ export default function ProjectCheckout() {
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-border/50">
-                    <button
-                      onClick={handlePayment}
-                      disabled={isProcessing}
-                      className="w-full h-14 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none flex items-center justify-center gap-2"
-                    >
+                    <div className="flex flex-col gap-3 w-full">
+                      <label className="text-sm font-medium text-foreground">CPF ou CNPJ</label>
+                      <input
+                        type="text"
+                        value={cpfCnpj}
+                        onChange={(e) => setCpfCnpj(e.target.value)}
+                        placeholder="000.000.000-00"
+                        className="w-full bg-muted/50 border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                      
+                    <div className="pt-4 border-t border-border/50">
+                      <button
+                        onClick={handlePayment}
+                        disabled={isProcessing}
+                        className="w-full h-14 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none flex items-center justify-center gap-2"
+                      >
                       {isProcessing ? (
                         <>
                           <Loader2 size={20} className="animate-spin" />
