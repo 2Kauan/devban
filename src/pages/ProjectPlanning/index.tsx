@@ -32,22 +32,6 @@ export default function ProjectPlanning() {
   const [initialDate, setInitialDate] = useState<Date | undefined>(undefined);
   const [isDraggingOverNoDate, setIsDraggingOverNoDate] = useState(false);
 
-  const handlePrev = () => {
-    if (view === 'month') setCurrentDate(d => subMonths(d, 1));
-    else if (view === 'week') setCurrentDate(d => subWeeks(d, 1));
-    else setCurrentDate(d => subDays(d, 1));
-  };
-
-  const handleNext = () => {
-    if (view === 'month') setCurrentDate(d => addMonths(d, 1));
-    else if (view === 'week') setCurrentDate(d => addWeeks(d, 1));
-    else setCurrentDate(d => addDays(d, 1));
-  };
-
-  const handleToday = () => {
-    setCurrentDate(new Date());
-  };
-
   const handleNewTask = (date?: Date) => {
     setSelectedCard(null);
     setInitialDate(date || new Date());
@@ -128,9 +112,7 @@ export default function ProjectPlanning() {
         currentDate={currentDate}
         view={view}
         onViewChange={setView}
-        onPrev={handlePrev}
-        onNext={handleNext}
-        onToday={handleToday}
+        onDateChange={setCurrentDate}
         onNewTask={() => handleNewTask()}
       />
       
