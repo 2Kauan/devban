@@ -85,7 +85,13 @@ export function ProjectLayout() {
           filter: `id=eq.${project.id}`,
         },
         (payload) => {
-          setProject((prev) => ({ ...prev, ...payload.new } as Project));
+          setProject((prev) => {
+            // Check if actual data changed to avoid infinite re-render loops
+            if (JSON.stringify(prev) === JSON.stringify({ ...prev, ...payload.new })) {
+              return prev;
+            }
+            return { ...prev, ...payload.new } as Project;
+          });
         }
       )
       .subscribe();
@@ -165,8 +171,8 @@ export function ProjectLayout() {
         </div>
 
         {/* Dynamic Content */}
-        <div className="flex-1 flex flex-col overflow-hidden relative">
-          <Outlet context={{ project }} />
+        <div className="flex-1 flex flex-col overflow-hidden relative min-h-0">
+          <Outlet key={location.pathname} context={{ project }} />
         </div>
       </main>
     </div>

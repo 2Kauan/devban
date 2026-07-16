@@ -282,7 +282,7 @@ export function KanbanBoard({
   }
 
   return (
-    <div className="flex-1 w-full h-full min-h-0 flex flex-col overflow-x-auto overflow-y-hidden custom-scrollbar bg-background">
+    <div className="flex-1 w-full min-h-0 flex flex-col overflow-x-auto overflow-y-hidden custom-scrollbar bg-background">
       <DndContext
         id="kanban-board-dnd-context"
         sensors={sensors}

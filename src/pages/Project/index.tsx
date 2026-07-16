@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import type { KanbanCardType } from '@/types/kanban';
 import { KanbanBoard } from '@/components/kanban/KanbanBoard';
@@ -18,20 +18,21 @@ export default function ProjectPage() {
   
   // Use React Query for caching, realtime and performance
   const { data, isLoading, refetch, setOptimisticColumns, setOptimisticCards } = useProjectQuery(id);
-  const project = data?.project;
-  const columns = data?.columns || [];
-  const cards = data?.cards || [];
-  const projectCategories = data?.projectCategories || [];
-  const userPermission = data?.userPermission || 'viewer';
-  const pendingRequestsCount = data?.pendingRequestsCount || 0;
-  const projectMembers = data?.projectMembers || [];
+  
+  const project = useMemo(() => data?.project, [data?.project]);
+  const columns = useMemo(() => data?.columns || [], [data?.columns]);
+  const cards = useMemo(() => data?.cards || [], [data?.cards]);
+  const projectCategories = useMemo(() => data?.projectCategories || [], [data?.projectCategories]);
+  const userPermission = useMemo(() => data?.userPermission || 'viewer', [data?.userPermission]);
+  const pendingRequestsCount = useMemo(() => data?.pendingRequestsCount || 0, [data?.pendingRequestsCount]);
+  const projectMembers = useMemo(() => data?.projectMembers || [], [data?.projectMembers]);
   
   const [searchQuery, setSearchQuery] = useState('');
   
-  const filteredCards = cards.filter(card => 
+  const filteredCards = useMemo(() => cards.filter(card => 
     card.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
     (card.description && card.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  ), [cards, searchQuery]);
 
   // States for modals
   const [activeCard, setActiveCard] = useState<KanbanCardType | null>(null);
@@ -113,7 +114,7 @@ export default function ProjectPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-muted/10 overflow-hidden min-w-0 min-h-0">
+    <div className="flex-1 flex flex-col bg-muted/10 overflow-hidden min-w-0 min-h-0">
         {/* Project Header */}
         <ProjectHeader 
           project={project}
