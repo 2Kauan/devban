@@ -169,17 +169,12 @@ export default function Calendar() {
     setCurrentDate(new Date());
   };
 
-  const handleCardSave = (cardId: string) => {
-    //
-  };
-
   const handleOptimisticDelete = (cardId: string) => {
     if (!data) return;
     queryClient.setQueryData(['global-calendar', user?.id], {
         ...data,
         cards: data.cards.filter(c => c.id !== cardId)
     });
-    setHighlightedCardId(null);
   };
 
   const handleNewTask = (date?: Date) => {
