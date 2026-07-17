@@ -109,7 +109,7 @@ export function useKanbanActions({
     });
 
     try {
-      const { _data, error } = await supabase.from('cards').upsert(updates);
+      const { error } = await supabase.from('cards').upsert(updates);
       if (error) {
         toast.error('Erro ao salvar no banco: ' + error.message);
         throw error;

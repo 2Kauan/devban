@@ -42,7 +42,6 @@ const dropAnimationConfig: DropAnimation = {
 interface KanbanBoardProps {
   columns: KanbanColumnType[];
   cards: KanbanCardType[];
-  searchQuery?: string;
   onColumnsChange: (columns: KanbanColumnType[]) => void;
   onCardsChange: (cards: KanbanCardType[]) => void;
   onCardMove?: (cardId: string, sourceColumnId: string, destColumnId: string) => void;
@@ -59,7 +58,6 @@ interface KanbanBoardProps {
 export function KanbanBoard({
   columns,
   cards,
-  searchQuery = '',
   onColumnsChange,
   onCardsChange,
   onCardMove,

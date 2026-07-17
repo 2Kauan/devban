@@ -129,7 +129,6 @@ export default function ProjectPage() {
         <KanbanBoard 
           columns={columns}
           cards={cards}
-          searchQuery={searchQuery}
           onColumnsChange={handleColumnsChange}
           onCardsChange={handleCardsChange}
           onCardMove={handleCardMove}

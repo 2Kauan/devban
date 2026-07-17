@@ -170,8 +170,7 @@ export default function Calendar() {
   };
 
   const handleCardSave = (cardId: string) => {
-    setHighlightedCardId(cardId);
-    setTimeout(() => setHighlightedCardId(null), 2000);
+    //
   };
 
   const handleOptimisticDelete = (cardId: string) => {
