@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { isSameMonth, isSameDay, format } from 'date-fns';
+import { AnimatePresence } from 'framer-motion';
 import type { KanbanCardType } from '@/types/kanban';
 import { getMonthDays, getEventsForDay } from '@/utils/calendar';
 import { CalendarEvent } from './CalendarEvent';
@@ -10,9 +11,10 @@ interface MonthViewProps {
   onEventClick: (card: KanbanCardType) => void;
   onDayClick: (date: Date) => void;
   onEventDrop: (cardId: string, date: Date) => void;
+  highlightedCardId?: string | null;
 }
 
-export function MonthView({ currentDate, cards, onEventClick, onDayClick, onEventDrop }: MonthViewProps) {
+export function MonthView({ currentDate, cards, onEventClick, onDayClick, onEventDrop, highlightedCardId }: MonthViewProps) {
   const days = useMemo(() => getMonthDays(currentDate), [currentDate]);
   const [hoveredDay, setHoveredDay] = useState<string | null>(null);
   
@@ -86,13 +88,17 @@ export function MonthView({ currentDate, cards, onEventClick, onDayClick, onEven
 
               {/* Events list */}
               <div className="flex flex-col gap-1">
+                <AnimatePresence>
                 {visibleEvents.map(event => (
                   <CalendarEvent 
                     key={event.id} 
                     event={event} 
                     onClick={onEventClick} 
+                    isHighlighted={event.id === highlightedCardId}
                   />
                 ))}
+
+                </AnimatePresence>
                 
                 {hiddenCount > 0 && (
                   <div className="text-xs text-muted-foreground hover:text-foreground font-medium pl-1 mt-1 transition-colors">

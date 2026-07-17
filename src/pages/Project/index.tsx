@@ -64,7 +64,8 @@ export default function ProjectPage() {
     handleAddColumn,
     handleUpdateColumn,
     handleDeleteColumn,
-    handleAddCard
+    handleAddCard,
+    handlePriorityChange
   } = useKanbanActions({
     projectId: id,
     columns,
@@ -132,7 +133,8 @@ export default function ProjectPage() {
       <div className="flex-1 overflow-hidden p-4 sm:p-6 pb-0 flex flex-col min-h-0">
         <KanbanBoard 
           columns={columns}
-          cards={filteredCards}
+          cards={cards}
+          searchQuery={searchQuery}
           onColumnsChange={handleColumnsChange}
           onCardsChange={handleCardsChange}
           onCardMove={handleCardMove}
@@ -147,11 +149,13 @@ export default function ProjectPage() {
         />
       </div>
 
+
       <CardModal 
         card={activeCard} 
         isOpen={isCardModalOpen} 
         onClose={() => setIsCardModalOpen(false)} 
         onUpdate={() => refetch()}
+        onPriorityChange={handlePriorityChange}
         projectCategories={projectCategories}
         projectMembers={projectMembers}
         projectId={project?.id || ''}

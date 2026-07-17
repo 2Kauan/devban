@@ -31,6 +31,8 @@ export function TagSelector({ selectedTags, projectTags, onToggleTag, onCreateTa
   const [newTagName, setNewTagName] = useState('');
   const [newTagColor, setNewTagColor] = useState(TAG_COLORS[0]);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const creatingFormRef = useRef<HTMLDivElement>(null);
+  const popoverContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -42,6 +44,24 @@ export function TagSelector({ selectedTags, projectTags, onToggleTag, onCreateTa
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (isOpen && popoverContentRef.current) {
+      const timer = setTimeout(() => {
+        popoverContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (isCreating && creatingFormRef.current) {
+      const timer = setTimeout(() => {
+        creatingFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [isCreating]);
 
   const handleCreate = () => {
     if (newTagName.trim()) {
@@ -88,6 +108,7 @@ export function TagSelector({ selectedTags, projectTags, onToggleTag, onCreateTa
       <AnimatePresence>
         {isOpen && (
           <motion.div 
+            ref={popoverContentRef}
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
@@ -101,7 +122,7 @@ export function TagSelector({ selectedTags, projectTags, onToggleTag, onCreateTa
 
             <div className="p-2 max-h-[250px] overflow-y-auto custom-scrollbar">
               {isCreating ? (
-                <div className="space-y-4 p-1">
+                <div ref={creatingFormRef} className="space-y-4 p-1">
                   <div>
                     <label className="block text-xs font-semibold text-foreground mb-1.5">Nome da Etiqueta</label>
                     <input 

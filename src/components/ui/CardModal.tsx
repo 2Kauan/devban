@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/lib/supabase';
 import type { KanbanCardType } from '@/types/kanban';
-import { Clock, CheckSquare, Trash2, Tag, Loader2, ArrowRight, X, AlignLeft, Plus, Flag, ChevronDown, ArrowDownRight, ArrowUpRight, AlertCircle, Users, ListTree } from 'lucide-react';
+import { Clock, CheckSquare, Trash2, Tag, Loader2, ArrowRight, X, AlignLeft, Plus, Flag, ChevronDown, ArrowDownRight, ArrowUpRight, AlertCircle, Users, ListTree, CheckCircle2 } from 'lucide-react';
 import { queueMutation, isNetworkError } from '@/lib/offlineSync';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,7 +21,11 @@ interface CardModalProps {
   initialColumnId?: string;
   onClose: () => void;
   onUpdate: () => void;
+  onOptimisticDelete?: (cardId: string) => void;
+  onCardSave?: (cardId: string) => void;
+  onPriorityChange?: (cardId: string) => void;
   projectCategories?: Category[];
+
   projectMembers?: ProjectMember[];
   projectId?: string;
   canEdit?: boolean;
@@ -50,8 +54,10 @@ const toLocalDatetimeString = (dateObj: Date | string | null | undefined) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
-export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories = [], projectMembers = [], projectId, canEdit = true, allCards = [], columns = [], initialDate, initialColumnId }: CardModalProps) {
+export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete, onCardSave, onPriorityChange, projectCategories = [], projectMembers = [], projectId, canEdit = true, allCards = [], columns = [], initialDate, initialColumnId }: CardModalProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const [localTags, setLocalTags] = useState<Category[]>([]);
   const [localAssignees, setLocalAssignees] = useState<Profile[]>([]);
@@ -64,14 +70,18 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
     title: string;
     message: string;
     onConfirm: () => void;
+    confirmText?: string;
+    variant?: 'danger' | 'primary';
   }>({
     isOpen: false,
     title: '',
     message: '',
-    onConfirm: () => {}
+    onConfirm: () => {},
+    confirmText: 'Excluir',
+    variant: 'danger'
   });
   
-  const { register, handleSubmit, reset, setValue, watch } = useForm({
+  const { register, reset, setValue, watch } = useForm({
     defaultValues: {
       title: '',
       description: '',
@@ -101,6 +111,11 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
       setIsAssigneeOpen(false);
       setIsPriorityOpen(false);
       fetchChecklists();
+
+      // Foco automático na descrição quando o modal é aberto ou um cartão é selecionado
+      setTimeout(() => {
+        descriptionRef.current?.focus();
+      }, 300);
     } else {
       reset({
         title: '',
@@ -115,6 +130,75 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
       setChecklists([]);
     }
   }, [card, reset, initialDate, initialColumnId, columns]);
+
+  const saveCardRef = useRef<(data: any) => void>(() => {});
+
+  const saveCard = useCallback(async (data: any) => {
+    if (!card) return;
+    setSaveStatus('saving');
+    const sanitizedDescription = (data.description || '').trimEnd();
+    try {
+      const { error } = await supabase
+        .from('cards')
+        .update({
+          title: data.title,
+          description: sanitizedDescription,
+          priority: data.priority,
+          due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
+          external_link: data.external_link || null,
+          border_color: data.border_color || null,
+        })
+        .eq('id', card.id);
+
+      if (error) throw error;
+
+      if (data.due_date) {
+        NotificationService.scheduleTaskReminder(card.id, data.title, data.due_date);
+      } else {
+        NotificationService.cancelTaskReminder(card.id);
+      }
+
+      if (card.priority !== data.priority && onPriorityChange) {
+        onPriorityChange(card.id);
+      }
+
+      onUpdate();
+      if (onCardSave) onCardSave(card.id);
+      setSaveStatus('saved');
+    } catch (error: any) {
+      if (isNetworkError(error)) {
+        queueMutation('cards', 'update', {
+          title: data.title,
+          description: sanitizedDescription,
+          priority: data.priority,
+          due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
+          external_link: data.external_link || null,
+          border_color: data.border_color || null,
+        }, { id: card.id });
+        setSaveStatus('saved');
+      } else {
+        setSaveStatus('idle');
+      }
+    }
+  }, [card, onUpdate, onCardSave, onPriorityChange]);
+
+  saveCardRef.current = saveCard;
+
+  useEffect(() => {
+    if (!card || !canEdit) return;
+    let debounceTimer: ReturnType<typeof setTimeout>;
+    const subscription = watch((data) => {
+      setSaveStatus('idle');
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        saveCardRef.current(data);
+      }, 500);
+    });
+    return () => {
+      clearTimeout(debounceTimer);
+      subscription.unsubscribe();
+    };
+  }, [card, canEdit, watch]);
 
   const fetchChecklists = async () => {
     if (!card) return;
@@ -223,123 +307,14 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
           setIsLoading(false);
           setConfirmConfig(prev => ({ ...prev, isOpen: false }));
         }
-      }
+      },
+      confirmText: 'Excluir',
+      variant: 'danger'
     });
   };
 
   if (!isOpen) return null;
 
-  const onSubmit = async (data: any) => {
-    setIsLoading(true);
-    try {
-      if (card) {
-        const { error } = await supabase
-          .from('cards')
-          .update({
-            title: data.title,
-            description: data.description,
-            priority: data.priority,
-            due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
-            external_link: data.external_link || null,
-            border_color: data.border_color || null,
-          })
-          .eq('id', card.id);
-
-        if (error) throw error;
-        
-        // Agendar ou cancelar notificação baseado na data de vencimento
-        if (data.due_date) {
-          NotificationService.scheduleTaskReminder(card.id, data.title, data.due_date);
-        } else {
-          NotificationService.cancelTaskReminder(card.id);
-        }
-        
-        toast.success('Cartão atualizado!');
-      } else {
-        if (!projectId || !data.column_id) {
-          throw new Error('Projeto ou Coluna não definidos');
-        }
-        
-        // Find position for new card
-        const colCards = allCards.filter(c => c.column_id === data.column_id);
-        const position = colCards.length > 0 ? colCards[colCards.length - 1].position + 1000 : 1000;
-
-        const { data: newCard, error } = await supabase
-          .from('cards')
-          .insert({
-            project_id: projectId,
-            column_id: data.column_id,
-            title: data.title,
-            description: data.description,
-            priority: data.priority,
-            due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
-            external_link: data.external_link || null,
-            border_color: data.border_color || null,
-            position
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-        
-        // Insert tags and assignees
-        if (localTags.length > 0) {
-          await supabase.from('card_categories').insert(
-            localTags.map(tag => ({ card_id: newCard.id, category_id: tag.id }))
-          );
-        }
-        if (localAssignees.length > 0) {
-          await supabase.from('card_assignees').insert(
-            localAssignees.map(user => ({ card_id: newCard.id, user_id: user.id }))
-          );
-        }
-
-        // Agendar notificação se o cartão novo tiver data de vencimento
-        if (data.due_date) {
-          NotificationService.scheduleTaskReminder(newCard.id, data.title, data.due_date);
-        }
-
-        toast.success('Cartão criado!');
-      }
-      
-      onUpdate();
-      onClose();
-    } catch (error: any) {
-      if (isNetworkError(error)) {
-        if (card) {
-          queueMutation('cards', 'update', {
-            title: data.title,
-            description: data.description,
-            priority: data.priority,
-            due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
-            external_link: data.external_link || null,
-            border_color: data.border_color || null,
-          }, { id: card.id });
-          toast.success('Modo Offline: Edição salva.');
-        } else {
-          // Creating offline might have issues with missing IDs for relations, but basic card insert works
-          queueMutation('cards', 'insert', {
-            project_id: projectId,
-            column_id: data.column_id,
-            title: data.title,
-            description: data.description,
-            priority: data.priority,
-            due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
-            external_link: data.external_link || null,
-            border_color: data.border_color || null,
-            position: 1000 // simplification for offline
-          });
-          toast.success('Modo Offline: Criação de cartão salva.');
-        }
-        onUpdate();
-        onClose();
-      } else {
-        toast.error('Erro ao salvar: ' + error.message);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleDelete = () => {
     setConfirmConfig({
@@ -350,31 +325,41 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
         setIsLoading(true);
         try {
           if (!card) return;
+          
+          // Otimização: Deleção imediata
+          if (onOptimisticDelete) {
+            onOptimisticDelete(card.id);
+          }
+          
           const { error } = await supabase.from('cards').delete().eq('id', card.id);
           if (error) throw error;
+          
           toast.success('Cartão excluído!');
           setConfirmConfig(prev => ({ ...prev, isOpen: false }));
-          onUpdate();
           onClose();
+          onUpdate();
         } catch (error: any) {
           if (isNetworkError(error)) {
             queueMutation('cards', 'delete', null, { id: card!.id });
             toast.success('Modo Offline: Deleção agendada.');
             setConfirmConfig(prev => ({ ...prev, isOpen: false }));
-            onUpdate();
             onClose();
+            onUpdate();
           } else {
             toast.error('Erro ao excluir: ' + error.message);
           }
         } finally {
           setIsLoading(false);
         }
-      }
+      },
+      confirmText: 'Excluir',
+      variant: 'danger'
     });
   };
 
   const handleCreateChecklist = async () => {
     if (!card) return;
+    setSaveStatus('saving');
     try {
       const { data, error } = await supabase
         .from('checklists')
@@ -384,7 +369,9 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
       
       if (error) throw error;
       setChecklists([...checklists, { ...data, items: [] }]);
+      setSaveStatus('saved');
     } catch (error: any) {
+      setSaveStatus('idle');
       toast.error('Erro ao criar checklist: ' + error?.message);
     }
   };
@@ -397,6 +384,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
       ? checklist.items[checklist.items.length - 1].position + 1000 
       : 1000;
 
+    setSaveStatus('saving');
     try {
       const { data, error } = await supabase
         .from('checklist_items')
@@ -416,18 +404,20 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
           : c
       ));
       setNewItemText('');
+      setSaveStatus('saved');
     } catch (error: any) {
+      setSaveStatus('idle');
       toast.error('Erro ao adicionar item');
     }
   };
 
   const handleToggleItem = async (itemId: string, checked: boolean) => {
-    // Optimistic
     setChecklists(checklists.map(c => ({
       ...c,
       items: c.items.map(i => i.id === itemId ? { ...i, checked } : i)
     })));
 
+    setSaveStatus('saving');
     try {
       const { error } = await supabase
         .from('checklist_items')
@@ -435,7 +425,9 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
         .eq('id', itemId);
       
       if (error) throw error;
+      setSaveStatus('saved');
     } catch (error: any) {
+      setSaveStatus('idle');
       toast.error('Erro ao atualizar item');
       fetchChecklists();
     }
@@ -448,22 +440,19 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
       else setLocalTags(prev => [...prev, tag]);
       return;
     }
+    setSaveStatus('saving');
     try {
       const isSelected = localTags.some(c => c.id === tag.id);
       
       if (isSelected) {
-        // Optimistic update
         setLocalTags(prev => prev.filter(t => t.id !== tag.id));
-        // Remove
         await supabase
           .from('card_categories')
           .delete()
           .eq('card_id', card.id)
           .eq('category_id', tag.id);
       } else {
-        // Optimistic update
         setLocalTags(prev => [...prev, tag]);
-        // Add
         await supabase
           .from('card_categories')
           .insert({
@@ -471,8 +460,10 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
             category_id: tag.id
           });
       }
-      onUpdate(); // Reload to get updated tags on background
+      onUpdate();
+      setSaveStatus('saved');
     } catch (error) {
+      setSaveStatus('idle');
       toast.error('Erro ao atualizar etiqueta');
     }
   };
@@ -484,6 +475,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
       else setLocalAssignees(prev => [...prev, profile]);
       return;
     }
+    setSaveStatus('saving');
     try {
       const isSelected = localAssignees.some(a => a.id === profile.id);
       
@@ -521,8 +513,6 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
             .upsert(subtaskInserts, { onConflict: 'card_id,user_id' });
             
           if (upsertError) {
-            console.error("Upsert subtasks assignees error:", upsertError);
-            // Fallback: try inserting one by one and ignoring conflicts
             for (const st of subtasks) {
               const { error: insertError } = await supabase.from('card_assignees').insert({
                 card_id: st.id,
@@ -536,16 +526,17 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
         }
       }
       onUpdate();
+      setSaveStatus('saved');
     } catch (error: any) {
-      console.error(error);
+      setSaveStatus('idle');
       toast.error('Erro ao atualizar responsável: ' + (error?.message || ''));
     }
   };
 
   const handleCreateTag = async (name: string, color: string) => {
     if (!projectId) return;
+    setSaveStatus('saving');
     try {
-      // 1. Create Category
       const { data: newCategory, error: catError } = await supabase
         .from('categories')
         .insert({
@@ -558,10 +549,8 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
         
       if (catError) throw catError;
 
-      // Optimistic Update
       setLocalTags(prev => [...prev, newCategory]);
 
-      // 2. Attach to card if it already exists
       if (card) {
         await supabase
           .from('card_categories')
@@ -572,8 +561,10 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
       }
         
       toast.success('Etiqueta criada!');
-      onUpdate(); // Reload project data
+      onUpdate();
+      setSaveStatus('saved');
     } catch (error: any) {
+      setSaveStatus('idle');
       toast.error('Erro ao criar etiqueta: ' + error?.message);
     }
   };
@@ -624,7 +615,16 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                     <h3 className="text-lg">Descrição</h3>
                   </div>
                   <textarea
-                    {...register('description')}
+                    {...(() => {
+                      const { ref, ...rest } = register('description');
+                      return {
+                        ...rest,
+                        ref: (e: HTMLTextAreaElement | null) => {
+                          ref(e);
+                          descriptionRef.current = e;
+                        }
+                      };
+                    })()}
                     readOnly={!canEdit}
                     className={`w-full min-h-[140px] bg-background border border-border rounded-xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-y placeholder:text-muted-foreground ${!canEdit ? 'bg-muted/50 focus:ring-0 cursor-default pointer-events-none' : ''}`}
                     placeholder="Adicione uma descrição mais detalhada..."
@@ -680,7 +680,21 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
                                   {item.text}
                                 </span>
                                 {canEdit && (
-                                  <button className="opacity-0 group-hover:opacity-100 p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive hover:text-destructive-foreground rounded-md transition-all">
+                                  <button
+                                    onClick={async () => {
+                                      try {
+                                        const { error } = await supabase.from('checklist_items').delete().eq('id', item.id);
+                                        if (error) throw error;
+                                        setChecklists(checklists.map(c => ({
+                                          ...c,
+                                          items: c.items.filter(i => i.id !== item.id)
+                                        })));
+                                      } catch {
+                                        toast.error('Erro ao excluir item');
+                                      }
+                                    }}
+                                    className="opacity-0 group-hover:opacity-100 p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive hover:text-destructive-foreground rounded-md transition-all"
+                                  >
                                     <Trash2 size={14} />
                                   </button>
                                 )}
@@ -1017,24 +1031,32 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
             
             {/* Ações (Sticky Footer) */}
             {canEdit && (
-              <div className="px-6 py-4 border-t border-border/50 bg-card flex flex-col sm:flex-row justify-end gap-3 shrink-0">
+              <div className="px-5 py-3.5 border-t border-border/50 bg-card flex items-center justify-between shrink-0">
+                <input type="hidden" {...register('column_id')} />
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  {saveStatus === 'saving' && (
+                    <>
+                      <Loader2 size={14} className="animate-spin text-primary" />
+                      <span>Salvando...</span>
+                    </>
+                  )}
+                  {saveStatus === 'saved' && (
+                    <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+                      <CheckCircle2 size={14} />
+                      Salvo
+                    </span>
+                  )}
+                </div>
                 {card && (
                   <button 
                     onClick={handleDelete}
                     disabled={isLoading}
-                    className="bg-destructive text-destructive-foreground hover:bg-red-700 font-semibold rounded-lg px-6 py-2.5 text-sm transition-all active:scale-95 shadow-md w-full sm:w-auto"
+                    className="flex items-center gap-2 text-sm text-destructive hover:bg-destructive/10 font-medium rounded-lg px-4 py-2 transition-all"
                   >
-                    Excluir Cartão
+                    <Trash2 size={14} />
+                    Excluir
                   </button>
                 )}
-                <input type="hidden" {...register('column_id')} />
-                <button 
-                  onClick={handleSubmit(onSubmit)}
-                  disabled={isLoading}
-                  className="bg-primary text-primary-foreground font-semibold rounded-lg px-8 py-2.5 text-sm hover:bg-primary-hover shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 w-full sm:w-auto"
-                >
-                  {isLoading ? <Loader2 size={16} className="animate-spin" /> : 'Salvar Alterações'}
-                </button>
               </div>
             )}
           </motion.div>
@@ -1044,6 +1066,8 @@ export function CardModal({ card, isOpen, onClose, onUpdate, projectCategories =
             message={confirmConfig.message}
             onConfirm={confirmConfig.onConfirm}
             onCancel={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+            confirmText={confirmConfig.confirmText}
+            variant={confirmConfig.variant}
           />
         </div>
       )}

@@ -25,6 +25,7 @@ import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { compareByPriority } from '@/utils/kanban';
 
 const dropAnimationConfig: DropAnimation = {
   duration: 250,
@@ -41,6 +42,7 @@ const dropAnimationConfig: DropAnimation = {
 interface KanbanBoardProps {
   columns: KanbanColumnType[];
   cards: KanbanCardType[];
+  searchQuery?: string;
   onColumnsChange: (columns: KanbanColumnType[]) => void;
   onCardsChange: (cards: KanbanCardType[]) => void;
   onCardMove?: (cardId: string, sourceColumnId: string, destColumnId: string) => void;
@@ -57,6 +59,7 @@ interface KanbanBoardProps {
 export function KanbanBoard({
   columns,
   cards,
+  searchQuery = '',
   onColumnsChange,
   onCardsChange,
   onCardMove,
@@ -111,6 +114,11 @@ export function KanbanBoard({
     });
   };
 
+  const filteredCards = useMemo(() => localCards.filter(card => 
+    card.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (card.description && card.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  ), [localCards, searchQuery]);
+
   const columnIds = useMemo(() => localColumns.map((col) => col.id), [localColumns]);
 
   const sensors = useSensors(
@@ -144,16 +152,19 @@ export function KanbanBoard({
 
   function onDragStart(event: DragStartEvent) {
     if (!canEdit) {
-      toast.error('Você tem permissão apenas de Leitor. Solicite acesso ao dono para modificar o Kanban.');
+      toast.error('Você tem permissão apenas de Leitor.');
       return;
     }
-    if (event.active.data.current?.type === 'Column') {
-      setActiveColumn(event.active.data.current.column);
+    const { active } = event;
+    const activeColumn = localColumns.find(c => c.id === active.id);
+    if (activeColumn) {
+      setActiveColumn(activeColumn);
       return;
     }
 
-    if (event.active.data.current?.type === 'Card') {
-      setActiveCard(event.active.data.current.card);
+    const activeCard = localCards.find(c => c.id === active.id);
+    if (activeCard) {
+      setActiveCard(activeCard);
       return;
     }
   }
@@ -168,9 +179,9 @@ export function KanbanBoard({
 
     if (activeId === overId) return;
 
-    const isActiveCard = active.data.current?.type === 'Card';
-    const isOverCard = over.data.current?.type === 'Card';
-    const isOverColumn = over.data.current?.type === 'Column';
+    const isActiveCard = localCards.some(c => c.id === activeId);
+    const isOverCard = localCards.some(c => c.id === overId);
+    const isOverColumn = localColumns.some(c => c.id === overId);
 
     if (!isActiveCard) return;
 
@@ -181,7 +192,6 @@ export function KanbanBoard({
       if (activeIndex === -1 || overIndex === -1) return;
 
       let newCards = [...localCards];
-      // Clone the object to avoid mutating the original reference
       newCards[activeIndex] = { ...newCards[activeIndex], column_id: localCards[overIndex].column_id };
       setLocalCards(arrayMove(newCards, activeIndex, overIndex));
     }
@@ -192,15 +202,12 @@ export function KanbanBoard({
       
       if (activeIndex === -1) return;
       
-      // Se o card JÁ está na coluna alvo, não força ele de volta pro topo em loop infinito
       if (localCards[activeIndex].column_id === targetCol) return;
       
       let newCards = [...localCards];
       newCards[activeIndex] = { ...newCards[activeIndex], column_id: targetCol };
       
-      // Encontra o primeiro cartão daquela coluna para colocar o novo no topo
       const targetColFirstIndex = localCards.findIndex(c => c.column_id === targetCol);
-      // Se a coluna estiver vazia, vai para o final do array. Se não, vai para o topo da coluna.
       const insertIndex = targetColFirstIndex !== -1 ? targetColFirstIndex : newCards.length - 1;
       
       setLocalCards(arrayMove(newCards, activeIndex, insertIndex));
@@ -215,17 +222,14 @@ export function KanbanBoard({
 
     const { active, over } = event;
 
-    // Se não tem alvo (over), commita o estado que onDragOver já calculou
-    // Isso garante que o card fique onde foi visualmente posicionado
     if (!over) {
-      if (active.data.current?.type === 'Card') {
+      if (localCards.some(c => c.id === active.id)) {
         const activeIndex = localCards.findIndex(c => c.id === active.id);
         const originalIndex = cards.findIndex(c => c.id === active.id);
         if (activeIndex !== -1 && originalIndex !== -1) {
           const sourceCol = cards[originalIndex].column_id;
           const currentCol = localCards[activeIndex].column_id;
           if (sourceCol !== currentCol) {
-            // O card já foi movido pelo onDragOver, commita a mudança
             if (onCardMove) onCardMove(active.id.toString(), sourceCol, currentCol);
             onCardsChange(localCards);
             return;
@@ -239,7 +243,10 @@ export function KanbanBoard({
     const activeId = active.id;
     const overId = over.id;
 
-    if (active.data.current?.type === 'Column') {
+    const isColumn = localColumns.some(c => c.id === activeId);
+    const isCard = localCards.some(c => c.id === activeId);
+
+    if (isColumn) {
       if (activeId === overId) return;
       const activeColumnIndex = localColumns.findIndex((col) => col.id === activeId);
       const overColumnIndex = localColumns.findIndex((col) => col.id === overId);
@@ -249,7 +256,7 @@ export function KanbanBoard({
       return;
     }
 
-    if (active.data.current?.type === 'Card') {
+    if (isCard) {
       const activeIndex = localCards.findIndex(c => c.id === activeId);
       const originalIndex = cards.findIndex(c => c.id === activeId);
       
@@ -258,7 +265,6 @@ export function KanbanBoard({
       const sourceCol = cards[originalIndex].column_id;
       const finalTargetCol = localCards[activeIndex].column_id;
       
-      // Se não mudou de coluna e foi solto no mesmo lugar, não faz nada
       if (sourceCol === finalTargetCol && activeId === overId) return;
       
       const isBulk = selectedCardIds.includes(activeId.toString()) && selectedCardIds.length > 1;
@@ -297,7 +303,10 @@ export function KanbanBoard({
               <KanbanColumn
                 key={col.id}
                 column={col}
-                cards={localCards.filter((c) => c.column_id === col.id)}
+                cards={col.sort_by_priority
+                  ? localCards.filter((c) => c.column_id === col.id).sort(compareByPriority)
+                  : localCards.filter((c) => c.column_id === col.id)
+                }
                 onCardClick={onCardClick}
                 onAddCard={onAddCard}
                 onUpdateColumn={onUpdateColumn}

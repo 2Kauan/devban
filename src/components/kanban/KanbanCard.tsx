@@ -91,11 +91,9 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
       },
     });
 
-    const style = {
-      transition,
-      transform: CSS.Transform.toString(transform),
-      opacity: isDragging ? 0.3 : 1,
-    };
+    const style = isDragging
+      ? { transition, transform: CSS.Transform.toString(transform), opacity: 0.3 }
+      : { transform: CSS.Transform.toString(transform), opacity: 1 };
 
     const handleNodeRef = useCallback((node: HTMLDivElement | null) => {
       localRef.current = node;
@@ -108,18 +106,18 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
     }, [isOverlay, ref, setNodeRef]);
 
     if (isBulkDragging && isSelected && !isDragging) {
-      // If a bulk drag is active, and this card is selected (but not the active one, since isDragging is false)
-      // We should hide it visually so it looks like it was picked up with the stack
       return (
-        <div 
+        <motion.div 
           ref={handleNodeRef}
           style={{ ...style, display: 'none' }}
+          layout
+          layoutId={card.id}
         />
       );
     }
 
     const priorityColors = {
-      low: 'text-muted-foreground',
+      low: 'text-green-500',
       medium: 'text-blue-500',
       high: 'text-amber-500',
       urgent: 'text-destructive',
@@ -134,9 +132,11 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
     }[priorityKey];
 
     return (
-      <div
+      <motion.div
         ref={handleNodeRef}
         style={style}
+        layout
+        layoutId={card.id}
         className="relative mb-2"
       >
         {/* Background Stacked Cards for Bulk Drag */}
@@ -321,7 +321,7 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
           </div>
         )}
         </div>
-      </div>
+      </motion.div>
     );
   }
 );

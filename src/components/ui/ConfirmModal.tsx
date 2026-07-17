@@ -9,9 +9,20 @@ interface ConfirmModalProps {
   onCancel: () => void;
   confirmText?: string;
   cancelText?: string;
+  variant?: 'danger' | 'primary';
 }
 
-export function ConfirmModal({ isOpen, title, message, onConfirm, onCancel, confirmText = 'Excluir', cancelText = 'Cancelar' }: ConfirmModalProps) {
+export function ConfirmModal({ 
+  isOpen, 
+  title, 
+  message, 
+  onConfirm, 
+  onCancel, 
+  confirmText = 'Excluir', 
+  cancelText = 'Cancelar',
+  variant = 'danger'
+}: ConfirmModalProps) {
+  const isDanger = variant === 'danger';
   return (
     <AnimatePresence>
       {isOpen && (
@@ -33,8 +44,8 @@ export function ConfirmModal({ isOpen, title, message, onConfirm, onCancel, conf
           >
             <div className="p-6">
               <div className="flex items-start gap-4 mb-4">
-                <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0">
-                  <AlertTriangle size={24} className="text-destructive" />
+                <div className={`w-12 h-12 rounded-full ${isDanger ? 'bg-destructive/10' : 'bg-primary/10'} flex items-center justify-center flex-shrink-0`}>
+                  <AlertTriangle size={24} className={isDanger ? 'text-destructive' : 'text-primary'} />
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-foreground mb-1">{title}</h2>
@@ -52,7 +63,7 @@ export function ConfirmModal({ isOpen, title, message, onConfirm, onCancel, conf
                   onClick={() => {
                     onConfirm();
                   }}
-                  className="px-5 py-2 bg-destructive text-destructive-foreground rounded-xl hover:bg-red-700 shadow-md transition-all font-bold text-sm active:scale-95"
+                  className={`px-5 py-2 ${isDanger ? 'bg-destructive text-destructive-foreground hover:bg-red-700' : 'bg-primary text-primary-foreground hover:bg-primary-hover'} rounded-xl shadow-md transition-all font-bold text-sm active:scale-95`}
                 >
                   {confirmText}
                 </button>

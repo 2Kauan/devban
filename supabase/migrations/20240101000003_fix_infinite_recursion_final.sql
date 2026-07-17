@@ -43,5 +43,6 @@ CREATE POLICY "Project Members Select" ON project_members FOR SELECT USING (
 );
 
 CREATE POLICY "Project Members All" ON project_members FOR ALL USING (
-  get_is_project_owner(project_id)
+  get_is_project_owner(project_id) OR
+  EXISTS (SELECT 1 FROM project_members WHERE project_id = project_members.project_id AND user_id = auth.uid() AND permission = 'admin')
 );

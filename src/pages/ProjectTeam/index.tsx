@@ -171,11 +171,12 @@ export default function ProjectTeam() {
     
     try {
       for (const [userId, changes] of Object.entries(pendingChanges)) {
-        await supabase
+        const { error } = await supabase
           .from('project_members')
           .update(changes)
           .eq('project_id', project.id)
           .eq('user_id', userId);
+        if (error) throw error;
       }
       setPendingChanges({});
       toast.success('Alterações salvas com sucesso!');

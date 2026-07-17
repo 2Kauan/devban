@@ -13,10 +13,12 @@ import { DayDrawer } from '@/components/planning/DayDrawer';
 import type { KanbanCardType } from '@/types/kanban';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { addDays, subDays } from 'date-fns';
 
 export default function ProjectPlanning() {
   const { id } = useParams<{ id: string }>();
-  const { data, isLoading, refetch } = useProjectQuery(id);
+  const { data, isLoading, refetch, setOptimisticCards } = useProjectQuery(id);
+  const [highlightedCardId, setHighlightedCardId] = useState<string | null>(null);
   
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<ViewType>('month');
@@ -30,6 +32,17 @@ export default function ProjectPlanning() {
   const [selectedCard, setSelectedCard] = useState<KanbanCardType | null>(null);
   const [initialDate, setInitialDate] = useState<Date | undefined>(undefined);
   const [isDraggingOverNoDate, setIsDraggingOverNoDate] = useState(false);
+
+  const handleCardSave = (cardId: string) => {
+    setHighlightedCardId(cardId);
+    setTimeout(() => setHighlightedCardId(null), 2000);
+  };
+
+  const handleOptimisticDelete = (cardId: string) => {
+    if (!data) return;
+    setOptimisticCards(data.cards.filter(c => c.id !== cardId));
+    setHighlightedCardId(null);
+  };
 
   const handleNewTask = (date?: Date) => {
     setSelectedCard(null);
@@ -270,6 +283,7 @@ export default function ProjectPlanning() {
               onEventClick={handleEventClick}
               onDayClick={handleDayClick}
               onEventDrop={handleEventDrop}
+              highlightedCardId={highlightedCardId}
             />
           )}
           {view === 'week' && (
@@ -287,6 +301,8 @@ export default function ProjectPlanning() {
               cards={cards} 
               onEventClick={handleEventClick}
               onEventDrop={handleEventDrop}
+              onPrevDay={() => setCurrentDate(subDays(currentDate, 1))}
+              onNextDay={() => setCurrentDate(addDays(currentDate, 1))}
             />
           )}
           {view === 'agenda' && (
@@ -303,6 +319,8 @@ export default function ProjectPlanning() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onUpdate={refetch}
+        onOptimisticDelete={handleOptimisticDelete}
+        onCardSave={handleCardSave}
         projectId={id}
         projectCategories={projectCategories}
         projectMembers={projectMembers}

@@ -1,19 +1,24 @@
-import { format, parseISO, isSameDay } from 'date-fns';
+import { format, parseISO, isSameDay, addDays, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { KanbanCardType } from '@/types/kanban';
 import { getEventsForDay } from '@/utils/calendar';
 import { CalendarEvent } from './CalendarEvent';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useRef } from 'react';
 
 interface DayViewProps {
   currentDate: Date;
   cards: KanbanCardType[];
   onEventClick: (card: KanbanCardType) => void;
   onEventDrop: (cardId: string, date: Date) => void;
+  onPrevDay: () => void;
+  onNextDay: () => void;
 }
 
-export function DayView({ currentDate, cards, onEventClick, onEventDrop }: DayViewProps) {
+export function DayView({ currentDate, cards, onEventClick, onEventDrop, onPrevDay, onNextDay }: DayViewProps) {
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const isToday = isSameDay(currentDate, new Date());
+  const touchStartX = useRef<number | null>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -32,14 +37,36 @@ export function DayView({ currentDate, cards, onEventClick, onEventDrop }: DayVi
     }
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX.current - touchEndX;
+    
+    if (Math.abs(diff) > 50) { // Threshold
+      if (diff > 0) {
+        onNextDay();
+      } else {
+        onPrevDay();
+      }
+    }
+    touchStartX.current = null;
+  };
+
   const dayEvents = getEventsForDay(cards, currentDate);
   const allDayEvents = dayEvents.filter(e => !e.due_date?.includes('T') || e.due_date.endsWith('T00:00:00.000Z'));
   const timedEvents = dayEvents.filter(e => e.due_date?.includes('T') && !e.due_date.endsWith('T00:00:00.000Z'));
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-background overflow-hidden">
+    <div className="flex-1 flex flex-col h-full bg-background overflow-hidden" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       {/* Header (Dia) */}
-      <div className="flex border-b border-border/50 bg-muted/30 shrink-0 pl-12 sm:pl-16">
+      <div className="flex border-b border-border/50 bg-muted/30 shrink-0 pl-12 sm:pl-16 relative">
+        <button onClick={onPrevDay} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-muted"><ChevronLeft size={20} /></button>
+        <button onClick={onNextDay} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-muted"><ChevronRight size={20} /></button>
+        
         <div className="flex-1 py-4 text-center border-l border-border/40 flex flex-col items-center justify-center gap-1">
           <div className="text-sm font-semibold text-muted-foreground capitalize">
             {format(currentDate, 'EEEE', { locale: ptBR })}

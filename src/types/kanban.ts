@@ -8,6 +8,7 @@ export interface KanbanColumnType {
   color?: string | null;
   position: number;
   is_completed?: boolean;
+  sort_by_priority?: boolean;
 }
 
 export interface KanbanCardType {

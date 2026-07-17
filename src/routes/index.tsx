@@ -18,6 +18,7 @@ import Preview from '@/pages/Preview';
 import Calendar from '@/pages/Calendar';
 import NotFound from '@/pages/NotFound';
 import Projects from '@/pages/Projects';
+import SharedProjects from '@/pages/SharedProjects';
 import ProjectDashboard from '@/pages/ProjectDashboard';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import ProjectTeam from '@/pages/ProjectTeam';
@@ -49,6 +50,7 @@ export function AppRoutes() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/projects" element={<Projects />} />
+            <Route path="/shared-projects" element={<SharedProjects />} />
 
             <Route path="/team" element={<Team />} />
             <Route path="/reports" element={<Reports />} />

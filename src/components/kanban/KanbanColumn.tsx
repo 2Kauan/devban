@@ -4,7 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import type { KanbanColumnType, KanbanCardType } from '@/types/kanban';
 import { KanbanCard } from './KanbanCard';
 import { GripVertical, Plus, Pencil, CheckCircle2, CheckSquare } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, LayoutGroup } from 'framer-motion';
 
 interface KanbanColumnProps {
   column: KanbanColumnType;
@@ -30,6 +30,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
   const [editTitle, setEditTitle] = useState(column.title);
   const [editColor, setEditColor] = useState(column.color || '');
   const [editIsCompleted, setEditIsCompleted] = useState(column.is_completed || false);
+  const [editSortByPriority, setEditSortByPriority] = useState(column.sort_by_priority || false);
   const [isHovered, setIsHovered] = useState(false);
   const [showCompletedCards, setShowCompletedCards] = useState(false);
 
@@ -68,8 +69,8 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
   const cardIds = useMemo(() => cards.map((c) => c.id), [cards]);
 
   const handleSaveEdit = () => {
-    if (editTitle.trim() && (editTitle !== column.title || editColor !== (column.color || '') || editIsCompleted !== (column.is_completed || false)) && onUpdateColumn) {
-      onUpdateColumn(column.id, { title: editTitle.trim(), color: editColor || null, is_completed: editIsCompleted });
+    if (editTitle.trim() && (editTitle !== column.title || editColor !== (column.color || '') || editIsCompleted !== (column.is_completed || false) || editSortByPriority !== (column.sort_by_priority || false)) && onUpdateColumn) {
+      onUpdateColumn(column.id, { title: editTitle.trim(), color: editColor || null, is_completed: editIsCompleted, sort_by_priority: editSortByPriority });
     }
     setIsEditing(false);
   };
@@ -122,6 +123,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
                     setEditTitle(column.title);
                     setEditColor(column.color || '');
                     setEditIsCompleted(column.is_completed || false);
+                    setEditSortByPriority(column.sort_by_priority || false);
                     setIsEditing(false);
                   }
                 }}
@@ -165,6 +167,15 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
                   />
                   Coluna de Concluídos (oculta cartões)
                 </label>
+                <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+                  <input 
+                    type="checkbox" 
+                    checked={editSortByPriority} 
+                    onChange={(e) => setEditSortByPriority(e.target.checked)} 
+                    className="rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
+                  />
+                  Ordenar por prioridade
+                </label>
               </div>
               <div className="flex justify-between items-center gap-2 mt-1">
                 {canEdit && onDeleteColumn && (
@@ -176,7 +187,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
                   </button>
                 )}
                 <div className="flex gap-2 ml-auto">
-                  <button onClick={() => { setEditTitle(column.title); setEditColor(column.color || ''); setEditIsCompleted(column.is_completed || false); setIsEditing(false); }} className="px-2 py-1 text-xs font-medium text-muted-foreground hover:text-foreground">Cancelar</button>
+                  <button onClick={() => { setEditTitle(column.title); setEditColor(column.color || ''); setEditIsCompleted(column.is_completed || false); setEditSortByPriority(column.sort_by_priority || false); setIsEditing(false); }} className="px-2 py-1 text-xs font-medium text-muted-foreground hover:text-foreground">Cancelar</button>
                   <button onClick={handleSaveEdit} className="px-2 py-1 text-xs font-medium bg-foreground text-background rounded hover:bg-foreground/90">Salvar</button>
                 </div>
               </div>
@@ -218,6 +229,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
                       setEditTitle(column.title);
                       setEditColor(column.color || '');
                       setEditIsCompleted(column.is_completed || false);
+                      setEditSortByPriority(column.sort_by_priority || false);
                       setIsEditing(true);
                     }}
                     className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all shrink-0"
@@ -288,36 +300,38 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
             </div>
           ) : (
             <>
-              <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
-                {cards.map((card) => {
-                  const subtasks = allCards.filter(c => c.parent_id === card.id);
-                  let subtasksProgress = undefined;
-                  if (subtasks.length > 0) {
-                    const completed = subtasks.filter(st => {
-                      const col = allColumns.find(c => c.id === st.column_id);
-                      return col?.is_completed;
-                    });
-                    subtasksProgress = (completed.length / subtasks.length) * 100;
-                  }
+              <LayoutGroup>
+                <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
+                  {cards.map((card) => {
+                    const subtasks = allCards.filter(c => c.parent_id === card.id);
+                    let subtasksProgress = undefined;
+                    if (subtasks.length > 0) {
+                      const completed = subtasks.filter(st => {
+                        const col = allColumns.find(c => c.id === st.column_id);
+                        return col?.is_completed;
+                      });
+                      subtasksProgress = (completed.length / subtasks.length) * 100;
+                    }
 
-                  return (
-                    <KanbanCard 
-                      key={card.id} 
-                      card={card} 
-                      onClick={onCardClick} 
-                      onMoveMobile={canEdit ? onMoveCardMobile : undefined}
-                      canMoveLeft={canEdit && !isFirstColumn}
-                      canMoveRight={canEdit && !isLastColumn}
-                      columnColor={column.color}
-                      isCompleted={column.is_completed}
-                      subtasksProgress={subtasksProgress}
-                      isSelected={selectedCardIds?.includes(card.id)}
-                      onToggleSelect={onToggleSelect}
-                      isBulkDragging={isBulkDragging}
-                    />
-                  );
-                })}
-              </SortableContext>
+                    return (
+                      <KanbanCard 
+                        key={card.id} 
+                        card={card} 
+                        onClick={onCardClick} 
+                        onMoveMobile={canEdit ? onMoveCardMobile : undefined}
+                        canMoveLeft={canEdit && !isFirstColumn}
+                        canMoveRight={canEdit && !isLastColumn}
+                        columnColor={column.color}
+                        isCompleted={column.is_completed}
+                        subtasksProgress={subtasksProgress}
+                        isSelected={selectedCardIds?.includes(card.id)}
+                        onToggleSelect={onToggleSelect}
+                        isBulkDragging={isBulkDragging}
+                      />
+                    );
+                  })}
+                </SortableContext>
+              </LayoutGroup>
               
               {/* Subtle Add Button at bottom of column */}
               {canEdit && (
@@ -351,6 +365,7 @@ export const KanbanColumn = memo(KanbanColumnInner, (prev, next) => {
 
   return prev.column === next.column &&
          cardsEqual &&
+         prev.allCards === next.allCards &&
          prev.allColumns === next.allColumns &&
          prev.canEdit === next.canEdit &&
          prev.isFirstColumn === next.isFirstColumn &&

@@ -1,11 +1,13 @@
 import type { KanbanCardType } from '@/types/kanban';
+import { motion } from 'framer-motion';
 
 interface CalendarEventProps {
   event: KanbanCardType;
   onClick: (event: KanbanCardType) => void;
+  isHighlighted?: boolean;
 }
 
-export function CalendarEvent({ event, onClick }: CalendarEventProps) {
+export function CalendarEvent({ event, onClick, isHighlighted }: CalendarEventProps) {
   const category = event.categories?.[0];
   const color = category?.color || event.border_color || 'blue-500';
   
@@ -35,7 +37,11 @@ export function CalendarEvent({ event, onClick }: CalendarEventProps) {
   };
 
   return (
-    <div
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0 }}
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
@@ -48,7 +54,7 @@ export function CalendarEvent({ event, onClick }: CalendarEventProps) {
         e.stopPropagation();
         onClick(event);
       }}
-      className={`relative flex items-center px-2 py-1 mb-1 text-xs rounded-md cursor-pointer overflow-hidden transition-all hover:scale-[1.02] shadow-sm`}
+      className={`relative flex items-center px-2 py-1 mb-1 text-xs rounded-md cursor-pointer overflow-hidden transition-all hover:scale-[1.02] shadow-sm ${isHighlighted ? 'ring-2 ring-primary' : ''}`}
       style={{
         backgroundColor: `rgba(var(--color-${color}), 0.1)`,
       }}
@@ -66,6 +72,6 @@ export function CalendarEvent({ event, onClick }: CalendarEventProps) {
         {timeStr && <span className="text-muted-foreground mr-1 text-[10px] font-normal">{timeStr}</span>}
         {event.title}
       </div>
-    </div>
+    </motion.div>
   );
 }

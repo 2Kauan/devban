@@ -279,12 +279,17 @@ export function useProjectQuery(projectId: string | undefined) {
              if (payload.eventType === 'INSERT') {
                  // Check if it exists to avoid duplicates
                  if (!newCards.find(c => c.id === payload.new.id)) {
-                     // Fetch missing categories if needed, for now insert raw
-                     newCards.push(payload.new as KanbanCardType);
-                 }
-             } else if (payload.eventType === 'UPDATE') {
-                 newCards = newCards.map(c => c.id === payload.new.id ? { ...c, ...payload.new } : c);
-             } else if (payload.eventType === 'DELETE') {
+                      // Fetch missing categories if needed, for now insert raw
+                      newCards.push({
+                        ...payload.new as KanbanCardType,
+                        categories: [],
+                        assignees: []
+                      });
+                  }
+              } else if (payload.eventType === 'UPDATE') {
+                  newCards = newCards.map(c => c.id === payload.new.id ? { ...c, ...payload.new } : c);
+              } else if (payload.eventType === 'DELETE') {
+
                  newCards = newCards.filter(c => c.id !== payload.old.id);
              }
              

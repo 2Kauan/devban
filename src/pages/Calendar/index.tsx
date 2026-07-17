@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -22,6 +22,8 @@ import { FolderKanban } from 'lucide-react';
 
 export default function Calendar() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [highlightedCardId, setHighlightedCardId] = useState<string | null>(null);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<ViewType>('month');
@@ -163,6 +165,20 @@ export default function Calendar() {
 
   const handleToday = () => {
     setCurrentDate(new Date());
+  };
+
+  const handleCardSave = (cardId: string) => {
+    setHighlightedCardId(cardId);
+    setTimeout(() => setHighlightedCardId(null), 2000);
+  };
+
+  const handleOptimisticDelete = (cardId: string) => {
+    if (!data) return;
+    queryClient.setQueryData(['global-calendar', user?.id], {
+        ...data,
+        cards: data.cards.filter(c => c.id !== cardId)
+    });
+    setHighlightedCardId(null);
   };
 
   const handleNewTask = (date?: Date) => {
@@ -314,6 +330,8 @@ export default function Calendar() {
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             onUpdate={refetch}
+            onOptimisticDelete={handleOptimisticDelete}
+            onCardSave={handleCardSave}
             projectId={selectedCard.project_id}
             projectCategories={projectCategories.filter(c => c.project_id === selectedCard.project_id)}
             projectMembers={[]}
@@ -329,6 +347,8 @@ export default function Calendar() {
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             onUpdate={refetch}
+            onOptimisticDelete={handleOptimisticDelete}
+            onCardSave={handleCardSave}
             projectId={selectedProjectId}
             projectCategories={projectCategories.filter(c => c.project_id === selectedProjectId)}
             projectMembers={[]}

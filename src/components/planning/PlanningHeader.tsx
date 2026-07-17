@@ -1,4 +1,4 @@
-import { CalendarDays, Filter, Search, Plus, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CalendarDays, Filter, Search, Plus, ChevronDown, ChevronLeft, ChevronRight, List, Calendar, CalendarRange, Clock } from 'lucide-react';
 import { formatMonthYear } from '@/utils/calendar';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -27,10 +27,10 @@ export function PlanningHeader({
   onNewTask
 }: PlanningHeaderProps) {
   const views = [
-    { id: 'agenda', label: 'Agenda' },
-    { id: 'month', label: 'Mês' },
-    { id: 'week', label: 'Semana' },
-    { id: 'day', label: 'Dia' }
+    { id: 'agenda', label: 'Agenda', icon: List },
+    { id: 'month', label: 'Mês', icon: Calendar },
+    { id: 'week', label: 'Semana', icon: CalendarRange },
+    { id: 'day', label: 'Dia', icon: Clock }
   ];
 
   return (
@@ -93,7 +93,10 @@ export function PlanningHeader({
                   transition={{ type: "spring", duration: 0.5, bounce: 0.2 }}
                 />
               )}
-              <span className="relative z-10">{v.label}</span>
+              <span className="relative z-10 flex items-center gap-2">
+                <v.icon size={16} />
+                {v.label}
+              </span>
             </button>
           ))}
         </div>

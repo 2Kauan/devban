@@ -4,6 +4,7 @@ import { useEvent } from './useEvent';
 import type { KanbanColumnType, KanbanCardType } from '@/types/kanban';
 import type { User } from '@supabase/supabase-js';
 import { queueMutation, isNetworkError } from '@/lib/offlineSync';
+import { reorderCardsByPriority } from '@/utils/kanban';
 
 interface UseKanbanActionsProps {
   projectId: string | undefined;
@@ -63,28 +64,44 @@ export function useKanbanActions({
   const handleCardsChange = useEvent(async (newCards: KanbanCardType[]) => {
     if (!projectId) return;
     
-    // Calcula as novas posições matematicamente
-    const updatedCards = newCards.map((card, index) => ({
-      ...card,
-      position: (index + 1) * 1000
-    }));
+    // Calcula as novas posições matematicamente por coluna
+    const updatedCards = newCards.map((card) => {
+      // Encontra todos os cards na mesma coluna deste card
+      const cardsInColumn = newCards.filter(c => c.column_id === card.column_id);
+      // Encontra a posição relativa deste card na coluna
+      const indexInColumn = cardsInColumn.findIndex(c => c.id === card.id);
+      
+      return {
+        ...card,
+        position: (indexInColumn + 1) * 1000
+      };
+    });
     
-    // Otimista: atualiza a tela instantaneamente preservando os cartões ocultos (sub-tarefas)
+    // Otimista: atualiza a tela instantaneamente
     const fullUpdatedCards = cards.map(c => {
       const updated = updatedCards.find(uc => uc.id === c.id);
       return updated ? updated : c;
     });
     setOptimisticCards(fullUpdatedCards);
 
-    // OTIMIZAÇÃO CRÍTICA: Só envia pro banco de dados os cards que de fato mudaram de lugar ou coluna.
-    // Isso evita disparar dezenas de eventos Realtime simultâneos e crashear o React (Error 185)
+    // OTIMIZAÇÃO: Só envia pro banco de dados os cards que de fato mudaram de lugar ou coluna.
     const changedCards = updatedCards.filter(updatedCard => {
       const oldCard = cards.find(c => c.id === updatedCard.id);
       if (!oldCard) return true;
-      return oldCard.position !== updatedCard.position || oldCard.column_id !== updatedCard.column_id;
+      const hasChanged = oldCard.position !== updatedCard.position || oldCard.column_id !== updatedCard.column_id;
+      return hasChanged;
     });
 
-    if (changedCards.length === 0) return; // Nada pra salvar no DB
+    console.log('DEBUG: newCards length', newCards.length);
+    console.log('DEBUG: updatedCards length', updatedCards.length);
+    console.log('DEBUG: original cards length', cards.length);
+    console.log('DEBUG: changedCards length', changedCards.length);
+    console.log('DEBUG: changedCards:', changedCards);
+
+    if (changedCards.length === 0) {
+        console.log('No cards changed, skipping db sync');
+        return; // Nada pra salvar no DB
+    }
 
     const updates = changedCards.map(card => {
       // Remove campos relacionais que não pertencem à tabela 'cards' diretamente
@@ -92,9 +109,15 @@ export function useKanbanActions({
       return dbCard;
     });
 
+    console.log('Upserting cards to Supabase:', updates);
+
     try {
-      const { error } = await supabase.from('cards').upsert(updates);
-      if (error) throw error;
+      const { data, error } = await supabase.from('cards').upsert(updates);
+      if (error) {
+        toast.error('Erro ao salvar no banco: ' + error.message);
+        throw error;
+      }
+      toast.success('Cartões salvos com sucesso!');
     } catch (error: any) {
       if (isNetworkError(error)) {
         queueMutation('cards', 'upsert', updates);
@@ -107,6 +130,7 @@ export function useKanbanActions({
   });
 
   const handleCardMove = useEvent(async (cardId: string, sourceColId: string, destColId: string) => {
+    console.log('Moving card:', cardId, 'from', sourceColId, 'to', destColId);
     if (!user || !projectId) return;
     const sourceCol = columns.find(c => c.id === sourceColId);
     const destCol = columns.find(c => c.id === destColId);
@@ -308,6 +332,48 @@ export function useKanbanActions({
     });
   });
 
+  const handlePriorityChange = useEvent(async (cardId: string) => {
+    if (!projectId) return;
+    const card = cards.find(c => c.id === cardId);
+    if (!card) return;
+
+    const column = columns.find(c => c.id === card.column_id);
+    if (!column?.sort_by_priority) return;
+
+    const columnCards = cards.filter(c => c.column_id === card.column_id);
+    const reordered = reorderCardsByPriority(columnCards);
+
+    setOptimisticCards(cards.map(c => {
+      const updated = reordered.find(r => r.id === c.id);
+      return updated ? updated : c;
+    }));
+
+    const changedCards = reordered.filter(newCard => {
+      const oldCard = columnCards.find(c => c.id === newCard.id);
+      return oldCard && oldCard.position !== newCard.position;
+    });
+
+    if (changedCards.length === 0) return;
+
+    const updates = changedCards.map(c => {
+      const { assignees, categories, comments_count, ...dbCard } = c as any;
+      return dbCard;
+    });
+
+    try {
+      const { error } = await supabase.from('cards').upsert(updates);
+      if (error) throw error;
+    } catch (error: any) {
+      if (isNetworkError(error)) {
+        queueMutation('cards', 'upsert', updates);
+        toast.success('Modo Offline: Reordenção salva no dispositivo.');
+        return;
+      }
+      toast.error('Erro ao reordenar por prioridade: ' + error?.message);
+      refetch();
+    }
+  });
+
   return {
     handleColumnsChange,
     handleCardsChange,
@@ -317,6 +383,7 @@ export function useKanbanActions({
     handleAddColumn,
     handleUpdateColumn,
     handleDeleteColumn,
-    handleAddCard
+    handleAddCard,
+    handlePriorityChange
   };
 }
