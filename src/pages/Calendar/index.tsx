@@ -23,11 +23,13 @@ import { FolderKanban } from 'lucide-react';
 export default function Calendar() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [highlightedCardId, setHighlightedCardId] = useState<string | null>(null);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<ViewType>('month');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const handlePrevDay = () => setCurrentDate(prev => new Date(prev.setDate(prev.getDate() - 1)));
+  const handleNextDay = () => setCurrentDate(prev => new Date(prev.setDate(prev.getDate() + 1)));
 
   // Drawer state
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -313,6 +315,8 @@ export default function Calendar() {
                 cards={cards}
                 onEventClick={handleEventClick}
                 onEventDrop={handleEventDrop}
+                onPrevDay={handlePrevDay}
+                onNextDay={handleNextDay}
               />
             )}
             {view === 'agenda' && (

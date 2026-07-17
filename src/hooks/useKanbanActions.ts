@@ -99,7 +99,6 @@ export function useKanbanActions({
     console.log('DEBUG: changedCards:', changedCards);
 
     if (changedCards.length === 0) {
-        console.log('No cards changed, skipping db sync');
         return; // Nada pra salvar no DB
     }
 
@@ -109,10 +108,8 @@ export function useKanbanActions({
       return dbCard;
     });
 
-    console.log('Upserting cards to Supabase:', updates);
-
     try {
-      const { data, error } = await supabase.from('cards').upsert(updates);
+      const { _data, error } = await supabase.from('cards').upsert(updates);
       if (error) {
         toast.error('Erro ao salvar no banco: ' + error.message);
         throw error;

@@ -29,11 +29,6 @@ export default function ProjectPage() {
   
   const [searchQuery, setSearchQuery] = useState('');
   
-  const filteredCards = useMemo(() => cards.filter(card => 
-    card.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (card.description && card.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  ), [cards, searchQuery]);
-
   // States for modals
   const [activeCard, setActiveCard] = useState<KanbanCardType | null>(null);
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);

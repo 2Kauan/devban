@@ -114,11 +114,6 @@ export function KanbanBoard({
     });
   };
 
-  const filteredCards = useMemo(() => localCards.filter(card => 
-    card.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (card.description && card.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  ), [localCards, searchQuery]);
-
   const columnIds = useMemo(() => localColumns.map((col) => col.id), [localColumns]);
 
   const sensors = useSensors(

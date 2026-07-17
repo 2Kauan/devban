@@ -1,10 +1,10 @@
-import { format, parseISO, isSameDay, addDays, subDays } from 'date-fns';
+import { format, parseISO, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { KanbanCardType } from '@/types/kanban';
 import { getEventsForDay } from '@/utils/calendar';
 import { CalendarEvent } from './CalendarEvent';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
 
 interface DayViewProps {
   currentDate: Date;

@@ -37,11 +37,7 @@ export function CalendarEvent({ event, onClick, isHighlighted }: CalendarEventPr
   };
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0 }}
+    <div
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
@@ -50,28 +46,32 @@ export function CalendarEvent({ event, onClick, isHighlighted }: CalendarEventPr
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
       }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick(event);
-      }}
-      className={`relative flex items-center px-2 py-1 mb-1 text-xs rounded-md cursor-pointer overflow-hidden transition-all hover:scale-[1.02] shadow-sm ${isHighlighted ? 'ring-2 ring-primary' : ''}`}
-      style={{
-        backgroundColor: `rgba(var(--color-${color}), 0.1)`,
-      }}
     >
-      <div 
-        className="absolute left-0 top-0 bottom-0 w-1 rounded-l-md"
-        style={{ backgroundColor: color.startsWith('#') ? color : `var(--color-${color})` }}
-      />
-      {/* Exemplo de borda tailwind: border-l-2 border-${color} (Se a cor vier direto do tailwind como 'blue-500') */}
-      {/* Para manter compatibilidade com as cores do Kanban (blue-500), usaremos classes do tailwind dinamicamente ou mapeadas. */}
-      {/* Devido ao Tailwind, classes dinâmicas precisam estar na safelist ou geramos um mapeamento seguro: */}
-      <div className={`absolute left-0 top-0 bottom-0 w-1 bg-${color}`} />
-      
-      <div className="flex-1 truncate pl-1 font-medium text-foreground">
-        {timeStr && <span className="text-muted-foreground mr-1 text-[10px] font-normal">{timeStr}</span>}
-        {event.title}
-      </div>
-    </motion.div>
+      <motion.div
+        layout
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0 }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick(event);
+        }}
+        className={`relative flex items-center px-2 py-1 mb-1 text-xs rounded-md cursor-pointer overflow-hidden transition-all hover:scale-[1.02] shadow-sm ${isHighlighted ? 'ring-2 ring-primary' : ''}`}
+        style={{
+          backgroundColor: `rgba(var(--color-${color}), 0.1)`,
+        }}
+      >
+        <div 
+          className="absolute left-0 top-0 bottom-0 w-1 rounded-l-md"
+          style={{ backgroundColor: color.startsWith('#') ? color : `var(--color-${color})` }}
+        />
+        <div className={`absolute left-0 top-0 bottom-0 w-1 bg-${color}`} />
+        
+        <div className="flex-1 truncate pl-1 font-medium text-foreground">
+          {timeStr && <span className="text-muted-foreground mr-1 text-[10px] font-normal">{timeStr}</span>}
+          {event.title}
+        </div>
+      </motion.div>
+    </div>
   );
 }
