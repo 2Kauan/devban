@@ -1,7 +1,6 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import { Header } from './Header';
 import { CommandPalette } from './CommandPalette';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export function MainLayout() {
   const location = useLocation();

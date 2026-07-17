@@ -1,4 +1,4 @@
-import { CalendarDays, Filter, Search, Plus, ChevronDown } from 'lucide-react';
+import { CalendarDays, Filter, Search, Plus, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatMonthYear } from '@/utils/calendar';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -9,7 +9,10 @@ interface PlanningHeaderProps {
   currentDate: Date;
   view: ViewType;
   onViewChange: (view: ViewType) => void;
-  onDateChange: (date: Date) => void;
+  onDateChange?: (date: Date) => void;
+  onPrev?: () => void;
+  onNext?: () => void;
+  onToday?: () => void;
   onNewTask?: () => void;
 }
 
@@ -18,6 +21,9 @@ export function PlanningHeader({
   view,
   onViewChange,
   onDateChange,
+  onPrev,
+  onNext,
+  onToday,
   onNewTask
 }: PlanningHeaderProps) {
   const views = [
@@ -41,21 +47,29 @@ export function PlanningHeader({
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="relative">
-            <input
-              type="month"
-              value={format(currentDate, 'yyyy-MM')}
-              onChange={(e) => {
-                const [year, month] = e.target.value.split('-').map(Number);
-                onDateChange(new Date(year, month - 1, 1));
-              }}
-              className="absolute inset-0 z-20 w-full h-full opacity-0 cursor-pointer"
-            />
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-background hover:bg-muted border border-border rounded-lg text-sm font-semibold text-foreground capitalize transition-colors">
-              {formatMonthYear(currentDate)}
-              <ChevronDown size={14} className="text-muted-foreground" />
+          {(onPrev || onNext || onToday) ? (
+            <div className="flex items-center gap-1 border border-border rounded-lg bg-background p-1">
+              <button onClick={onPrev} className="p-1.5 hover:bg-muted rounded-md"><ChevronLeft size={16} /></button>
+              <button onClick={onToday} className="px-3 py-1 text-xs font-medium hover:bg-muted rounded-md">Hoje</button>
+              <button onClick={onNext} className="p-1.5 hover:bg-muted rounded-md"><ChevronRight size={16} /></button>
             </div>
-          </div>
+          ) : (
+            <div className="relative">
+              <input
+                type="month"
+                value={format(currentDate, 'yyyy-MM')}
+                onChange={(e) => {
+                  const [year, month] = e.target.value.split('-').map(Number);
+                  onDateChange?.(new Date(year, month - 1, 1));
+                }}
+                className="absolute inset-0 z-20 w-full h-full opacity-0 cursor-pointer"
+              />
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-background hover:bg-muted border border-border rounded-lg text-sm font-semibold text-foreground capitalize transition-colors">
+                {formatMonthYear(currentDate)}
+                <ChevronDown size={14} className="text-muted-foreground" />
+              </div>
+            </div>
+          )}
           <div className="hidden md:flex items-center gap-2">
             <button className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors"><Search size={18} /></button>
             <button className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors"><Filter size={18} /></button>

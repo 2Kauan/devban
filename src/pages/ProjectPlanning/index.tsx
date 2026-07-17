@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import { useProjectQuery } from '@/hooks/useProjectQuery';
 import { PlanningHeader } from '@/components/planning/PlanningHeader';
 import type { ViewType } from '@/components/planning/PlanningHeader';
-import { addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from 'date-fns';
 import { Loader2, Inbox } from 'lucide-react';
 import { CardModal } from '@/components/ui/CardModal';
 import { MonthView } from '@/components/planning/MonthView';
