@@ -273,7 +273,7 @@ export default function SharedProject() {
             onAddColumn={handleAddColumn}
             onUpdateColumn={handleUpdateColumn}
             onDeleteColumn={handleDeleteColumn}
-            canEdit={project.share_permission === 'edit'}
+            canEdit={false}
           />
         </div>
       </div>

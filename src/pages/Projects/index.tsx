@@ -12,9 +12,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { DeleteProjectModal } from '@/components/ui/DeleteProjectModal';
 import { useProjectsQuery } from '@/hooks/useProjectsQuery';
 import { useStockQuery } from '@/hooks/useStockQuery';
+import { useProjectMemberCounts } from '@/hooks/useProjectMemberCounts';
 import { useQueryClient } from '@tanstack/react-query';
 
-function ProjectCard({ project, onDelete, onComplete }: { project: Project, onDelete: (p: Project) => void, onComplete?: (p: Project) => void }) {
+function ProjectCard({ project, onDelete, onComplete, memberCount = 1 }: { project: Project, onDelete: (p: Project) => void, onComplete?: (p: Project) => void, memberCount?: number }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { favorites, toggleFavorite } = useFavorites(user?.id);
@@ -110,7 +111,7 @@ function ProjectCard({ project, onDelete, onComplete }: { project: Project, onDe
 
       <div className="mt-auto space-y-4 relative z-10">
         <div className="flex gap-4 text-xs font-medium text-muted-foreground pointer-events-none">
-          <div className="flex items-center gap-1.5"><Users size={14} /> 1</div>
+          <div className="flex items-center gap-1.5"><Users size={14} /> {memberCount}</div>
           <div className="flex items-center gap-1.5"><CheckCircle2 size={14} /> 0/0</div>
         </div>
         
@@ -142,6 +143,8 @@ export default function Projects() {
 
   const { data: projects = [], isLoading } = useProjectsQuery();
   const { data: stock = 0 } = useStockQuery(projects.filter(p => !p.is_free).length);
+  const projectIds = projects.map(p => p.id);
+  const { data: memberCounts = {} } = useProjectMemberCounts(projectIds);
 
   const isFavorites = filter === 'favorites';
   const displayedProjects = isFavorites 
@@ -275,6 +278,7 @@ export default function Projects() {
                       project={project} 
                       onDelete={setProjectToDelete}
                       onComplete={handleToggleComplete}
+                      memberCount={(memberCounts[project.id] || 0) + 1}
                     />
                   </motion.div>
                 ))}

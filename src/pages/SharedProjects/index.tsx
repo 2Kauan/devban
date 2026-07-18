@@ -6,9 +6,10 @@ import { useNavigate } from 'react-router-dom';
 import { Folder, Users, CheckCircle2, UserCircle, FolderKanban } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSharedProjectsQuery, type SharedProject } from '@/hooks/useSharedProjectsQuery';
+import { useProjectMemberCounts } from '@/hooks/useProjectMemberCounts';
 import { useQueryClient } from '@tanstack/react-query';
 
-function SharedProjectCard({ project }: { project: SharedProject }) {
+function SharedProjectCard({ project, memberCount = 1 }: { project: SharedProject, memberCount?: number }) {
   const navigate = useNavigate();
 
   return (
@@ -32,7 +33,7 @@ function SharedProjectCard({ project }: { project: SharedProject }) {
 
       <div className="mt-auto space-y-4 relative z-10">
         <div className="flex gap-4 text-xs font-medium text-muted-foreground pointer-events-none">
-          <div className="flex items-center gap-1.5"><Users size={14} /> 1</div>
+          <div className="flex items-center gap-1.5"><Users size={14} /> {memberCount}</div>
           <div className="flex items-center gap-1.5"><CheckCircle2 size={14} /> 0/0</div>
         </div>
         
@@ -59,6 +60,8 @@ export default function SharedProjects() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const { data: projects = [], isLoading } = useSharedProjectsQuery();
+  const projectIds = projects.map(p => p.id);
+  const { data: memberCounts = {} } = useProjectMemberCounts(projectIds);
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['sharedProjects'] });
@@ -116,7 +119,7 @@ export default function SharedProjects() {
                     transition={{ duration: 0.2, type: "spring", bounce: 0.3 }}
                     key={project.id}
                   >
-                    <SharedProjectCard project={project} />
+                    <SharedProjectCard project={project} memberCount={(memberCounts[project.id] || 0) + 1} />
                   </motion.div>
                 ))}
               </AnimatePresence>

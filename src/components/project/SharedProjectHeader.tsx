@@ -28,12 +28,10 @@ export function SharedProjectHeader({
         <div>
           <h1 className="text-xl font-bold text-foreground leading-tight">{project.name}</h1>
           <div className="flex items-center gap-3 text-sm text-muted-foreground mt-0.5">
-            {project.share_permission !== 'edit' && (
-              <>
-                <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-semibold uppercase">Modo Visualização Pública</span>
-                <span className="w-1 h-1 bg-border rounded-full"></span>
-              </>
-            )}
+            <>
+              <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-semibold uppercase">Modo Visualização Pública</span>
+              <span className="w-1 h-1 bg-border rounded-full"></span>
+            </>
             <span>{columnsCount} colunas</span>
             <span className="w-1 h-1 bg-border rounded-full"></span>
             <span>{cardsCount} tarefas</span>
@@ -42,25 +40,23 @@ export function SharedProjectHeader({
       </div>
       
       <div className="flex items-center gap-3">
-        {project.share_permission !== 'edit' && (
-          isAuthenticated ? (
-            <button
-              onClick={onJoinProject}
-              disabled={isJoining}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-medium transition-colors shadow-sm"
-            >
-              <UserPlus size={18} />
-              {isJoining ? 'Enviando Pedido...' : 'Solicitar Acesso à Equipe'}
-            </button>
-          ) : (
-            <Link
-              to="/login"
-              className="flex items-center gap-2 px-4 py-2 bg-muted text-muted-foreground hover:bg-border rounded-lg font-medium transition-colors"
-            >
-              <LogIn size={18} />
-              Fazer Login para Solicitar
-            </Link>
-          )
+        {isAuthenticated ? (
+          <button
+            onClick={onJoinProject}
+            disabled={isJoining}
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-medium transition-colors shadow-sm"
+          >
+            <UserPlus size={18} />
+            {isJoining ? 'Enviando Pedido...' : 'Solicitar Acesso à Equipe'}
+          </button>
+        ) : (
+          <Link
+            to="/login"
+            className="flex items-center gap-2 px-4 py-2 bg-muted text-muted-foreground hover:bg-border rounded-lg font-medium transition-colors"
+          >
+            <LogIn size={18} />
+            Fazer Login para Solicitar
+          </Link>
         )}
       </div>
     </header>

@@ -302,52 +302,7 @@ export function ShareModal({ isOpen, onClose, project, onUpdate }: ShareModalPro
                     </p>
                   </div>
 
-                  {/* Role Dropdown */}
-                  {shareEnabled && (
-                    <div className="relative shrink-0 mt-1">
-                      {isOwner ? (
-                        <button 
-                          onClick={() => setIsRoleOpen(!isRoleOpen)}
-                          className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:bg-muted py-1 px-2 rounded-md transition-colors"
-                        >
-                          {sharePermission === 'edit' ? 'Editor' : 'Leitor'}
-                          <ChevronDown size={14} />
-                        </button>
-                      ) : (
-                        <span className="text-sm font-medium text-muted-foreground py-1 px-2">
-                          {sharePermission === 'edit' ? 'Editor' : 'Leitor'}
-                        </span>
-                      )}
-
-                      {isRoleOpen && isOwner && (
-                        <>
-                          <div className="fixed inset-0 z-10" onClick={() => setIsRoleOpen(false)} />
-                          <div className="absolute right-0 top-8 w-48 bg-card border border-border shadow-lg rounded-lg py-1 z-20">
-                            <button 
-                              onClick={() => { updateShareSettings(true, 'view'); setIsRoleOpen(false); }}
-                              className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex flex-col"
-                            >
-                              <div className="flex items-center justify-between w-full">
-                                <span>Leitor</span>
-                                {sharePermission === 'view' && <Check size={14} />}
-                              </div>
-                              <span className="text-xs text-muted-foreground mt-0.5">Apenas visualizar</span>
-                            </button>
-                            <button 
-                              onClick={() => { updateShareSettings(true, 'edit'); setIsRoleOpen(false); }}
-                              className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex flex-col"
-                            >
-                              <div className="flex items-center justify-between w-full">
-                                <span>Editor</span>
-                                {sharePermission === 'edit' && <Check size={14} />}
-                              </div>
-                              <span className="text-xs text-muted-foreground mt-0.5">Adicionar e editar cartões</span>
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )}
+                  {/* Role Dropdown (Removed as links are always read-only) */}
                 </div>
               </div>
 
