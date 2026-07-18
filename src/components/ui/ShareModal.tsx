@@ -36,7 +36,6 @@ export function ShareModal({ isOpen, onClose, project, onUpdate }: ShareModalPro
   const [shareEnabled, setShareEnabled] = useState(false);
   const [sharePermission, setSharePermission] = useState<'view' | 'edit'>('view');
   const [isGeneralAccessOpen, setIsGeneralAccessOpen] = useState(false);
-  const [isRoleOpen, setIsRoleOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen && project) {

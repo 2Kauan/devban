@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopHeader } from '@/components/layout/TopHeader';
 import { useNavigate } from 'react-router-dom';
@@ -55,7 +54,6 @@ function SharedProjectCard({ project, memberCount = 1 }: { project: SharedProjec
 }
 
 export default function SharedProjects() {
-  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
