@@ -65,11 +65,15 @@ export function useProjectQuery(projectId: string | undefined) {
           if (memberData) {
             perm = memberData.permission;
           } else if (projectData.share_enabled) {
-            perm = 'viewer';
+            perm = projectData.share_permission === 'edit' ? 'editor' : 'viewer';
+          } else {
+            throw new Error('Acesso negado. Você não é mais membro deste projeto.');
           }
         }
       } else if (projectData.share_enabled) {
         perm = 'viewer';
+      } else {
+        throw new Error('Acesso negado. Faça login para acessar este projeto.');
       }
 
       // Fetch all project members

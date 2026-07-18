@@ -172,7 +172,7 @@ export default function ProjectCheckout() {
     }
   };
 
-  const handleSimulateApproval = async () => {
+  const handleConfirmPayment = async () => {
     try {
       setIsProcessing(true);
       const { error } = await supabase
@@ -191,6 +191,13 @@ export default function ProjectCheckout() {
       toast.error('Erro ao aprovar: ' + error.message);
       setIsProcessing(false);
     }
+  };
+
+  const handleCancelPurchase = () => {
+    setPixData(null);
+    setCreditCardUrl('');
+    setPaymentMethod('pix');
+    toast.info('Compra cancelada.');
   };
 
   if (isLoading) {
@@ -293,18 +300,21 @@ export default function ProjectCheckout() {
 
                   <div className="flex flex-col gap-3 w-full">
                     <button
-                      onClick={handleSimulateApproval}
+                      onClick={handleConfirmPayment}
                       disabled={isProcessing}
-                      className="w-full h-12 bg-muted text-muted-foreground font-bold rounded-xl hover:bg-muted/80 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:pointer-events-none"
+                      className="w-full h-12 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:pointer-events-none shadow-md"
                     >
                       {isProcessing ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
-                      Simular Aprovação (Sandbox)
+                      Confirmar Pagamento
                     </button>
                     
-                    <div className="flex items-center justify-center gap-2 text-xs text-primary font-medium animate-pulse">
-                      <Loader2 size={14} className="animate-spin" />
-                      Aguardando confirmação do pagamento...
-                    </div>
+                    <button
+                      onClick={handleCancelPurchase}
+                      disabled={isProcessing}
+                      className="w-full h-12 bg-red-500/10 text-red-500 font-bold rounded-xl hover:bg-red-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:pointer-events-none"
+                    >
+                      Cancelar Compra
+                    </button>
                   </div>
                 </motion.div>
               ) : creditCardUrl ? (
@@ -330,14 +340,24 @@ export default function ProjectCheckout() {
                     Abrir aba de pagamento
                   </a>
 
-                  <button
-                    onClick={handleSimulateApproval}
-                    disabled={isProcessing}
-                    className="w-full h-12 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg hover:shadow-primary/40 transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-70 disabled:pointer-events-none"
-                  >
-                    {isProcessing ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
-                    Simular Pagamento Confirmado
-                  </button>
+                  <div className="flex flex-col gap-3 w-full">
+                    <button
+                      onClick={handleConfirmPayment}
+                      disabled={isProcessing}
+                      className="w-full h-12 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:bg-green-700 transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-70 disabled:pointer-events-none"
+                    >
+                      {isProcessing ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
+                      Confirmar Pagamento
+                    </button>
+                    
+                    <button
+                      onClick={handleCancelPurchase}
+                      disabled={isProcessing}
+                      className="w-full h-12 bg-red-500/10 text-red-500 font-bold rounded-xl hover:bg-red-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:pointer-events-none"
+                    >
+                      Cancelar Compra
+                    </button>
+                  </div>
                 </motion.div>
               ) : (
                 <motion.div 

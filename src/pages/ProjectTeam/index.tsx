@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { UserProfileModal } from '@/components/ui/UserProfileModal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import type { KanbanCardType } from '@/types/kanban';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface Member {
   user_id: string;
@@ -26,6 +27,7 @@ interface Member {
 export default function ProjectTeam() {
   const { project } = useOutletContext<{ project: Project }>();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const isOwner = project.owner_id === user?.id;
 
   const [members, setMembers] = useState<Member[]>([]);
@@ -141,6 +143,9 @@ export default function ProjectTeam() {
           if (error) throw error;
           toast.success('Membro removido com sucesso!');
           fetchMembers();
+          queryClient.invalidateQueries({ queryKey: ['projects'] });
+          queryClient.invalidateQueries({ queryKey: ['project', project.id] });
+          queryClient.invalidateQueries({ queryKey: ['projectMemberCounts'] });
         } catch (error: any) {
           toast.error('Erro ao remover membro: ' + error.message);
         } finally {

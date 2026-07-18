@@ -11,13 +11,18 @@ import { useEvent } from '@/hooks/useEvent';
 import { useKanbanModals } from '@/hooks/useKanbanModals';
 import { useKanbanActions } from '@/hooks/useKanbanActions';
 import { useProjectQuery } from '@/hooks/useProjectQuery';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
+import { Lock, Loader2, ShieldAlert } from 'lucide-react';
 
 export default function ProjectPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   
   // Use React Query for caching, realtime and performance
-  const { data, isLoading, refetch, setOptimisticColumns, setOptimisticCards } = useProjectQuery(id);
+  const { data, isLoading, error, refetch, setOptimisticColumns, setOptimisticCards } = useProjectQuery(id);
+  
+  const [isRequestingAccess, setIsRequestingAccess] = useState(false);
   
   const project = useMemo(() => data?.project, [data?.project]);
   const columns = useMemo(() => data?.columns || [], [data?.columns]);
@@ -92,6 +97,71 @@ export default function ProjectPage() {
             <div className="h-32 w-full bg-muted/20 rounded-xl animate-pulse" />
           </div>
         ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    const isAccessDenied = error.message?.includes('Acesso negado');
+    const handleRequestAccess = async () => {
+      if (!user || !id) return;
+      setIsRequestingAccess(true);
+      try {
+        const { data: projectData } = await supabase
+          .from('projects')
+          .select('share_token, share_enabled')
+          .eq('id', id)
+          .single();
+
+        if (!projectData?.share_enabled) {
+          toast.error('Este projeto não aceita novos membros no momento.');
+          setIsRequestingAccess(false);
+          return;
+        }
+
+        const { error: reqError } = await supabase.rpc('join_project_by_token', {
+          p_token: projectData.share_token
+        });
+        if (reqError) throw reqError;
+        toast.success('Solicitação de acesso enviada! Aguarde a aprovação do dono.');
+      } catch (err: any) {
+        toast.error(err.message || 'Erro ao solicitar acesso');
+      } finally {
+        setIsRequestingAccess(false);
+      }
+    };
+
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 p-8">
+        <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
+          <ShieldAlert size={32} className="text-destructive" />
+        </div>
+        <h2 className="text-xl font-bold text-foreground">
+          {isAccessDenied ? 'Acesso Negado' : 'Erro ao carregar projeto'}
+        </h2>
+        <p className="text-muted-foreground text-center max-w-md">
+          {isAccessDenied
+            ? 'Você não é mais membro deste projeto. Solicite acesso ao proprietário para continuar.'
+            : error.message}
+        </p>
+        <div className="flex gap-3">
+          {isAccessDenied && (
+            <button
+              onClick={handleRequestAccess}
+              disabled={isRequestingAccess}
+              className="bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50"
+            >
+              {isRequestingAccess ? <Loader2 size={16} className="animate-spin" /> : <Lock size={16} />}
+              Solicitar Acesso
+            </button>
+          )}
+          <Link
+            to="/projects"
+            className="bg-muted text-foreground px-6 py-2 rounded-lg font-medium hover:bg-muted/80 transition-colors"
+          >
+            Voltar aos Projetos
+          </Link>
+        </div>
       </div>
     );
   }

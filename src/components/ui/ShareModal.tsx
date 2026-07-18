@@ -5,6 +5,7 @@ import type { Project } from '@/types/database';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ interface Member {
 
 export function ShareModal({ isOpen, onClose, project, onUpdate }: ShareModalProps) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
@@ -130,6 +132,11 @@ export function ShareModal({ isOpen, onClose, project, onUpdate }: ShareModalPro
       toast.success('Usuário removido do projeto');
       fetchMembers();
       onUpdate();
+      if (project) {
+        queryClient.invalidateQueries({ queryKey: ['projects'] });
+        queryClient.invalidateQueries({ queryKey: ['project', project.id] });
+        queryClient.invalidateQueries({ queryKey: ['projectMemberCounts'] });
+      }
     } catch (error: any) {
       toast.error('Erro ao remover usuário: ' + error.message);
     }
