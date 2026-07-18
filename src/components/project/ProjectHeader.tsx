@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { Project as ProjectType, ProjectPermission } from '@/types/database';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
+import { invalidateStock } from '@/hooks/useStockQuery';
 
 
 interface ProjectHeaderProps {
@@ -34,6 +36,7 @@ export function ProjectHeader({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const handleDeleteProject = async () => {
     setIsDeleting(true);
@@ -54,6 +57,7 @@ export function ProjectHeader({
 
       if (error) throw error;
       
+      invalidateStock(queryClient, project.owner_id);
       toast.success('Projeto excluído permanentemente.');
       setShowDeleteConfirm(false);
       setTimeout(() => {

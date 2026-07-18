@@ -64,8 +64,6 @@ export function useProjectQuery(projectId: string | undefined) {
             .maybeSingle();
           if (memberData) {
             perm = memberData.permission;
-          } else if (projectData.share_enabled) {
-            perm = projectData.share_permission === 'edit' ? 'editor' : 'viewer';
           } else {
             throw new Error('Acesso negado. Você não é mais membro deste projeto.');
           }
@@ -254,7 +252,7 @@ export function useProjectQuery(projectId: string | undefined) {
       }
     },
     enabled: !!projectId,
-    staleTime: 1000 * 60 * 5, // 5 minutes cache
+    staleTime: 1000 * 30, // 30 seconds cache
   });
 
   // Realtime subscription

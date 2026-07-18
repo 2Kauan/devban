@@ -46,10 +46,12 @@ BEGIN
     RETURN v_project_id;
   END IF;
 
-  -- Create access request with job_title
+  -- Delete any existing request (approved/rejected) so INSERT trigger fires and sends notification
+  DELETE FROM project_access_requests WHERE project_id = v_project_id AND user_id = auth.uid();
+
+  -- Create fresh access request with job_title (INSERT trigger will notify the owner)
   INSERT INTO project_access_requests (project_id, user_id, status, job_title)
-  VALUES (v_project_id, auth.uid(), 'pending', v_job_title)
-  ON CONFLICT (project_id, user_id) DO UPDATE SET job_title = EXCLUDED.job_title;
+  VALUES (v_project_id, auth.uid(), 'pending', v_job_title);
 
   RETURN v_project_id;
 END;

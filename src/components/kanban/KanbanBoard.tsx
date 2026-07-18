@@ -114,20 +114,22 @@ export function KanbanBoard({
 
   const columnIds = useMemo(() => localColumns.map((col) => col.id), [localColumns]);
 
+  const noopKeyboardGetter = useMemo(() => (() => null) as any, []);
+
   const sensors = useSensors(
     useSensor(MouseSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: canEdit ? 8 : Infinity,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 250,
-        tolerance: 5,
+        delay: canEdit ? 250 : Infinity,
+        tolerance: canEdit ? 5 : 0,
       },
     }),
     useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
+      coordinateGetter: canEdit ? sortableKeyboardCoordinates : noopKeyboardGetter,
     })
   );
 

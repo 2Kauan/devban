@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Outlet, useParams, Link, useLocation } from 'react-router-dom';
+import { Outlet, useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,11 +15,13 @@ export function ProjectLayout() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   
   const [project, setProject] = useState<Project | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isKicked, setIsKicked] = useState(false);
 
   const { data: ownedProjects = [] } = useProjectsQuery();
   const { data: sharedProjects = [] } = useSharedProjectsQuery();
@@ -52,7 +54,7 @@ export function ProjectLayout() {
   }, [user, id]);
 
   useEffect(() => {
-    if (!project?.id) return;
+    if (!project?.id || !user) return;
     
     const channel = supabase
       .channel(`project_layout_${project.id}`)
@@ -73,12 +75,39 @@ export function ProjectLayout() {
           });
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'project_members',
+          filter: `project_id=eq.${project.id}`,
+        },
+        async (payload) => {
+          if (payload.eventType === 'DELETE' && payload.old?.user_id === user.id) {
+            setIsKicked(true);
+            toast.error('Você foi removido deste projeto.', { duration: 8000 });
+            setTimeout(() => {
+              navigate('/projects');
+            }, 2000);
+            return;
+          }
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            if (payload.new?.user_id === user.id) {
+              queryClient.invalidateQueries({ queryKey: ['project', project.id] });
+              if (payload.eventType === 'UPDATE') {
+                toast.info('Sua permissão neste projeto foi alterada. Atualizando...', { duration: 3000 });
+              }
+            }
+          }
+        }
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [project?.id]);
+  }, [project?.id, user?.id]);
 
   const isOwner = project?.owner_id === user?.id;
 
@@ -93,6 +122,26 @@ export function ProjectLayout() {
   ];
 
   const currentTabName = tabs.find(t => location.pathname === t.path)?.name || 'Kanban';
+
+  if (isKicked) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-background">
+        <div className="text-center p-8">
+          <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center text-destructive mx-auto mb-4">
+            <Users size={32} />
+          </div>
+          <h2 className="text-xl font-bold text-foreground mb-2">Acesso Removido</h2>
+          <p className="text-muted-foreground mb-6">Você foi removido deste projeto por um administrador.</p>
+          <button
+            onClick={() => navigate('/projects')}
+            className="bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors"
+          >
+            Voltar para Projetos
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

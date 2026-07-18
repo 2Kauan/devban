@@ -45,7 +45,7 @@ export function useProjectsQuery() {
       return projects;
     },
     enabled: !!user,
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 30,
     gcTime: 1000 * 60 * 10,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
