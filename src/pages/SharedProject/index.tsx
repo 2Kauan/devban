@@ -17,7 +17,6 @@ export default function SharedProject() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const { user, profile } = useAuth();
-  const [isJoining, setIsJoining] = useState(false);
   
   // Access request form state
   const [requestName, setRequestName] = useState('');
