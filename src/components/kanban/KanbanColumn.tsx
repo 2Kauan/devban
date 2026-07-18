@@ -247,7 +247,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
         {!isEditing && canEdit && (
           <button
             onClick={() => onAddCard(column.id)}
-            className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 opacity-0 group-hover/header:opacity-100 transition-all shrink-0 ml-1"
+            className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all shrink-0 ml-1"
             title="Adicionar tarefa"
           >
             <Plus size={16} />
