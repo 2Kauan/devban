@@ -1,8 +1,10 @@
-import { useMemo, useState } from 'react';
-import { isSameDay, parseISO } from 'date-fns';
+import { useMemo } from 'react';
+import { format, parseISO, isSameDay } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import type { KanbanCardType } from '@/types/kanban';
 import { getWeekDays, getEventsForDay } from '@/utils/calendar';
 import { CalendarEvent } from './CalendarEvent';
+import { Clock } from 'lucide-react';
 
 interface WeekViewProps {
   currentDate: Date;
@@ -14,199 +16,135 @@ interface WeekViewProps {
 
 export function WeekView({ currentDate, cards, onEventClick, onDayClick, onEventDrop }: WeekViewProps) {
   const weekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
-  const hours = Array.from({ length: 24 }, (_, i) => i);
-  const [hoveredSlot, setHoveredSlot] = useState<string | null>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
   };
 
-  const handleDrop = (e: React.DragEvent, date: Date, hour?: number) => {
+  const handleDrop = (e: React.DragEvent, date: Date) => {
     e.preventDefault();
-    setHoveredSlot(null);
     const cardId = e.dataTransfer.getData('text/plain');
     if (cardId) {
-      // Create a new date with the specific hour if dropped on a time slot
-      const newDate = new Date(date);
-      if (hour !== undefined) {
-        newDate.setHours(hour, 0, 0, 0);
-      }
-      onEventDrop(cardId, newDate);
+      onEventDrop(cardId, date);
     }
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-background overflow-hidden">
-      {/* Header (Dias da Semana) */}
-      <div className="flex border-b border-border/50 bg-muted/30 shrink-0 pl-12 sm:pl-16">
-        {weekDays.map(day => {
-          const isToday = isSameDay(day, new Date());
-          return (
-            <div 
-              key={day.toISOString()} 
-              className="flex-1 py-3 text-center border-l border-border/40"
-            >
-              <div className="text-xs font-semibold text-muted-foreground uppercase mb-1">
-                {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][day.getDay()]}
-              </div>
-              <div className={`
-                inline-flex w-8 h-8 items-center justify-center rounded-full text-lg font-medium
-                ${isToday ? 'bg-primary text-primary-foreground' : 'text-foreground'}
-              `}>
-                {day.getDate()}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+    <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 bg-background">
+      <div className="max-w-5xl mx-auto bg-card border border-border/40 rounded-xl overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-left">
+            <thead>
+              <tr className="border-b border-border/60 bg-muted/40">
+                <th className="p-4 font-semibold text-sm text-muted-foreground w-1/3 min-w-[200px]">Dia</th>
+                <th className="p-4 font-semibold text-sm text-muted-foreground w-1/6 min-w-[120px]">Horário</th>
+                <th className="p-4 font-semibold text-sm text-muted-foreground min-w-[250px]">Tarefa / Evento</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/30">
+              {weekDays.map((day) => {
+                const isToday = isSameDay(day, new Date());
+                const dayEvents = getEventsForDay(cards, day);
+                
+                // Sort events: All Day first, then by time
+                const sortedEvents = [...dayEvents].sort((a, b) => {
+                  const aIsAllDay = !a.due_date?.includes('T') || a.due_date.endsWith('T00:00:00.000Z');
+                  const bIsAllDay = !b.due_date?.includes('T') || b.due_date.endsWith('T00:00:00.000Z');
+                  
+                  if (aIsAllDay && !bIsAllDay) return -1;
+                  if (!aIsAllDay && bIsAllDay) return 1;
+                  
+                  const aTime = a.due_date?.includes('T') ? a.due_date.split('T')[1] : '';
+                  const bTime = b.due_date?.includes('T') ? b.due_date.split('T')[1] : '';
+                  return aTime.localeCompare(bTime);
+                });
 
-      {/* Grade de Horas */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar relative">
-        <div className="flex min-h-[1440px]">
-          {/* Coluna de Horas */}
-          <div className="w-12 sm:w-16 shrink-0 border-r border-border/50 bg-background relative z-10">
-            {hours.map(hour => (
-              <div key={hour} className="h-[60px] flex items-start justify-end pr-2 py-1 text-xs text-muted-foreground">
-                {hour === 0 ? '' : `${hour.toString().padStart(2, '0')}:00`}
-              </div>
-            ))}
-          </div>
-
-          {/* Colunas dos Dias */}
-          <div className="flex-1 flex">
-            {weekDays.map(day => {
-              const dayEvents = getEventsForDay(cards, day);
-              
-              // Separar eventos All Day (sem hora) de eventos com hora
-              const allDayEvents = dayEvents.filter(e => !e.due_date?.includes('T') || e.due_date.endsWith('T00:00:00.000Z'));
-              const timedEvents = dayEvents.filter(e => e.due_date?.includes('T') && !e.due_date.endsWith('T00:00:00.000Z'));
-
-              // Cálculo de layout para eventos que se sobrepõem
-              const sortedTimed = [...timedEvents].sort((a, b) => parseISO(a.due_date!).getTime() - parseISO(b.due_date!).getTime());
-              const layouts = sortedTimed.map(event => {
-                const d = parseISO(event.due_date!);
-                const startMins = d.getHours() * 60 + d.getMinutes();
-                return { event, startMins, endMins: startMins + 60, col: 0, maxCol: 1 };
-              });
-
-              const groups: typeof layouts[] = [];
-              let currentGroup: typeof layouts = [];
-
-              layouts.forEach(ev => {
-                if (currentGroup.length === 0) {
-                  currentGroup.push(ev);
-                } else {
-                  const groupMaxEnd = Math.max(...currentGroup.map(e => e.endMins));
-                  if (ev.startMins < groupMaxEnd) {
-                    currentGroup.push(ev);
-                  } else {
-                    groups.push(currentGroup);
-                    currentGroup = [ev];
-                  }
+                if (sortedEvents.length === 0) {
+                  return (
+                    <tr 
+                      key={day.toISOString()} 
+                      className={`hover:bg-muted/10 transition-colors cursor-pointer ${isToday ? 'bg-primary/5' : ''}`}
+                      onClick={() => onDayClick(day)}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, day)}
+                    >
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`
+                            flex flex-col items-center justify-center w-10 h-10 rounded-lg border
+                            ${isToday ? 'bg-primary border-primary text-primary-foreground' : 'bg-muted/30 border-border/50 text-foreground'}
+                          `}>
+                            <span className="text-xs font-bold leading-none uppercase">
+                              {format(day, 'eee', { locale: ptBR })}
+                            </span>
+                            <span className="text-sm font-semibold mt-0.5">
+                              {format(day, 'dd')}
+                            </span>
+                          </div>
+                          <span className={`text-sm font-medium ${isToday ? 'text-primary font-semibold' : 'text-foreground'}`}>
+                            {format(day, "dd 'de' MMMM", { locale: ptBR })}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="p-4 text-sm text-muted-foreground" colSpan={2}>
+                        <span className="italic text-xs text-muted-foreground/60">Nenhuma tarefa agendada para este dia</span>
+                      </td>
+                    </tr>
+                  );
                 }
-              });
-              if (currentGroup.length > 0) groups.push(currentGroup);
 
-              const layoutedEvents: typeof layouts = [];
-              groups.forEach(group => {
-                const cols: typeof group[] = [];
-                group.forEach(ev => {
-                  let placed = false;
-                  for (let i = 0; i < cols.length; i++) {
-                    const col = cols[i];
-                    const lastEv = col[col.length - 1];
-                    if (ev.startMins >= lastEv.endMins) {
-                      col.push(ev);
-                      ev.col = i;
-                      placed = true;
-                      break;
+                return sortedEvents.map((event, index) => {
+                  let timeStr = 'Dia Todo';
+                  if (event.due_date && event.due_date.includes('T')) {
+                    const timePart = event.due_date.split('T')[1];
+                    if (timePart && !event.due_date.endsWith('T00:00:00.000Z')) {
+                      timeStr = timePart.substring(0, 5);
                     }
                   }
-                  if (!placed) {
-                    ev.col = cols.length;
-                    cols.push([ev]);
-                  }
-                });
 
-                const numCols = cols.length;
-                group.forEach(ev => {
-                  ev.maxCol = numCols;
-                  layoutedEvents.push(ev);
-                });
-              });
-
-              return (
-                <div 
-                  key={day.toISOString()} 
-                  className="flex-1 border-l border-border/20 relative min-w-[100px]"
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, day)}
-                  onClick={() => onDayClick(day)}
-                >
-                  {/* Linhas Horizontais de cada hora */}
-                  {hours.map(hour => {
-                    const slotId = `${day.toISOString()}-${hour}`;
-                    const isHovered = hoveredSlot === slotId;
-                    return (
-                      <div 
-                        key={hour} 
-                        className={`
-                          h-[60px] border-b border-border/20 w-full transition-all duration-200
-                          ${isHovered ? 'bg-primary/5 border-primary/20 scale-[1.02] shadow-inner' : ''}
-                        `}
-                        onDragOver={handleDragOver}
-                        onDragEnter={() => setHoveredSlot(slotId)}
-                        onDragLeave={(e) => {
-                          if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget as Node)) {
-                            setHoveredSlot(null);
-                          }
-                        }}
-                        onDrop={(e) => {
-                          e.stopPropagation();
-                          handleDrop(e, day, hour);
-                        }}
-                      />
-                    );
-                  })}
-
-                  {/* Renderizar Eventos All Day no topo (fixo) */}
-                  <div className="absolute top-0 left-0 w-full px-1 z-20 flex flex-col gap-1 mt-1 pointer-events-none">
-                    {allDayEvents.map(event => (
-                      <div key={event.id} className="pointer-events-auto">
+                  return (
+                    <tr 
+                      key={event.id}
+                      className={`hover:bg-muted/10 transition-colors cursor-pointer ${isToday ? 'bg-primary/5' : ''}`}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, day)}
+                    >
+                      {index === 0 && (
+                        <td className="p-4 align-top border-r border-border/10" rowSpan={sortedEvents.length} onClick={() => onDayClick(day)}>
+                          <div className="flex items-center gap-3">
+                            <div className={`
+                              flex flex-col items-center justify-center w-10 h-10 rounded-lg border
+                              ${isToday ? 'bg-primary border-primary text-primary-foreground' : 'bg-muted/30 border-border/50 text-foreground'}
+                            `}>
+                              <span className="text-xs font-bold leading-none uppercase">
+                                {format(day, 'eee', { locale: ptBR })}
+                              </span>
+                              <span className="text-sm font-semibold mt-0.5">
+                                {format(day, 'dd')}
+                              </span>
+                            </div>
+                            <span className={`text-sm font-medium ${isToday ? 'text-primary font-semibold' : 'text-foreground'}`}>
+                              {format(day, "dd 'de' MMMM", { locale: ptBR })}
+                            </span>
+                          </div>
+                        </td>
+                      )}
+                      <td className="p-4 align-middle">
+                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                          <Clock className="w-3.5 h-3.5 text-muted-foreground/70" />
+                          <span>{timeStr}</span>
+                        </div>
+                      </td>
+                      <td className="p-4 align-middle">
                         <CalendarEvent event={event} onClick={onEventClick} />
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Renderizar Eventos com Hora (Posicionamento Absoluto e Lado a Lado) */}
-                  {layoutedEvents.map(({ event, startMins, col, maxCol }) => {
-                    const topPixels = startMins;
-                    const heightPixels = 60; // 1 hora
-                    const widthPercentage = 100 / maxCol;
-                    const leftPercentage = col * widthPercentage;
-
-                    return (
-                      <div 
-                        key={event.id}
-                        className="absolute z-10 p-0.5"
-                        style={{ 
-                          top: `${topPixels}px`, 
-                          height: `${heightPixels}px`,
-                          left: `${leftPercentage}%`,
-                          width: `${widthPercentage}%`
-                        }}
-                      >
-                         <div className="w-full h-full">
-                           <CalendarEvent event={event} onClick={onEventClick} />
-                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </div>
+                      </td>
+                    </tr>
+                  );
+                });
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
