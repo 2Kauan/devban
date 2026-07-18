@@ -2,12 +2,13 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/lib/supabase';
 import type { KanbanCardType } from '@/types/kanban';
-import { Clock, CheckSquare, Trash2, Tag, Loader2, ArrowRight, X, AlignLeft, Plus, Flag, ChevronDown, ArrowDownRight, ArrowUpRight, AlertCircle, Users, ListTree, CheckCircle2 } from 'lucide-react';
+import { Clock, CheckSquare, Trash2, Tag, Loader2, ArrowRight, X, AlignLeft, Plus, Flag, ChevronDown, ArrowDownRight, ArrowUpRight, AlertCircle, Users, ListTree, CheckCircle2, Pencil } from 'lucide-react';
 import { queueMutation, isNetworkError } from '@/lib/offlineSync';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { CardComments } from '@/components/kanban/CardComments';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { TagSelector } from '@/components/ui/TagSelector';
 import type { Category, Profile } from '@/types/database';
@@ -64,6 +65,8 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
   const [newItemText, setNewItemText] = useState('');
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [isPriorityOpen, setIsPriorityOpen] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const [isAssigneeOpen, setIsAssigneeOpen] = useState(false);
   const [confirmConfig, setConfirmConfig] = useState<{
     isOpen: boolean;
@@ -606,12 +609,31 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
             className="bg-card w-full max-w-3xl rounded-2xl shadow-2xl border border-border overflow-hidden flex flex-col max-h-[90vh] relative z-10"
           >
             <div className="flex justify-between items-start p-6 border-b border-border/50 bg-muted/10">
-              <div className="flex-1 pr-4">
+              <div className="flex-1 pr-4 flex items-center gap-2">
+                {canEdit && (
+                  <button
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setIsEditingTitle(true);
+                      requestAnimationFrame(() => {
+                        titleInputRef.current?.focus();
+                        titleInputRef.current?.select();
+                      });
+                    }}
+                    className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0 mt-2"
+                    title="Editar título"
+                  >
+                    <Pencil size={16} />
+                  </button>
+                )}
                 <input 
+                  ref={titleInputRef}
                   type="text"
                   {...register('title')}
-                  readOnly={!canEdit}
-                  className={`w-full text-2xl font-extrabold bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-lg px-3 py-1.5 -ml-3 text-foreground transition-all ${!canEdit ? 'pointer-events-none' : ''}`}
+                  readOnly={!canEdit || !isEditingTitle}
+                  onBlur={() => setIsEditingTitle(false)}
+                  className="w-full text-2xl font-extrabold bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-lg px-3 py-1.5 -ml-3 text-foreground transition-all"
                 />
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
