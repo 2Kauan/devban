@@ -569,6 +569,23 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
     }
   };
 
+  const handleDeleteTag = async (tag: Category) => {
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', tag.id);
+
+      if (error) throw error;
+
+      setLocalTags(prev => prev.filter(t => t.id !== tag.id));
+      toast.success('Etiqueta excluída!');
+      onUpdate();
+    } catch (error: any) {
+      toast.error('Erro ao excluir etiqueta: ' + error?.message);
+    }
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -936,6 +953,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
                         projectTags={projectCategories}
                         onToggleTag={handleToggleTag}
                         onCreateTag={handleCreateTag}
+                        onDeleteTag={handleDeleteTag}
                         canEdit={canEdit}
                       />
                     </div>

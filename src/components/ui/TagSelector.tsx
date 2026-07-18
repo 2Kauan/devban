@@ -8,6 +8,7 @@ interface TagSelectorProps {
   projectTags: Category[];
   onToggleTag: (tag: Category) => void;
   onCreateTag: (name: string, color: string) => void;
+  onDeleteTag?: (tag: Category) => void;
   canEdit?: boolean;
 }
 
@@ -25,7 +26,7 @@ const TAG_COLORS = [
   '#64748b', // Slate
 ];
 
-export function TagSelector({ selectedTags, projectTags, onToggleTag, onCreateTag, canEdit = true }: TagSelectorProps) {
+export function TagSelector({ selectedTags, projectTags, onToggleTag, onCreateTag, onDeleteTag, canEdit = true }: TagSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [newTagName, setNewTagName] = useState('');
@@ -194,18 +195,35 @@ export function TagSelector({ selectedTags, projectTags, onToggleTag, onCreateTa
                     projectTags.map(tag => {
                       const isSelected = selectedTags.some(t => t.id === tag.id);
                       return (
-                        <button
-                          type="button"
+                        <div
                           key={tag.id}
-                          onClick={() => onToggleTag(tag)}
                           className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors group"
                         >
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: tag.color }} />
-                            <span className="text-sm font-medium text-foreground">{tag.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => onToggleTag(tag)}
+                            className="flex items-center gap-2 flex-1 min-w-0"
+                          >
+                            <div className="w-3 h-3 rounded-full shadow-sm shrink-0" style={{ backgroundColor: tag.color }} />
+                            <span className="text-sm font-medium text-foreground truncate">{tag.name}</span>
+                          </button>
+                          <div className="flex items-center gap-1 shrink-0">
+                            {isSelected && <Check size={14} className="text-primary" />}
+                            {canEdit && onDeleteTag && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDeleteTag(tag);
+                                }}
+                                className="p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
+                                title="Excluir etiqueta"
+                              >
+                                <X size={12} />
+                              </button>
+                            )}
                           </div>
-                          {isSelected && <Check size={14} className="text-primary" />}
-                        </button>
+                        </div>
                       );
                     })
                   )}
