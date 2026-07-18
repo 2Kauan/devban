@@ -72,18 +72,21 @@ export function WeekView({ currentDate, cards, onEventClick, onDayClick, onEvent
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <div className={`
-                            flex flex-col items-center justify-center w-10 h-10 rounded-lg border
+                            flex flex-col items-center justify-center w-10 h-10 rounded-lg border shrink-0
                             ${isToday ? 'bg-primary border-primary text-primary-foreground' : 'bg-muted/30 border-border/50 text-foreground'}
                           `}>
-                            <span className="text-xs font-bold leading-none uppercase">
-                              {format(day, 'eee', { locale: ptBR })}
+                            <span className="text-[10px] font-bold leading-none uppercase">
+                              {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][day.getDay()]}
                             </span>
                             <span className="text-sm font-semibold mt-0.5">
                               {format(day, 'dd')}
                             </span>
                           </div>
-                          <span className={`text-sm font-medium ${isToday ? 'text-primary font-semibold' : 'text-foreground'}`}>
+                          <span className={`text-sm font-medium ${isToday ? 'text-primary font-semibold' : 'text-foreground'} hidden sm:inline`}>
                             {format(day, "dd 'de' MMMM", { locale: ptBR })}
+                          </span>
+                          <span className={`text-sm font-medium ${isToday ? 'text-primary font-semibold' : 'text-foreground'} sm:hidden`}>
+                            {format(day, "dd/MM")}
                           </span>
                         </div>
                       </td>
@@ -114,18 +117,21 @@ export function WeekView({ currentDate, cards, onEventClick, onDayClick, onEvent
                         <td className="p-4 align-top border-r border-border/10" rowSpan={sortedEvents.length} onClick={() => onDayClick(day)}>
                           <div className="flex items-center gap-3">
                             <div className={`
-                              flex flex-col items-center justify-center w-10 h-10 rounded-lg border
+                              flex flex-col items-center justify-center w-10 h-10 rounded-lg border shrink-0
                               ${isToday ? 'bg-primary border-primary text-primary-foreground' : 'bg-muted/30 border-border/50 text-foreground'}
                             `}>
-                              <span className="text-xs font-bold leading-none uppercase">
-                                {format(day, 'eee', { locale: ptBR })}
+                              <span className="text-[10px] font-bold leading-none uppercase">
+                                {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][day.getDay()]}
                               </span>
                               <span className="text-sm font-semibold mt-0.5">
                                 {format(day, 'dd')}
                               </span>
                             </div>
-                            <span className={`text-sm font-medium ${isToday ? 'text-primary font-semibold' : 'text-foreground'}`}>
+                            <span className={`text-sm font-medium ${isToday ? 'text-primary font-semibold' : 'text-foreground'} hidden sm:inline`}>
                               {format(day, "dd 'de' MMMM", { locale: ptBR })}
+                            </span>
+                            <span className={`text-sm font-medium ${isToday ? 'text-primary font-semibold' : 'text-foreground'} sm:hidden`}>
+                              {format(day, "dd/MM")}
                             </span>
                           </div>
                         </td>
