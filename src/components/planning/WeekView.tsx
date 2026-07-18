@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { format, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { KanbanCardType } from '@/types/kanban';
@@ -16,6 +16,7 @@ interface WeekViewProps {
 
 export function WeekView({ currentDate, cards, onEventClick, onDayClick, onEventDrop }: WeekViewProps) {
   const weekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
+  const [hoveredDay, setHoveredDay] = useState<string | null>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -24,6 +25,7 @@ export function WeekView({ currentDate, cards, onEventClick, onDayClick, onEvent
 
   const handleDrop = (e: React.DragEvent, date: Date) => {
     e.preventDefault();
+    setHoveredDay(null);
     const cardId = e.dataTransfer.getData('text/plain');
     if (cardId) {
       onEventDrop(cardId, date);
@@ -46,6 +48,7 @@ export function WeekView({ currentDate, cards, onEventClick, onDayClick, onEvent
               {weekDays.map((day) => {
                 const isToday = isSameDay(day, new Date());
                 const dayEvents = getEventsForDay(cards, day);
+                const isHovered = hoveredDay === day.toISOString();
                 
                 // Sort events: All Day first, then by time
                 const sortedEvents = [...dayEvents].sort((a, b) => {
@@ -64,9 +67,15 @@ export function WeekView({ currentDate, cards, onEventClick, onDayClick, onEvent
                   return (
                     <tr 
                       key={day.toISOString()} 
-                      className={`hover:bg-muted/10 transition-colors cursor-pointer ${isToday ? 'bg-primary/5' : ''}`}
+                      className={`hover:bg-muted/10 transition-all duration-200 cursor-pointer ${isToday ? 'bg-primary/5' : ''} ${isHovered ? 'scale-[1.01] border-l-2 border-l-primary bg-muted/25 z-10 shadow-md relative' : ''}`}
                       onClick={() => onDayClick(day)}
                       onDragOver={handleDragOver}
+                      onDragEnter={() => setHoveredDay(day.toISOString())}
+                      onDragLeave={(e) => {
+                        if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget as Node)) {
+                          setHoveredDay(null);
+                        }
+                      }}
                       onDrop={(e) => handleDrop(e, day)}
                     >
                       <td className="p-4">
@@ -109,8 +118,14 @@ export function WeekView({ currentDate, cards, onEventClick, onDayClick, onEvent
                   return (
                     <tr 
                       key={event.id}
-                      className={`hover:bg-muted/10 transition-colors cursor-pointer ${isToday ? 'bg-primary/5' : ''}`}
+                      className={`hover:bg-muted/10 transition-all duration-200 cursor-pointer ${isToday ? 'bg-primary/5' : ''} ${isHovered ? 'scale-[1.01] border-l-2 border-l-primary bg-muted/25 z-10 shadow-md relative' : ''}`}
                       onDragOver={handleDragOver}
+                      onDragEnter={() => setHoveredDay(day.toISOString())}
+                      onDragLeave={(e) => {
+                        if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget as Node)) {
+                          setHoveredDay(null);
+                        }
+                      }}
                       onDrop={(e) => handleDrop(e, day)}
                     >
                       {index === 0 && (
