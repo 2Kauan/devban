@@ -31,6 +31,22 @@ export default function ProjectActivity() {
   useEffect(() => {
     if (project?.id) {
       fetchActivity();
+      
+      const subscription = supabase
+        .channel(`activity_${project.id}`)
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'card_activity_logs',
+          filter: `project_id=eq.${project.id}`
+        }, () => {
+          fetchActivity();
+        })
+        .subscribe();
+        
+      return () => {
+        supabase.removeChannel(subscription);
+      };
     }
   }, [project?.id]);
 
@@ -70,13 +86,27 @@ export default function ProjectActivity() {
     const cardTitle = log.cards?.title || oldTitle || 'tarefa desconhecida';
     
     switch (log.action) {
-      case 'created': return `criou a tarefa "${cardTitle}"`;
-      case 'updated_status': return `moveu a tarefa "${cardTitle}" para "${log.new_value}"`;
-      case 'updated_description': return `atualizou a descrição da tarefa "${cardTitle}"`;
-      case 'added_comment': return `comentou na tarefa "${cardTitle}"`;
-      case 'added_attachment': return `anexou um arquivo em "${cardTitle}"`;
-      case 'deleted': return `excluiu a tarefa "${cardTitle}"`;
-      default: return `atualizou a tarefa "${cardTitle}"`;
+      case 'created':
+      case 'created_card':
+        return `criou a tarefa "${cardTitle}"`;
+      case 'updated_status':
+      case 'moved_card':
+        const fromCol = (log.old_value as any)?.column_title;
+        const toCol = (log.new_value as any)?.column_title;
+        if (fromCol && toCol) {
+          return `moveu a tarefa "${cardTitle}" de "${fromCol}" para "${toCol}"`;
+        }
+        return `moveu a tarefa "${cardTitle}" para "${(log.new_value as any)?.column_title || 'outra coluna'}"`;
+      case 'updated_description': 
+        return `atualizou a descrição da tarefa "${cardTitle}"`;
+      case 'added_comment': 
+        return `comentou na tarefa "${cardTitle}"`;
+      case 'added_attachment': 
+        return `anexou um arquivo em "${cardTitle}"`;
+      case 'deleted': 
+        return `excluiu a tarefa "${cardTitle}"`;
+      default: 
+        return `atualizou a tarefa "${cardTitle}"`;
     }
   };
 

@@ -11,6 +11,7 @@ import { CardComments } from '@/components/kanban/CardComments';
 
 import { TagSelector } from '@/components/ui/TagSelector';
 import type { Category, Profile } from '@/types/database';
+import { useAuth } from '@/contexts/AuthContext';
 import { NotificationService } from '@/services/notifications/notificationService';
 import type { ProjectMember } from '@/hooks/useProjectQuery';
 
@@ -61,6 +62,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const [localTags, setLocalTags] = useState<Category[]>([]);
   const [localAssignees, setLocalAssignees] = useState<Profile[]>([]);
+  const { user } = useAuth();
   const [newItemText, setNewItemText] = useState('');
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [isPriorityOpen, setIsPriorityOpen] = useState(false);
@@ -252,15 +254,27 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
       // atuais para que se você criar várias de uma vez, elas fiquem em cascata na ordem correta.
       const newPosition = card.position + subtasks.length + 1;
       
-      const { error } = await supabase.from('cards').insert({
+      const { data: newSubtask, error } = await supabase.from('cards').insert({
         project_id: projectId,
         column_id: targetColumnId,
         parent_id: card.id,
         title: newSubtaskTitle.trim(),
         priority: 'medium',
-        position: newPosition
-      });
+        position: newPosition,
+        created_by: user?.id
+      }).select().single();
+      
       if (error) throw error;
+      
+      if (user) {
+        await supabase.from('card_activity_logs').insert({
+          card_id: newSubtask.id,
+          project_id: projectId,
+          user_id: user.id,
+          action: 'created_card'
+        });
+      }
+      
       setNewSubtaskTitle('');
       onUpdate();
     } catch (error: any) {
@@ -331,6 +345,16 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
           // Otimização: Deleção imediata
           if (onOptimisticDelete) {
             onOptimisticDelete(card.id);
+          }
+          
+          if (user) {
+            await supabase.from('card_activity_logs').insert({
+              project_id: projectId,
+              card_id: card.id,
+              user_id: user.id,
+              action: 'deleted',
+              old_value: { title: card.title }
+            });
           }
           
           const { error } = await supabase.from('cards').delete().eq('id', card.id);

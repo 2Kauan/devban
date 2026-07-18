@@ -6,6 +6,7 @@ import { CardModal } from '@/components/ui/CardModal';
 import { ShareModal } from '@/components/ui/ShareModal';
 import { AccessRequestsModal } from '@/components/ui/AccessRequestsModal';
 import { ProjectHeader } from '@/components/project/ProjectHeader';
+import { ProjectHealthModal } from '@/components/project/ProjectHealthModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEvent } from '@/hooks/useEvent';
 import { useKanbanModals } from '@/hooks/useKanbanModals';
@@ -39,6 +40,7 @@ export default function ProjectPage() {
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isAccessRequestsOpen, setIsAccessRequestsOpen] = useState(false);
+  const [isHealthModalOpen, setIsHealthModalOpen] = useState(false);
   
   // Auto-open card from URL
   useEffect(() => {
@@ -193,6 +195,7 @@ export default function ProjectPage() {
           onOpenSidebar={() => {}}
           searchQuery={searchQuery}
           onSearch={setSearchQuery}
+          onOpenAnalytics={() => setIsHealthModalOpen(true)}
         />
 
       <div className="flex-1 overflow-hidden p-4 sm:p-6 pb-0 flex flex-col min-h-0">
@@ -243,6 +246,14 @@ export default function ProjectPage() {
       />
       
       {KanbanModals}
+
+      <ProjectHealthModal
+        isOpen={isHealthModalOpen}
+        onClose={() => setIsHealthModalOpen(false)}
+        cards={cards}
+        columns={columns}
+        projectMembers={projectMembers}
+      />
     </div>
   );
 }

@@ -1,16 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import type { Project } from '@/types/database';
 import { ShareModal } from '@/components/ui/ShareModal';
-import { Users, UserPlus, Settings, Trash2, Save } from 'lucide-react';
+import { Users, UserPlus, Settings, Trash2, Save, Lightbulb, Rocket, Activity, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserProfileModal } from '@/components/ui/UserProfileModal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import type { KanbanCardType } from '@/types/kanban';
+import type { KanbanCardType, KanbanColumnType } from '@/types/kanban';
 import { useQueryClient } from '@tanstack/react-query';
+import { useProjectQuery } from '@/hooks/useProjectQuery';
 
 interface Member {
   user_id: string;
@@ -41,7 +42,10 @@ export default function ProjectTeam() {
   const [isSaving, setIsSaving] = useState(false);
   
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
-  const [projectCards, setProjectCards] = useState<KanbanCardType[]>([]);
+  const { data: projectData } = useProjectQuery(project?.id);
+  const projectCards = projectData?.cards || [];
+  const columns = projectData?.columns || [];
+
   const [confirmConfig, setConfirmConfig] = useState({
     isOpen: false,
     title: '',
@@ -101,19 +105,6 @@ export default function ProjectTeam() {
       }
 
       setMembers(memberList);
-
-      // Fetch cards for stats
-      const { data: cardsData } = await supabase
-        .from('cards')
-        .select(`*, assignees:card_assignees(user_id)`)
-        .eq('project_id', project.id);
-        
-      if (cardsData) {
-        setProjectCards(cardsData.map((c: any) => ({
-          ...c,
-          assignees: c.assignees?.map((a: any) => ({ id: a.user_id })) || []
-        })));
-      }
 
     } catch (error: any) {
       toast.error('Erro ao buscar membros: ' + error.message);
@@ -194,6 +185,57 @@ export default function ProjectTeam() {
 
   const hasPendingChanges = Object.keys(pendingChanges).length > 0;
 
+  // Memoized Insights
+  const teamInsights = useMemo(() => {
+    if (!projectCards.length || !columns.length || !members.length) return null;
+    
+    let completedColIds = columns.filter(c => c.is_completed).map(c => c.id);
+    if (completedColIds.length === 0 && columns.length > 0) {
+      const sortedCols = [...columns].sort((a, b) => b.position - a.position);
+      completedColIds = [sortedCols[0].id];
+    }
+    
+    const activeCards = projectCards.filter(c => !completedColIds.includes(c.column_id));
+    const completedCards = projectCards.filter(c => completedColIds.includes(c.column_id));
+    
+    const insights = members.map((member) => {
+      const user = member.profiles;
+      const createdCount = projectCards.filter(c => c.created_by === member.user_id).length;
+      const completedCount = completedCards.filter(c => c.assignees?.some(a => a.id === member.user_id)).length;
+      const activeCount = activeCards.filter(c => c.assignees?.some(a => a.id === member.user_id)).length;
+      
+      let speedPct = 0;
+      if (activeCount + completedCount > 0) {
+        speedPct = Math.round((completedCount / (activeCount + completedCount)) * 100);
+        if (completedCount > 0 && activeCount === 0) speedPct = 100;
+        if (activeCount > 5) speedPct = speedPct > 50 ? speedPct - 20 : speedPct;
+      }
+
+      return {
+        user_id: member.user_id,
+        user,
+        createdCount,
+        completedCount,
+        activeCount,
+        gaugeValue: speedPct,
+        isOverloaded: activeCount > 4,
+      };
+    });
+
+    const biggestCreator = [...insights].sort((a,b) => b.createdCount - a.createdCount)[0];
+    const mostProductive = [...insights].sort((a,b) => b.completedCount - a.completedCount)[0];
+    const mostOverloaded = [...insights].sort((a,b) => b.activeCount - a.activeCount)[0];
+    const fastest = [...insights].sort((a,b) => b.gaugeValue - a.gaugeValue)[0];
+
+    return {
+      list: insights,
+      biggestCreator: biggestCreator?.createdCount > 0 ? biggestCreator : null,
+      mostProductive: mostProductive?.completedCount > 0 ? mostProductive : null,
+      mostOverloaded: mostOverloaded?.isOverloaded ? mostOverloaded : null,
+      fastest: fastest?.gaugeValue > 0 ? fastest : null,
+    };
+  }, [projectCards, columns, members]);
+
   return (
     <div className="p-4 sm:p-8 w-full max-w-5xl mx-auto h-full overflow-y-auto">
       <div className="mb-8 flex flex-col items-start">
@@ -229,6 +271,122 @@ export default function ProjectTeam() {
           )}
         </div>
       </div>
+      
+      {/* Team Insights Section */}
+      {teamInsights && teamInsights.list.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2 mb-4">
+            <Lightbulb className="text-yellow-500" size={20} />
+            Desempenho da Equipe
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {teamInsights.list.map((insight) => {
+              let Icon: any = null;
+              let iconColorBg = 'bg-muted';
+              let iconColorText = 'text-muted-foreground';
+              let isWarning = false;
+              let insightText = 'Em andamento';
+
+              if (insight.activeCount === 0 && insight.completedCount === 0) {
+                insightText = 'Sem tarefas';
+              } else if (insight.isOverloaded) {
+                Icon = AlertTriangle;
+                iconColorBg = 'bg-destructive/10';
+                iconColorText = 'text-destructive';
+                isWarning = true;
+                insightText = 'Sobrecarga';
+              } else if (teamInsights.mostProductive?.user_id === insight.user_id) {
+                Icon = Rocket;
+                iconColorBg = 'bg-blue-500/10';
+                iconColorText = 'text-blue-500';
+                insightText = 'Mais produtivo';
+              } else if (teamInsights.biggestCreator?.user_id === insight.user_id) {
+                Icon = Lightbulb;
+                iconColorBg = 'bg-yellow-500/10';
+                iconColorText = 'text-yellow-500';
+                insightText = 'Criou mais cards';
+              } else if (teamInsights.fastest?.user_id === insight.user_id) {
+                Icon = Activity;
+                iconColorBg = 'bg-green-500/10';
+                iconColorText = 'text-green-500';
+                insightText = 'Velocidade alta';
+              }
+
+              const clampValue = Math.min(Math.max(insight.gaugeValue, 0), 100);
+              let progressBarColor = "bg-green-500";
+              if (isWarning || clampValue < 40) progressBarColor = "bg-destructive";
+              else if (clampValue >= 40 && clampValue <= 70) progressBarColor = "bg-yellow-500";
+              
+              // Se não tiver tarefas, deixa a barra cinza
+              if (insight.activeCount === 0 && insight.completedCount === 0) {
+                 progressBarColor = "bg-muted-foreground/30";
+              }
+
+              return (
+                <div key={insight.user_id} className="flex flex-col p-4 bg-card rounded-2xl border border-border shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-primary/30 transition-all duration-300 ease-out gap-4 relative overflow-hidden group/card">
+                  
+                  {/* Top: Avatar and Highlight Badge */}
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                       <img 
+                         src={insight.user?.avatar_url || `https://ui-avatars.com/api/?name=${insight.user?.name || 'User'}`} 
+                         alt={insight.user?.name || ''} 
+                         className="w-10 h-10 rounded-full ring-2 ring-border object-cover cursor-pointer"
+                         onClick={() => setSelectedProfileId(insight.user_id)}
+                       />
+                       <div className="flex flex-col">
+                         <span className="font-bold text-sm text-foreground truncate max-w-[120px]" title={insight.user?.name || ''}>
+                           {insight.user?.name?.split(' ')[0]}
+                         </span>
+                         <span className="text-[11px] text-muted-foreground flex items-center gap-1 font-medium">
+                           {insightText}
+                         </span>
+                       </div>
+                    </div>
+                    
+                    {Icon && (
+                      <div className={`p-2 rounded-xl ${iconColorBg}`} title={insightText}>
+                         <Icon size={16} className={iconColorText} />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Middle: Progress Bar */}
+                  <div className="w-full flex flex-col gap-1.5 mt-1">
+                    <div className="flex justify-between items-center text-[11px] font-bold">
+                       <span className="text-muted-foreground uppercase">Progresso</span>
+                       <span className={isWarning ? 'text-destructive' : 'text-foreground'}>{clampValue}%</span>
+                    </div>
+                    <div className="w-full bg-muted/50 rounded-full h-2.5 overflow-hidden ring-1 ring-inset ring-border/50">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-1000 ${progressBarColor}`} 
+                        style={{ width: `${clampValue}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Bottom: Stats */}
+                  <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border/50 mt-1">
+                    <div className="flex flex-col items-center justify-center bg-muted/20 rounded-lg py-1.5">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground mb-0.5">Criados</span>
+                      <span className="text-sm font-black text-foreground">{insight.createdCount}</span>
+                    </div>
+                    <div className="flex flex-col items-center justify-center bg-muted/20 rounded-lg py-1.5">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground mb-0.5">Andamento</span>
+                      <span className="text-sm font-black text-foreground">{insight.activeCount}</span>
+                    </div>
+                    <div className="flex flex-col items-center justify-center bg-muted/20 rounded-lg py-1.5">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground mb-0.5">Concluídos</span>
+                      <span className="text-sm font-black text-foreground">{insight.completedCount}</span>
+                    </div>
+                  </div>
+
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="bg-card border border-border/50 rounded-xl overflow-hidden shadow-sm w-full">
         <div className="overflow-x-auto">

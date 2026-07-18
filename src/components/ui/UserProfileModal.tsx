@@ -100,19 +100,44 @@ export function UserProfileModal({ isOpen, onClose, userId, projectId, cards = [
       const sevenDaysAgo = subDays(new Date(), 6);
       sevenDaysAgo.setHours(0, 0, 0, 0);
 
-      let query = supabase
-        .from('card_activity_logs')
-        .select('created_at')
-        .eq('user_id', userId)
-        .gte('created_at', sevenDaysAgo.toISOString());
+      let logs: any[] = [];
 
-      if (projectId) {
-        query = query.eq('project_id', projectId);
+      if (projectId && cards && cards.length > 0) {
+        // Count from local cards passed via props
+        cards.forEach(card => {
+          // Cards created in the last 7 days
+          if (card.created_by === userId) {
+            const createdDate = new Date(card.created_at);
+            if (createdDate >= sevenDaysAgo) {
+              logs.push({ created_at: card.created_at });
+            }
+          }
+          
+          // Cards updated in the last 7 days by/assigned to the user
+          // If the user created or is assigned to the card, and it was updated
+          if (card.created_by === userId || (card.assignees && card.assignees.some((a: any) => a.id === userId))) {
+            const updatedDate = new Date(card.updated_at);
+            const createdDate = new Date(card.created_at);
+            // Must have a meaningful update gap so we don't double count creation
+            if (updatedDate >= sevenDaysAgo && Math.abs(updatedDate.getTime() - createdDate.getTime()) > 1000) {
+              logs.push({ created_at: card.updated_at });
+            }
+          }
+        });
+      } else {
+        // Global fetch
+        let query = supabase
+          .from('card_activity_logs')
+          .select('created_at')
+          .gte('created_at', sevenDaysAgo.toISOString());
+          
+        const { data: dbLogs } = await query;
+        if (dbLogs) {
+          logs = dbLogs;
+        }
       }
 
-      const { data: logs } = await query;
-
-      if (logs) {
+      if (logs && logs.length > 0) {
         logs.forEach(log => {
           const dateStr = format(parseISO(log.created_at), 'yyyy-MM-dd');
           if (dailyCounts[dateStr] !== undefined) {

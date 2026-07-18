@@ -185,6 +185,7 @@ export function KanbanBoard({
       const overIndex = localCards.findIndex((t) => t.id === overId);
       
       if (activeIndex === -1 || overIndex === -1) return;
+      if (activeIndex === overIndex) return; // Previne atualizações inúteis e loops infinitos
 
       let newCards = [...localCards];
       newCards[activeIndex] = { ...newCards[activeIndex], column_id: localCards[overIndex].column_id };

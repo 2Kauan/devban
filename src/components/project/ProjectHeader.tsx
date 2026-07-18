@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Share2, Search, Bell, Trash2, Loader2, Lightbulb, AlertTriangle } from 'lucide-react';
+import { Share2, Search, Bell, Trash2, Loader2, Lightbulb, AlertTriangle, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Project as ProjectType, ProjectPermission } from '@/types/database';
 import { supabase } from '@/lib/supabase';
@@ -20,6 +20,7 @@ interface ProjectHeaderProps {
   onOpenSidebar?: () => void;
   searchQuery?: string;
   onSearch?: (query: string) => void;
+  onOpenAnalytics?: () => void;
 }
 
 export function ProjectHeader({
@@ -31,7 +32,8 @@ export function ProjectHeader({
   onOpenAccessRequests,
   onOpenShare,
   searchQuery,
-  onSearch
+  onSearch,
+  onOpenAnalytics
 }: ProjectHeaderProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -116,6 +118,15 @@ export function ProjectHeader({
             <span className="hidden sm:inline">Compartilhar</span>
           </button>
         )}
+        
+        <button 
+          onClick={onOpenAnalytics}
+          className="flex items-center gap-2 px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground font-medium rounded-lg transition-colors text-sm whitespace-nowrap"
+          title="Analytics / Saúde do Projeto"
+        >
+          <Activity size={16} />
+          <span className="hidden sm:inline">Saúde</span>
+        </button>
 
         {userPermission === 'owner' && (
           <button 

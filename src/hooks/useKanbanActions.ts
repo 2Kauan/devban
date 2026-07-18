@@ -305,7 +305,8 @@ export function useKanbanActions({
             column_id: columnId,
             title: title.trim(),
             position: newPosition,
-            priority: 'medium'
+            priority: 'medium',
+            created_by: user?.id
           })
           .select()
           .single();
