@@ -1,8 +1,7 @@
-import { X, Activity, Lightbulb, Rocket, Settings, AlertTriangle } from 'lucide-react';
+import { X, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import type { KanbanCardType, KanbanColumnType } from '@/types/kanban';
-import type { Profile } from '@/types/database';
 import { useMemo } from 'react';
 
 interface ProjectHealthModalProps {
@@ -10,7 +9,7 @@ interface ProjectHealthModalProps {
   onClose: () => void;
   cards: KanbanCardType[];
   columns: KanbanColumnType[];
-  projectMembers: { user: Profile }[];
+  projectMembers: any[];
 }
 
 export function ProjectHealthModal({
@@ -177,7 +176,7 @@ export function ProjectHealthModal({
                         color: 'hsl(var(--foreground))'
                       }}
                       itemStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
-                      formatter={(value: number) => [`${value}%`, 'Risco']}
+                      formatter={(value: any) => [`${value}%`, 'Risco']}
                     />
                     <Radar
                       name="Risco"

@@ -107,7 +107,7 @@ export function UserProfileModal({ isOpen, onClose, userId, projectId, cards = [
         cards.forEach(card => {
           // Cards created in the last 7 days
           if (card.created_by === userId) {
-            const createdDate = new Date(card.created_at);
+            const createdDate = new Date(card.created_at || '');
             if (createdDate >= sevenDaysAgo) {
               logs.push({ created_at: card.created_at });
             }
@@ -116,8 +116,8 @@ export function UserProfileModal({ isOpen, onClose, userId, projectId, cards = [
           // Cards updated in the last 7 days by/assigned to the user
           // If the user created or is assigned to the card, and it was updated
           if (card.created_by === userId || (card.assignees && card.assignees.some((a: any) => a.id === userId))) {
-            const updatedDate = new Date(card.updated_at);
-            const createdDate = new Date(card.created_at);
+            const updatedDate = new Date(card.updated_at || '');
+            const createdDate = new Date(card.created_at || '');
             // Must have a meaningful update gap so we don't double count creation
             if (updatedDate >= sevenDaysAgo && Math.abs(updatedDate.getTime() - createdDate.getTime()) > 1000) {
               logs.push({ created_at: card.updated_at });

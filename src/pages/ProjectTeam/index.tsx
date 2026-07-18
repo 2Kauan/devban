@@ -9,7 +9,6 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserProfileModal } from '@/components/ui/UserProfileModal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import type { KanbanCardType, KanbanColumnType } from '@/types/kanban';
 import { useQueryClient } from '@tanstack/react-query';
 import { useProjectQuery } from '@/hooks/useProjectQuery';
 
