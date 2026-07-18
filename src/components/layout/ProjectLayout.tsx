@@ -106,6 +106,9 @@ export function ProjectLayout() {
           const notif = payload.new;
           if (notif?.title === 'Acesso Removido') {
             setIsKicked(true);
+            queryClient.invalidateQueries({ queryKey: ['sharedProjects'] });
+            queryClient.invalidateQueries({ queryKey: ['projects'] });
+            queryClient.removeQueries({ queryKey: ['project', project.id] });
             toast.error(notif.message || 'Você foi removido deste projeto.', { duration: 8000 });
             setTimeout(() => {
               navigate('/projects');
