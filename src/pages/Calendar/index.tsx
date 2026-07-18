@@ -329,7 +329,6 @@ export default function Calendar() {
             onClose={() => setIsModalOpen(false)}
             onUpdate={refetch}
             onOptimisticDelete={handleOptimisticDelete}
-            onCardSave={handleCardSave}
             projectId={selectedCard.project_id}
             projectCategories={projectCategories.filter(c => c.project_id === selectedCard.project_id)}
             projectMembers={[]}
@@ -346,7 +345,6 @@ export default function Calendar() {
             onClose={() => setIsModalOpen(false)}
             onUpdate={refetch}
             onOptimisticDelete={handleOptimisticDelete}
-            onCardSave={handleCardSave}
             projectId={selectedProjectId}
             projectCategories={projectCategories.filter(c => c.project_id === selectedProjectId)}
             projectMembers={[]}
