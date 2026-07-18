@@ -1,10 +1,9 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, QueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function useStockQuery(projectCount: number) {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
 
   return useQuery<number, Error>({
     queryKey: ['stock', user?.id, projectCount],
@@ -36,6 +35,6 @@ export function useStockQuery(projectCount: number) {
   });
 }
 
-export function invalidateStock(queryClient: ReturnType<typeof useQueryClient>, userId?: string) {
+export function invalidateStock(queryClient: QueryClient, userId?: string) {
   queryClient.invalidateQueries({ queryKey: ['stock', userId] });
 }
