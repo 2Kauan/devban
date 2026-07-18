@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { format, parseISO, isSameDay } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { KanbanCardType } from '@/types/kanban';
 import { getWeekDays, getEventsForDay } from '@/utils/calendar';
