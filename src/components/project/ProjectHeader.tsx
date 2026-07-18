@@ -58,6 +58,7 @@ export function ProjectHeader({
       if (error) throw error;
       
       invalidateStock(queryClient, project.owner_id);
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
       toast.success('Projeto excluído permanentemente.');
       setShowDeleteConfirm(false);
       setTimeout(() => {

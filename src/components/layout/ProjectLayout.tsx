@@ -84,14 +84,6 @@ export function ProjectLayout() {
           filter: `project_id=eq.${project.id}`,
         },
         async (payload) => {
-          if (payload.eventType === 'DELETE' && payload.old?.user_id === user.id) {
-            setIsKicked(true);
-            toast.error('Você foi removido deste projeto.', { duration: 8000 });
-            setTimeout(() => {
-              navigate('/projects');
-            }, 2000);
-            return;
-          }
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
             if (payload.new?.user_id === user.id) {
               queryClient.invalidateQueries({ queryKey: ['project', project.id] });
@@ -99,6 +91,25 @@ export function ProjectLayout() {
                 toast.info('Sua permissão neste projeto foi alterada. Atualizando...', { duration: 3000 });
               }
             }
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        async (payload) => {
+          const notif = payload.new;
+          if (notif?.title === 'Acesso Removido') {
+            setIsKicked(true);
+            toast.error(notif.message || 'Você foi removido deste projeto.', { duration: 8000 });
+            setTimeout(() => {
+              navigate('/projects');
+            }, 2000);
           }
         }
       )
@@ -156,6 +167,7 @@ export function ProjectLayout() {
       <Sidebar projects={projects} onProjectCreated={() => {
         queryClient.invalidateQueries({ queryKey: ['projects'] });
         queryClient.invalidateQueries({ queryKey: ['sharedProjects'] });
+        queryClient.invalidateQueries({ queryKey: ['stock'] });
         fetchCurrentProject();
       }} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} isProjectView={true} />
 

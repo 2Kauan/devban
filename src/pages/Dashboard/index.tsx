@@ -101,6 +101,7 @@ export default function Dashboard() {
 
   const handleProjectCreated = () => {
     queryClient.invalidateQueries({ queryKey: ['projects'] });
+    queryClient.invalidateQueries({ queryKey: ['stock'] });
     queryClient.invalidateQueries({ queryKey: ['dashboardColumns'] });
     queryClient.invalidateQueries({ queryKey: ['dashboardCards'] });
   };
