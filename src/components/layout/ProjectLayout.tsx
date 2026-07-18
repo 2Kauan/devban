@@ -7,21 +7,29 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { ChevronRight, LayoutDashboard, Layout, Users, Activity, Settings, Menu, CalendarDays, BrainCircuit } from 'lucide-react';
 import type { Project } from '@/types/database';
 import { toast } from 'sonner';
+import { useProjectsQuery } from '@/hooks/useProjectsQuery';
+import { useSharedProjectsQuery } from '@/hooks/useSharedProjectsQuery';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function ProjectLayout() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const location = useLocation();
+  const queryClient = useQueryClient();
   
   const [project, setProject] = useState<Project | null>(null);
-  const [projects, setProjects] = useState<Project[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchData = async () => {
+  const { data: ownedProjects = [] } = useProjectsQuery();
+  const { data: sharedProjects = [] } = useSharedProjectsQuery();
+
+  const projects = [...ownedProjects, ...sharedProjects.filter(sp => !ownedProjects.some(op => op.id === sp.id))];
+
+  const fetchCurrentProject = async () => {
+    if (!id) return;
     setIsLoading(true);
     try {
-      // 1. Fetch the current project directly by ID (works for owner AND member)
       const { data: currentProject, error: projErr } = await supabase
         .from('projects')
         .select('*')
@@ -30,34 +38,6 @@ export function ProjectLayout() {
 
       if (projErr) throw new Error('Projeto não encontrado ou sem permissão.');
       setProject(currentProject);
-
-      // 2. Fetch all projects for sidebar (owned + member)
-      const { data: ownedProjects } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('owner_id', user?.id)
-        .order('created_at', { ascending: false });
-
-      const { data: memberRows } = await supabase
-        .from('project_members')
-        .select('project_id')
-        .eq('user_id', user?.id);
-
-      const memberIds = memberRows?.map(r => r.project_id) || [];
-      let memberProjects: any[] = [];
-      if (memberIds.length > 0) {
-        const { data: mp } = await supabase
-          .from('projects')
-          .select('*')
-          .in('id', memberIds);
-        memberProjects = mp || [];
-      }
-
-      // Merge and deduplicate
-      const allMap = new Map();
-      [...(ownedProjects || []), ...memberProjects].forEach(p => allMap.set(p.id, p));
-      setProjects(Array.from(allMap.values()));
-
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -67,7 +47,7 @@ export function ProjectLayout() {
 
   useEffect(() => {
     if (user && id) {
-      fetchData();
+      fetchCurrentProject();
     }
   }, [user, id]);
 
@@ -86,7 +66,6 @@ export function ProjectLayout() {
         },
         (payload) => {
           setProject((prev) => {
-            // Check if actual data changed to avoid infinite re-render loops
             if (JSON.stringify(prev) === JSON.stringify({ ...prev, ...payload.new })) {
               return prev;
             }
@@ -115,7 +94,6 @@ export function ProjectLayout() {
 
   const currentTabName = tabs.find(t => location.pathname === t.path)?.name || 'Kanban';
 
-  // Show loading spinner while fetching project data
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center bg-background">
@@ -126,17 +104,19 @@ export function ProjectLayout() {
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
-      <Sidebar projects={projects} onProjectCreated={fetchData} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} isProjectView={true} />
+      <Sidebar projects={projects} onProjectCreated={() => {
+        queryClient.invalidateQueries({ queryKey: ['projects'] });
+        queryClient.invalidateQueries({ queryKey: ['sharedProjects'] });
+        fetchCurrentProject();
+      }} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} isProjectView={true} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
-        {/* Top Header / Breadcrumb */}
         <header className="h-14 border-b border-border/40 flex items-center px-4 sm:px-6 bg-background/50 backdrop-blur-md shrink-0">
           <button className="p-1.5 -ml-1.5 mr-2 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50 transition-colors" onClick={() => setIsSidebarOpen(true)}>
             <Menu size={20} />
           </button>
           
           <nav className="flex text-sm font-medium text-muted-foreground space-x-1 sm:space-x-2 truncate">
-
             <Link to="/projects" className="hover:text-foreground transition-colors">Projetos</Link>
             <ChevronRight size={16} className="shrink-0" />
             <span className="text-foreground truncate max-w-[120px] sm:max-w-[200px]">{project?.name || 'Carregando...'}</span>
@@ -145,7 +125,6 @@ export function ProjectLayout() {
           </nav>
         </header>
 
-        {/* Project Navigation Tabs */}
         <div className="border-b border-border/40 bg-card shrink-0">
           <div className="flex items-center gap-6 px-6 overflow-x-auto custom-scrollbar no-scrollbar-arrows">
             {tabs.filter(tab => !(tab.restricted && !isOwner)).map((tab) => {
@@ -170,7 +149,6 @@ export function ProjectLayout() {
           </div>
         </div>
 
-        {/* Dynamic Content */}
         <div className="flex-1 flex flex-col overflow-hidden relative min-h-0">
           <Outlet key={location.pathname} context={{ project }} />
         </div>

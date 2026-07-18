@@ -1,18 +1,12 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopHeader } from '@/components/layout/TopHeader';
 import { useNavigate } from 'react-router-dom';
 import { Folder, Users, CheckCircle2, UserCircle, FolderKanban } from 'lucide-react';
-import type { Project } from '@/types/database';
-import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-
-interface SharedProject extends Project {
-  owner_name?: string | null;
-  permission?: string;
-}
+import { useSharedProjectsQuery, type SharedProject } from '@/hooks/useSharedProjectsQuery';
+import { useQueryClient } from '@tanstack/react-query';
 
 function SharedProjectCard({ project }: { project: SharedProject }) {
   const navigate = useNavigate();
@@ -61,70 +55,18 @@ function SharedProjectCard({ project }: { project: SharedProject }) {
 
 export default function SharedProjects() {
   const { user } = useAuth();
-  const [projects, setProjects] = useState<SharedProject[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchSharedProjects();
-    }
-  }, [user]);
+  const { data: projects = [], isLoading } = useSharedProjectsQuery();
 
-  const fetchSharedProjects = async () => {
-    setIsLoading(true);
-    try {
-      const { data: memberships, error: memberError } = await supabase
-        .from('project_members')
-        .select('project_id, permission')
-        .eq('user_id', user?.id)
-        .neq('permission', 'owner');
-
-      if (memberError) throw memberError;
-
-      if (!memberships || memberships.length === 0) {
-        setProjects([]);
-        return;
-      }
-
-      const projectIds = memberships.map(m => m.project_id);
-      const permissionMap = new Map(memberships.map(m => [m.project_id, m.permission]));
-
-      const { data: projectsData, error: projectError } = await supabase
-        .from('projects')
-        .select('*')
-        .in('id', projectIds);
-
-      if (projectError) throw projectError;
-
-      const ownerIds = [...new Set((projectsData || []).map(p => p.owner_id))];
-
-      const { data: owners, error: ownerError } = await supabase
-        .from('profiles')
-        .select('id, name')
-        .in('id', ownerIds);
-
-      if (ownerError) throw ownerError;
-
-      const ownerMap = new Map((owners || []).map(o => [o.id, o.name]));
-
-      const sharedProjects: SharedProject[] = (projectsData || []).map(p => ({
-        ...p,
-        owner_name: ownerMap.get(p.owner_id),
-        permission: permissionMap.get(p.id),
-      }));
-
-      setProjects(sharedProjects);
-    } catch (error: any) {
-      toast.error('Erro ao buscar projetos compartilhados: ' + error.message);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['sharedProjects'] });
   };
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
-      <Sidebar onProjectCreated={fetchSharedProjects} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <Sidebar onProjectCreated={handleRefresh} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto custom-scrollbar bg-background">
         
@@ -144,7 +86,7 @@ export default function SharedProjects() {
             </div>
           </div>
 
-          {isLoading ? (
+          {isLoading && projects.length === 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="h-[220px] bg-muted/40 animate-pulse rounded-2xl" />

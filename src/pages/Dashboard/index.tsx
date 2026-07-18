@@ -1,65 +1,55 @@
-import { useState, useEffect } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopHeader } from '@/components/layout/TopHeader';
-import type { Project } from '@/types/database';
-import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { useProjectsQuery } from '@/hooks/useProjectsQuery';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [cards, setCards] = useState<any[]>([]);
-  const [columns, setColumns] = useState<any[]>([]);
+  const queryClient = useQueryClient();
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchDashboardData();
-    }
-  }, [user]);
+  const { data: projects = [], isLoading: isProjectsLoading } = useProjectsQuery();
 
-  const fetchDashboardData = async () => {
-    setIsLoading(true);
-    try {
-      // 1. Fetch projects
-      const { data: projData, error: projError } = await supabase
-        .from('projects')
+  const projectIds = projects.map(p => p.id);
+
+  const { data: columns = [] } = useQuery({
+    queryKey: ['dashboardColumns', user?.id],
+    queryFn: async () => {
+      if (projectIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from('columns')
         .select('*')
-        .eq('owner_id', user?.id)
-        .order('created_at', { ascending: false });
+        .in('project_id', projectIds);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user && projectIds.length > 0,
+    staleTime: 1000 * 60 * 2,
+  });
 
-      if (projError) throw projError;
-      setProjects(projData || []);
+  const { data: cards = [] } = useQuery({
+    queryKey: ['dashboardCards', user?.id],
+    queryFn: async () => {
+      if (projectIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from('cards')
+        .select('*')
+        .in('project_id', projectIds);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user && projectIds.length > 0,
+    staleTime: 1000 * 60 * 2,
+  });
 
-      if (projData && projData.length > 0) {
-        const projectIds = projData.map(p => p.id);
+  const isLoading = isProjectsLoading;
 
-        // 2. Fetch columns (to know which are completed)
-        const { data: colsData, error: colsError } = await supabase
-          .from('columns')
-          .select('*')
-          .in('project_id', projectIds);
-        
-        if (!colsError) setColumns(colsData || []);
-
-        // 3. Fetch cards
-        const { data: cardsData, error: cardsError } = await supabase
-          .from('cards')
-          .select('*')
-          .in('project_id', projectIds);
-
-        if (!cardsError) setCards(cardsData || []);
-      }
-    } catch (error: any) {
-      toast.error('Erro ao buscar dados: ' + error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
   // --- KPI Calcs ---
   const completedColumnIds = columns.filter(c => c.is_completed).map(c => c.id);
   const completedCards = cards.filter(c => completedColumnIds.includes(c.column_id));
@@ -89,7 +79,6 @@ export default function Dashboard() {
       return cardDate >= dayStart && cardDate <= dayEnd;
     }).length;
     
-    // Volta a data normal pra pegar o dia da semana
     return { day: new Date(dayStart).toLocaleDateString('pt-BR', { weekday: 'short' }), Tarefas: completedThatDay };
   });
 
@@ -110,13 +99,18 @@ export default function Dashboard() {
   const completedProjects = projects.filter(p => p.is_completed).length;
   const activeProjects = projects.filter(p => !p.is_completed).length;
 
+  const handleProjectCreated = () => {
+    queryClient.invalidateQueries({ queryKey: ['projects'] });
+    queryClient.invalidateQueries({ queryKey: ['dashboardColumns'] });
+    queryClient.invalidateQueries({ queryKey: ['dashboardCards'] });
+  };
+
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
-      <Sidebar projects={projects} onProjectCreated={fetchDashboardData} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <Sidebar onProjectCreated={handleProjectCreated} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
         
-        {/* Modern App Header */}
         <TopHeader title="Dashboard" onOpenSidebar={() => setIsSidebarOpen(true)} />
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar">
@@ -135,7 +129,6 @@ export default function Dashboard() {
             </button>
           </div>
 
-          {/* Quick Stats Widgets */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             <div className="bg-card border border-border/60 rounded-xl p-4 shadow-sm flex flex-col justify-between h-28">
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total de Projetos</span>
@@ -159,10 +152,8 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-          {/* Global Dashboard Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
-            {/* Produtividade Semanal */}
             <div className="bg-card border border-border/40 p-6 rounded-2xl shadow-sm">
               <h3 className="text-base font-bold text-foreground mb-6">Produtividade Global (Últimos 7 dias)</h3>
               <div className="h-[300px] w-full">
@@ -187,7 +178,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Projetos Ativos por Mês */}
             <div className="bg-card border border-border/40 p-6 rounded-2xl shadow-sm">
               <h3 className="text-base font-bold text-foreground mb-6">Crescimento de Projetos</h3>
               <div className="h-[300px] w-full">

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -10,8 +10,10 @@ import { toast } from 'sonner';
 import { useFavorites } from '@/hooks/useFavorites';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DeleteProjectModal } from '@/components/ui/DeleteProjectModal';
+import { useProjectsQuery } from '@/hooks/useProjectsQuery';
+import { useStockQuery } from '@/hooks/useStockQuery';
+import { useQueryClient } from '@tanstack/react-query';
 
-// Componente do Menu Dropdown do Cartão
 function ProjectCard({ project, onDelete, onComplete }: { project: Project, onDelete: (p: Project) => void, onComplete?: (p: Project) => void }) {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -22,12 +24,13 @@ function ProjectCard({ project, onDelete, onComplete }: { project: Project, onDe
   const isFavorite = favorites.includes(project.id);
   const isOwner = user?.id === project.owner_id;
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false);
-      }
+  const handleClickOutside = (event: MouseEvent) => {
+    if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      setIsMenuOpen(false);
     }
+  };
+
+  useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
@@ -42,7 +45,6 @@ function ProjectCard({ project, onDelete, onComplete }: { project: Project, onDe
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Evita navegar se clicou no menu dropdown ou nos botões rápidos
     if ((e.target as HTMLElement).closest('.action-btn')) return;
     navigate(`/project/${project.id}`);
   };
@@ -71,7 +73,6 @@ function ProjectCard({ project, onDelete, onComplete }: { project: Project, onDe
             <MoreVertical size={16} />
           </button>
           
-          {/* Dropdown Menu */}
           <AnimatePresence>
             {isMenuOpen && (
               <motion.div 
@@ -108,7 +109,6 @@ function ProjectCard({ project, onDelete, onComplete }: { project: Project, onDe
       </p>
 
       <div className="mt-auto space-y-4 relative z-10">
-        {/* Metrics Placeholder */}
         <div className="flex gap-4 text-xs font-medium text-muted-foreground pointer-events-none">
           <div className="flex items-center gap-1.5"><Users size={14} /> 1</div>
           <div className="flex items-center gap-1.5"><CheckCircle2 size={14} /> 0/0</div>
@@ -135,58 +135,15 @@ function ProjectCard({ project, onDelete, onComplete }: { project: Project, onDe
 
 export default function Projects() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { favorites } = useFavorites(user?.id);
   const [filter, setFilter] = useState<'all' | 'favorites'>('all');
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [stock, setStock] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchProjects();
-    }
-  }, [user]);
-
-  const fetchProjects = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('owner_id', user?.id)
-        .order('updated_at', { ascending: false });
-
-      if (error) throw error;
-      setProjects(data || []);
-
-      const { data: payments } = await supabase.from('payments')
-        .select('value')
-        .eq('user_id', user?.id)
-        .eq('status', 'confirmed')
-        .is('project_id', null);
-        
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('consumed_premium_slots')
-        .eq('id', user?.id)
-        .single();
-
-      const consumedSlots = profile?.consumed_premium_slots || 0;
-      const totalPurchasedValue = payments?.reduce((acc, curr) => acc + (curr.value || 0), 0) || 0;
-      const totalPurchasedSlots = Math.floor(totalPurchasedValue / 7.00);
-      const premiumCount = (data || []).filter(p => !p.is_free).length;
-      
-      setStock(Math.max(0, totalPurchasedSlots - premiumCount - consumedSlots));
-    } catch (error: any) {
-      toast.error('Erro ao buscar projetos: ' + error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { data: projects = [], isLoading } = useProjectsQuery();
+  const { data: stock = 0 } = useStockQuery(projects.filter(p => !p.is_free).length);
 
   const isFavorites = filter === 'favorites';
-
   const displayedProjects = isFavorites 
     ? projects.filter(p => favorites.includes(p.id))
     : projects;
@@ -203,9 +160,11 @@ export default function Projects() {
 
       if (error) throw error;
       
-      setProjects(projects.map(p => 
-        p.id === projectToToggle.id ? { ...p, is_completed: newStatus } : p
-      ));
+      queryClient.setQueryData<Project[]>(['projects', user?.id], (old) =>
+        (old || []).map(p => 
+          p.id === projectToToggle.id ? { ...p, is_completed: newStatus } : p
+        )
+      );
       
       toast.success(newStatus ? 'Projeto finalizado com sucesso!' : 'Projeto reaberto!');
     } catch (error: any) {
@@ -213,13 +172,17 @@ export default function Projects() {
     }
   };
 
+  const handleProjectCreated = () => {
+    queryClient.invalidateQueries({ queryKey: ['projects'] });
+    queryClient.invalidateQueries({ queryKey: ['stock'] });
+  };
+
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
-      <Sidebar projects={projects} onProjectCreated={fetchProjects} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <Sidebar onProjectCreated={handleProjectCreated} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto custom-scrollbar bg-background">
         
-        {/* Modern App Header */}
         <TopHeader title="Meus Projetos" onOpenSidebar={() => setIsSidebarOpen(true)} />
 
         <div className="p-4 sm:p-8 max-w-[1400px] mx-auto w-full">
@@ -268,7 +231,7 @@ export default function Projects() {
             Projetos em Estoque: <span className="text-xl leading-none">{stock}</span>
           </div>
 
-          {isLoading ? (
+          {isLoading && projects.length === 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="h-[220px] bg-muted/40 animate-pulse rounded-2xl" />
@@ -329,7 +292,7 @@ export default function Projects() {
         projectId={projectToDelete?.id || ''}
         isUsed={projectToDelete?.is_used}
         isFree={projectToDelete?.is_free}
-        onSuccess={fetchProjects}
+        onSuccess={handleProjectCreated}
       />
     </div>
   );
