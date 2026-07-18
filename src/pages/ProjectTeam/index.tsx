@@ -349,7 +349,7 @@ export default function ProjectTeam() {
                       {canManage && member.user_id !== project.owner_id && (
                         <button
                           onClick={() => handleRemoveMember(member.user_id)}
-                          className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                          className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                           title="Remover membro"
                         >
                           <Trash2 size={18} />

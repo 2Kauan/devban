@@ -16,13 +16,13 @@ import { Loader2 } from 'lucide-react';
 export default function SharedProject() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [isJoining, setIsJoining] = useState(false);
   
-  // Guest Account State
-  const [guestName, setGuestName] = useState('');
-  const [guestJobTitle, setGuestJobTitle] = useState('');
-  const [isCreatingGuest, setIsCreatingGuest] = useState(false);
+  // Access request form state
+  const [requestName, setRequestName] = useState('');
+  const [requestJobTitle, setRequestJobTitle] = useState('');
+  const [isRequesting, setIsRequesting] = useState(false);
 
   const { data, isLoading, refetch, setOptimisticColumns, setOptimisticCards } = useSharedProjectQuery(token);
   const project = data?.project;
@@ -34,11 +34,19 @@ export default function SharedProject() {
   const isMember = user && projectMembers.some(m => m.profiles.id === user.id && (m.permission as string) !== 'pending');
   const isOwner = user && project?.owner_id === user.id;
 
+  // Pre-fill name from profile when it loads
+  useEffect(() => {
+    if (profile?.name && !requestName) {
+      setRequestName(profile.name);
+    }
+  }, [profile?.name]);
+
   useEffect(() => {
     if ((isMember || isOwner) && project?.id) {
       navigate(`/project/${project.id}`);
     }
   }, [isMember, isOwner, project?.id, navigate]);
+  
   const [activeCard, setActiveCard] = useState<KanbanCardType | null>(null);
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const { openPrompt, openConfirm, KanbanModals } = useKanbanModals();
@@ -85,26 +93,32 @@ export default function SharedProject() {
     setIsCardModalOpen(true);
   });
 
-  const handleJoinProject = async () => {
-    if (!user) return;
-    setIsJoining(true);
+  // Logged-in user: request access with name + job_title
+  const handleRequestAccess = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !requestName.trim()) return;
+    setIsRequesting(true);
     try {
-      const { error } = await supabase.rpc('join_project_by_token', { p_token: token });
+      const { error } = await supabase.rpc('join_project_by_token', {
+        p_token: token,
+        p_name: requestName.trim(),
+        p_job_title: requestJobTitle.trim() || null
+      });
       if (error) throw error;
       toast.success('Solicitação de acesso enviada com sucesso! Aguarde a aprovação do dono.');
-      setIsJoining(false);
     } catch (error: any) {
       toast.error('Erro ao solicitar acesso: ' + error.message);
     } finally {
-      setIsJoining(false);
+      setIsRequesting(false);
     }
   };
 
+  // Guest: create account + request access with name + job_title
   const handleCreateGuestSession = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!guestName.trim()) return;
+    if (!requestName.trim()) return;
     
-    setIsCreatingGuest(true);
+    setIsRequesting(true);
     try {
       const email = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 7)}@guest.devban.local`;
       const password = Math.random().toString(36).slice(-8) + 'A1!';
@@ -114,27 +128,30 @@ export default function SharedProject() {
         password,
         options: {
           data: {
-            full_name: guestName.trim(),
-            job_title: guestJobTitle.trim()
+            full_name: requestName.trim(),
+            job_title: requestJobTitle.trim()
           }
         }
       });
       if (authError) throw authError;
       
       if (authData.user) {
-         // Use RPC to bypass RLS and add member to the project securely
-         if (token) {
-           const { error: joinError } = await supabase.rpc('join_project_by_token', { p_token: token });
-           if (joinError) throw joinError;
-         }
+        if (token) {
+          const { error: joinError } = await supabase.rpc('join_project_by_token', {
+            p_token: token,
+            p_name: requestName.trim(),
+            p_job_title: requestJobTitle.trim() || null
+          });
+          if (joinError) throw joinError;
+        }
   
-         toast.success(`Bem-vindo(a), ${guestName.trim()}!`);
-         refetch();
+        toast.success(`Bem-vindo(a), ${requestName.trim()}! Sua solicitação foi enviada. Aguarde a aprovação do dono.`);
+        refetch();
       }
     } catch (err: any) {
       toast.error('Erro ao acessar: ' + err.message);
     } finally {
-      setIsCreatingGuest(false);
+      setIsRequesting(false);
     }
   };
 
@@ -143,7 +160,7 @@ export default function SharedProject() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/shared/${token}?autoJoin=true`
+          redirectTo: `${window.location.origin}/shared/${token}`
         }
       });
       if (error) throw error;
@@ -152,14 +169,13 @@ export default function SharedProject() {
     }
   };
 
+  // Clear autoJoin param from URL if present (no longer auto-joining)
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    if (searchParams.get('autoJoin') === 'true' && user && project && !isMember && !isJoining) {
-       handleJoinProject();
-       // Limpar a url
-       window.history.replaceState({}, document.title, window.location.pathname);
+    if (searchParams.get('autoJoin') === 'true') {
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, [user, project, isMember, isJoining]);
+  }, []);
 
   if (isLoading) {
     return (
@@ -179,37 +195,40 @@ export default function SharedProject() {
     );
   }
 
+  // Guest: show full-screen form
   if (!user) {
     return (
       <div className="fixed inset-0 bg-background/95 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div className="bg-card border border-border shadow-2xl rounded-2xl p-6 w-full max-w-md">
           <h2 className="text-xl font-bold mb-2">Acesso ao Projeto</h2>
           <p className="text-sm text-muted-foreground mb-6">
-            Por favor, informe seu nome e cargo para acessar este quadro. Você será listado como responsável pelas tarefas que assumir.
+            Informe seu nome e cargo para acessar este quadro. Você será listado como responsável pelas tarefas que assumir.
           </p>
           
           <form onSubmit={handleCreateGuestSession}>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Nome</label>
             <input 
               type="text" 
               required 
               placeholder="Seu nome (ex: João Silva)" 
               className="w-full bg-background border border-border rounded-lg px-4 py-3 mb-3 focus:ring-2 focus:ring-primary focus:outline-none transition-all"
-              value={guestName}
-              onChange={(e) => setGuestName(e.target.value)}
+              value={requestName}
+              onChange={(e) => setRequestName(e.target.value)}
             />
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Cargo</label>
             <input 
               type="text" 
               placeholder="Seu cargo (ex: Desenvolvedor, QA, Designer)" 
               className="w-full bg-background border border-border rounded-lg px-4 py-3 mb-4 focus:ring-2 focus:ring-primary focus:outline-none transition-all"
-              value={guestJobTitle}
-              onChange={(e) => setGuestJobTitle(e.target.value)}
+              value={requestJobTitle}
+              onChange={(e) => setRequestJobTitle(e.target.value)}
             />
             <button 
               type="submit" 
-              disabled={isCreatingGuest || !guestName.trim()}
+              disabled={isRequesting || !requestName.trim()}
               className="w-full bg-primary text-primary-foreground font-semibold rounded-lg py-3 flex justify-center items-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
-              {isCreatingGuest ? <Loader2 className="animate-spin" size={18} /> : 'Acessar Quadro'}
+              {isRequesting ? <Loader2 className="animate-spin" size={18} /> : 'Solicitar Acesso'}
             </button>
           </form>
 
@@ -224,7 +243,7 @@ export default function SharedProject() {
 
           <button
             onClick={handleGoogleLogin}
-            disabled={isCreatingGuest}
+            disabled={isRequesting}
             className="w-full flex items-center justify-center gap-3 bg-background border border-border text-foreground hover:bg-muted/50 rounded-lg py-3 font-medium transition-colors"
           >
             <svg viewBox="0 0 24 24" className="w-5 h-5">
@@ -246,6 +265,9 @@ export default function SharedProject() {
     );
   }
 
+  // Logged-in non-member: show inline access request form
+  const showAccessForm = user && !isMember && !isOwner;
+
   return (
     <div className="flex-1 flex flex-col h-screen bg-muted/10 overflow-hidden">
       {/* Project Header */}
@@ -253,14 +275,47 @@ export default function SharedProject() {
         project={project}
         columnsCount={columns.length}
         cardsCount={cards.length}
-        isJoining={isJoining}
-        onJoinProject={handleJoinProject}
-        isAuthenticated={!!user}
       />
+
+      {/* Access Request Form for logged-in non-members */}
+      {showAccessForm && (
+        <div className="bg-card border-b border-border p-4">
+          <form onSubmit={handleRequestAccess} className="max-w-2xl mx-auto flex flex-col sm:flex-row items-end gap-3">
+            <div className="flex-1 w-full">
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Seu nome</label>
+              <input 
+                type="text" 
+                required 
+                placeholder="Nome completo" 
+                className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary focus:outline-none transition-all"
+                value={requestName}
+                onChange={(e) => setRequestName(e.target.value)}
+              />
+            </div>
+            <div className="flex-1 w-full">
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Seu cargo</label>
+              <input 
+                type="text" 
+                placeholder="Ex: Desenvolvedor, Designer, QA" 
+                className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary focus:outline-none transition-all"
+                value={requestJobTitle}
+                onChange={(e) => setRequestJobTitle(e.target.value)}
+              />
+            </div>
+            <button 
+              type="submit" 
+              disabled={isRequesting || !requestName.trim()}
+              className="shrink-0 bg-primary text-primary-foreground font-semibold rounded-lg px-6 py-2.5 text-sm flex items-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
+              {isRequesting ? <Loader2 className="animate-spin" size={16} /> : null}
+              Solicitar Acesso
+            </button>
+          </form>
+        </div>
+      )}
 
       {/* Kanban Area */}
       <div className="flex-1 overflow-hidden p-6 pointer-events-none">
-        {/* Adicionando pointer-events-none para não permitir drag no modo de visualização. O CardClick é restaurado nos cards. */}
         <div className="h-full pointer-events-auto">
           <KanbanBoard 
             columns={columns}
@@ -286,7 +341,7 @@ export default function SharedProject() {
         projectCategories={projectCategories}
         projectMembers={projectMembers}
         projectId={project?.id || ''}
-        canEdit={project.share_permission === 'edit'}
+        canEdit={false}
         allCards={cards}
         columns={columns}
       />
