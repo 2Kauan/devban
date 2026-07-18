@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { ChevronRight, LayoutDashboard, Layout, Users, Activity, Settings, Menu, CalendarDays, BrainCircuit } from 'lucide-react';
+import { ChevronRight, LayoutDashboard, Layout, Users, Activity, Settings, Menu, CalendarDays, BrainCircuit, HeartPulse } from 'lucide-react';
 import type { Project } from '@/types/database';
 import { toast } from 'sonner';
 import { useProjectsQuery } from '@/hooks/useProjectsQuery';
@@ -132,6 +132,7 @@ export function ProjectLayout() {
     { name: project?.is_free ? 'IA (Premium)' : 'IA', path: `/project/${id}/ai`, icon: BrainCircuit, restricted: true },
     { name: 'Equipe', path: `/project/${id}/team`, icon: Users, restricted: false },
     { name: 'Atividades', path: `/project/${id}/activity`, icon: Activity, restricted: false },
+    { name: 'Saúde', path: `/project/${id}/health`, icon: HeartPulse, restricted: false },
     { name: 'Configurações', path: `/project/${id}/settings`, icon: Settings, restricted: true },
   ];
 

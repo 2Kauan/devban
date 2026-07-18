@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Share2, Search, Bell, Trash2, Loader2, Lightbulb, AlertTriangle, Activity } from 'lucide-react';
+import { Share2, Bell, Trash2, Loader2, Lightbulb, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Project as ProjectType, ProjectPermission } from '@/types/database';
 import { supabase } from '@/lib/supabase';
@@ -18,9 +18,6 @@ interface ProjectHeaderProps {
   onOpenAccessRequests: () => void;
   onOpenShare: () => void;
   onOpenSidebar?: () => void;
-  searchQuery?: string;
-  onSearch?: (query: string) => void;
-  onOpenAnalytics?: () => void;
 }
 
 export function ProjectHeader({
@@ -30,10 +27,7 @@ export function ProjectHeader({
   userPermission,
   pendingRequestsCount,
   onOpenAccessRequests,
-  onOpenShare,
-  searchQuery,
-  onSearch,
-  onOpenAnalytics
+  onOpenShare
 }: ProjectHeaderProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -98,16 +92,6 @@ export function ProjectHeader({
             )}
           </button>
         )}
-        <div className="relative flex-1 min-w-[150px] sm:w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-          <input 
-            type="text" 
-            placeholder="Pesquisar..." 
-            value={searchQuery || ''}
-            onChange={(e) => onSearch?.(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-muted/50 border border-border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:bg-background transition-all"
-          />
-        </div>
         <div className="w-px h-6 bg-border mx-1"></div>
         {(userPermission === 'owner' || userPermission === 'admin') && (
           <button 
@@ -118,15 +102,6 @@ export function ProjectHeader({
             <span className="hidden sm:inline">Compartilhar</span>
           </button>
         )}
-        
-        <button 
-          onClick={onOpenAnalytics}
-          className="flex items-center gap-2 px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground font-medium rounded-lg transition-colors text-sm whitespace-nowrap"
-          title="Analytics / Saúde do Projeto"
-        >
-          <Activity size={16} />
-          <span className="hidden sm:inline">Saúde</span>
-        </button>
 
         {userPermission === 'owner' && (
           <button 

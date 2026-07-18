@@ -1,28 +1,21 @@
-import { X, Activity } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
-import type { KanbanCardType, KanbanColumnType } from '@/types/kanban';
 import { useMemo } from 'react';
+import { useOutletContext } from 'react-router-dom';
+import { Activity, HeartPulse } from 'lucide-react';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
+import type { Project } from '@/types/database';
+import { useProjectQuery } from '@/hooks/useProjectQuery';
 
-interface ProjectHealthModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  cards: KanbanCardType[];
-  columns: KanbanColumnType[];
-  projectMembers: any[];
-}
+export default function ProjectHealth() {
+  const { project } = useOutletContext<{ project: Project }>();
+  const { data } = useProjectQuery(project.id);
 
-export function ProjectHealthModal({
-  isOpen,
-  onClose,
-  cards,
-  columns,
-  projectMembers,
-}: ProjectHealthModalProps) {
-  
+  const cards = data?.cards || [];
+  const columns = data?.columns || [];
+  const projectMembers = data?.projectMembers || [];
+
   // Memoized Metrics Calculations
   const metrics = useMemo(() => {
-    if (!cards || !columns) return null;
+    if (!cards || !columns || columns.length === 0) return null;
     
     let completedColIds = columns.filter(c => c.is_completed).map(c => c.id);
     if (completedColIds.length === 0 && columns.length > 0) {
@@ -72,7 +65,7 @@ export function ProjectHealthModal({
        qualityRisk = 100 - Math.min((completedCards.length / cards.length) * 100, 100);
     }
 
-    const data = [
+    const radarData = [
       { subject: 'Prazo', A: Math.round(timeRisk) },
       { subject: 'Recurso', A: Math.round(resourceRisk) },
       { subject: 'Complexidade', A: Math.round(complexityRisk) },
@@ -86,7 +79,7 @@ export function ProjectHealthModal({
     let evaluationText = 'O projeto está progredindo muito bem, sem gargalos aparentes. Continue o bom trabalho!';
     
     if (avgRisk > 30) {
-       const highest = [...data].sort((a,b) => b.A - a.A)[0];
+       const highest = [...radarData].sort((a,b) => b.A - a.A)[0];
        focusText = `Foco em ${highest.subject}.`;
        
        if (highest.subject === 'Prazo') {
@@ -107,64 +100,44 @@ export function ProjectHealthModal({
     else if (avgRisk > 30) radarColor = "#eab308"; // yellow
 
     return {
-      radarData: data,
+      radarData,
       avgRisk,
       focusText,
       evaluationText,
       radarColor,
     };
-  }, [cards, columns]);
-
-  if (!isOpen) return null;
+  }, [cards, columns, projectMembers]);
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-sm">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="absolute inset-0"
-          onClick={onClose}
-        />
-        
-        <motion.div
-          initial={{ x: '100%' }}
-          animate={{ x: 0 }}
-          exit={{ x: '100%' }}
-          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="relative w-full max-w-md h-full bg-card shadow-2xl flex flex-col border-l border-border"
-        >
-          <div className="flex items-center justify-between p-6 border-b border-border">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                <Activity size={20} />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold">Analytics & Saúde</h2>
-                <p className="text-sm text-muted-foreground">Insights em tempo real</p>
-              </div>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 text-muted-foreground hover:bg-muted rounded-full transition-colors"
-            >
-              <X size={20} />
-            </button>
-          </div>
+    <div className="p-8 max-w-3xl mx-auto h-full overflow-y-auto">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+          <HeartPulse className="text-primary" size={28} />
+          Saúde do Projeto
+        </h1>
+        <p className="text-muted-foreground mt-2">
+          Visão geral do desempenho e identificação de riscos no seu fluxo de trabalho.
+        </p>
+      </div>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-8">
-            
-            {/* Project Risk Section */}
+      <div className="bg-card border border-border/50 rounded-xl p-6 shadow-sm">
+        {!metrics ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <Activity className="text-muted-foreground/30 mb-4" size={48} />
+            <h3 className="text-xl font-bold text-foreground mb-2">Sem dados suficientes</h3>
+            <p className="text-muted-foreground max-w-sm">Adicione colunas e cartões ao seu Kanban para visualizar os insights de saúde do projeto.</p>
+          </div>
+        ) : (
+          <div className="space-y-8">
             <section className="bg-muted/30 p-5 rounded-2xl border border-border">
               <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
                 <Activity size={16} className="text-primary" />
                 Risco do Projeto
               </h3>
               
-              <div className="h-[250px] w-full">
+              <div className="h-[400px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart cx="50%" cy="50%" outerRadius="70%" data={metrics?.radarData}>
+                  <RadarChart cx="50%" cy="50%" outerRadius="70%" data={metrics.radarData}>
                     <PolarGrid stroke="hsl(var(--muted-foreground) / 0.2)" />
                     <PolarAngleAxis dataKey="subject" tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
                     <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
@@ -181,30 +154,29 @@ export function ProjectHealthModal({
                     <Radar
                       name="Risco"
                       dataKey="A"
-                      stroke={metrics?.radarColor}
-                      fill={metrics?.radarColor}
+                      stroke={metrics.radarColor}
+                      fill={metrics.radarColor}
                       fillOpacity={0.4}
                     />
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
 
-              <div className="mt-4 pt-4 border-t border-border">
+              <div className="mt-6 pt-6 border-t border-border">
                 <p className="text-sm">
                   <strong className="text-foreground">AVALIAÇÃO DE RISCO:</strong>{' '}
-                  <span className={metrics?.avgRisk! > 60 ? 'text-destructive font-bold' : metrics?.avgRisk! > 30 ? 'text-yellow-500 font-bold' : 'text-green-500 font-bold'}>
-                    {metrics?.avgRisk! > 60 ? 'Elevado' : metrics?.avgRisk! > 30 ? 'Moderado' : 'Baixo'} ({metrics?.avgRisk}%)
+                  <span className={metrics.avgRisk > 60 ? 'text-destructive font-bold' : metrics.avgRisk > 30 ? 'text-yellow-500 font-bold' : 'text-green-500 font-bold'}>
+                    {metrics.avgRisk > 60 ? 'Elevado' : metrics.avgRisk > 30 ? 'Moderado' : 'Baixo'} ({metrics.avgRisk}%)
                   </span>
                 </p>
-                <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                  {metrics?.evaluationText}
+                <p className="text-base text-muted-foreground mt-3 leading-relaxed">
+                  {metrics.evaluationText}
                 </p>
               </div>
             </section>
-
           </div>
-        </motion.div>
+        )}
       </div>
-    </AnimatePresence>
+    </div>
   );
 }

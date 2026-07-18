@@ -25,6 +25,7 @@ import ProjectTeam from '@/pages/ProjectTeam';
 import ProjectActivity from '@/pages/ProjectActivity';
 import ProjectSettings from '@/pages/ProjectSettings';
 import ProjectPlanning from '@/pages/ProjectPlanning';
+import ProjectHealth from '@/pages/ProjectHealth';
 import ProjectAI from '@/pages/Project/AI';
 import ProjectCheckout from '@/pages/ProjectCheckout';
 import ResetPassword from '@/pages/Auth/ResetPassword';
@@ -66,6 +67,7 @@ export function AppRoutes() {
               <Route path="team" element={<ProjectTeam />} />
               <Route path="planning" element={<ProjectPlanning />} />
               <Route path="activity" element={<ProjectActivity />} />
+              <Route path="health" element={<ProjectHealth />} />
               <Route path="settings" element={<ProjectSettings />} />
               <Route path="ai" element={<ProjectAI />} />
             </Route>
