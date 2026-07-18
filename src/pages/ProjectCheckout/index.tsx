@@ -107,8 +107,8 @@ export default function ProjectCheckout() {
   }, [paymentRecordId, project?.id, navigate]);
 
   const handlePayment = async () => {
-    if (!cpfCnpj) {
-      toast.error('Por favor, preencha o CPF ou CNPJ para continuar.');
+    if (!cpfCnpj || !isValidCpfCnpj(cpfCnpj)) {
+      toast.error('Por favor, preencha um CPF ou CNPJ válido para continuar.');
       return;
     }
     
@@ -193,10 +193,24 @@ export default function ProjectCheckout() {
     }
   };
 
-  const handleCancelPurchase = () => {
+  const handleCancelPurchase = async () => {
+    if (paymentRecordId) {
+      try {
+        setIsProcessing(true);
+        await supabase.functions.invoke('cancel-asaas-payment', {
+          body: { paymentId: paymentRecordId }
+        });
+      } catch (err) {
+        console.error('Failed to cancel in Asaas:', err);
+      } finally {
+        setIsProcessing(false);
+      }
+    }
+    
     setPixData(null);
     setCreditCardUrl('');
     setPaymentMethod('pix');
+    setPaymentRecordId(null);
     toast.info('Compra cancelada.');
   };
 
