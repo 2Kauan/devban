@@ -5,6 +5,7 @@ import type { Project } from '@/types/database';
 import { ArrowLeft, CheckCircle2, Shield, CreditCard, QrCode, Lock, Loader2, Sparkles, Copy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { isValidCpfCnpj } from '@/utils/validation';
 
 export default function ProjectCheckout() {
   const { id } = useParams<{ id: string }>();
