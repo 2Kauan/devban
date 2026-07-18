@@ -200,14 +200,14 @@ export function ProjectLayout() {
                 <Link
                   key={tab.path}
                   to={tab.path}
-                  className={`flex items-center gap-2 py-3 px-1 border-b-2 text-sm font-bold whitespace-nowrap transition-colors ${
+                  className={`group flex items-center gap-2 py-3 px-1 border-b-2 text-sm font-bold whitespace-nowrap transition-all duration-300 ${
                     isActive 
                       ? 'border-primary text-primary' 
-                      : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                      : 'border-transparent text-muted-foreground hover:text-primary hover:border-primary/50'
                   }`}
                 >
-                  <Icon size={16} />
-                  {tab.name}
+                  <Icon size={16} className="transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-0.5" />
+                  <span className="transition-transform duration-300 group-hover:translate-x-0.5">{tab.name}</span>
                 </Link>
               );
             })}
