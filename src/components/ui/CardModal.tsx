@@ -8,7 +8,6 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { CardComments } from '@/components/kanban/CardComments';
-import { useQueryClient } from '@tanstack/react-query';
 
 import { TagSelector } from '@/components/ui/TagSelector';
 import type { Category, Profile } from '@/types/database';
@@ -627,14 +626,22 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
                     <Pencil size={16} />
                   </button>
                 )}
-                <input 
-                  ref={titleInputRef}
-                  type="text"
-                  {...register('title')}
-                  readOnly={!canEdit || !isEditingTitle}
-                  onBlur={() => setIsEditingTitle(false)}
-                  className="w-full text-2xl font-extrabold bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-lg px-3 py-1.5 -ml-3 text-foreground transition-all"
-                />
+                {(() => {
+                  const { ref: registerRef, ...registerProps } = register('title');
+                  return (
+                    <input 
+                      ref={(node) => {
+                        if (typeof registerRef === 'function') registerRef(node);
+                        else if (registerRef) (registerRef as React.MutableRefObject<HTMLInputElement | null>).current = node;
+                        titleInputRef.current = node;
+                      }}
+                      type="text"
+                      {...registerProps}
+                      readOnly={!canEdit || !isEditingTitle}
+                      className="w-full text-2xl font-extrabold bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-lg px-3 py-1.5 -ml-3 text-foreground transition-all"
+                    />
+                  );
+                })()}
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <button onClick={onClose} className="text-muted-foreground hover:text-foreground hover:bg-muted p-1.5 rounded-full transition-colors flex-shrink-0">
