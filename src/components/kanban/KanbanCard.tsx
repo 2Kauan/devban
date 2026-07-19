@@ -216,7 +216,7 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
           </div>
         )}
 
-        <div className="flex items-start gap-2 pr-6">
+        <div className={`flex items-start gap-2 ${(card.comments_count ?? 0) > 0 ? 'pr-14' : 'pr-6'}`}>
           <div className="flex-1 min-w-0">
             <h4 className="font-medium text-foreground text-sm leading-snug break-words flex items-start gap-1.5">
               {card.parent_id && (

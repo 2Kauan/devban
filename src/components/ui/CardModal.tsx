@@ -85,7 +85,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
     variant: 'danger'
   });
   
-  const { register, reset, setValue, watch } = useForm({
+  const { register, reset, setValue, watch, getValues } = useForm({
     defaultValues: {
       title: '',
       description: '',
@@ -961,6 +961,31 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
                         {...register('due_date')}
                         readOnly={!canEdit}
                         className={`w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all ${!canEdit ? 'pointer-events-none opacity-70' : 'cursor-pointer'}`}
+                        onChange={(e) => {
+                          const selectedValue = e.target.value;
+                          if (selectedValue) {
+                            const selectedDate = new Date(selectedValue);
+                            const now = new Date();
+                            if (selectedDate < now) {
+                              const currentValue = getValues('due_date');
+                              e.target.value = currentValue || '';
+                              
+                              setConfirmConfig({
+                                isOpen: true,
+                                title: "Data Passada",
+                                message: "Você selecionou uma data que já passou. Tem certeza que deseja definir este prazo?",
+                                confirmText: "Confirmar data",
+                                variant: "primary",
+                                onConfirm: () => {
+                                  setValue('due_date', selectedValue, { shouldDirty: true });
+                                  setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+                                }
+                              });
+                              return;
+                            }
+                          }
+                          setValue('due_date', selectedValue, { shouldDirty: true });
+                        }}
                       />
                     </div>
                     
