@@ -341,14 +341,14 @@ export function UserProfileModal({ isOpen, onClose, userId, projectId, cards = [
                       <h3 className="text-sm font-semibold text-muted-foreground">Atividade nos Últimos 7 Dias</h3>
                     </div>
                     
-                    <div className="flex items-end justify-between h-32 gap-2 bg-muted/10 border border-border/50 rounded-xl p-4">
+                    <div className="flex justify-between h-32 gap-2 bg-muted/10 border border-border/50 rounded-xl p-4">
                       {data.activityData.map((day, idx) => {
                         const heightPercent = Math.max((day.count / maxActivity) * 100, 4); // min height 4%
                         const dateObj = parseISO(day.date);
                         
                         return (
-                          <div key={day.date} className="flex flex-col items-center flex-1 gap-2 group">
-                            <div className="relative w-full flex justify-center h-full items-end">
+                          <div key={day.date} className="flex flex-col items-center flex-1 h-full gap-2 group">
+                            <div className="relative w-full flex-1 flex justify-center items-end">
                               {/* Tooltip */}
                               <div className="absolute -top-8 bg-foreground text-background text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
                                 {day.count} {day.count === 1 ? 'ação' : 'ações'}
