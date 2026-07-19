@@ -156,19 +156,19 @@ export function AIUploader({ onGenerate }: AIUploaderProps) {
       </div>
 
       {/* Manual Text Input */}
-      <div className="relative group flex flex-col">
+      <div className="relative group flex flex-col mt-4">
         <textarea
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           placeholder="Ou cole anotações, requisitos de sistema, transcrições..."
-          className="w-full h-32 bg-card border border-border rounded-2xl p-4 pr-16 resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all custom-scrollbar block"
+          className="w-full h-32 bg-card border-2 border-border/50 rounded-3xl p-5 pr-16 resize-none focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-300 shadow-sm hover:shadow-md custom-scrollbar block text-foreground"
         />
         <button 
           onClick={handleGenerate}
           disabled={!inputText.trim() && files.length === 0}
-          className="absolute right-1/2 translate-x-1/2 bottom-3 p-2.5 bg-primary text-primary-foreground rounded-xl shadow-md hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center"
+          className="absolute right-3 bottom-3 p-3.5 bg-primary text-primary-foreground rounded-2xl shadow-lg hover:shadow-primary/40 hover:-translate-y-1 active:scale-95 transition-all duration-300 disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center group/btn"
         >
-          <Send size={18} />
+          <Send size={18} className="transition-transform duration-300 group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5" />
         </button>
       </div>
     </div>

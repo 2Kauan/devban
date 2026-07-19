@@ -801,8 +801,6 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
                 </div>
                 )}
                 
-                {/* Comentários e Atividades */}
-                {card && <CardComments cardId={card.id} canEdit={canEdit} />}
               </div>
 
               {/* Sidebar do Card */}
@@ -1015,6 +1013,13 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
                 </div>
               </div>
             </div>
+            
+            {/* Comentários e Atividades (Full Width) */}
+            {card && (
+              <div className="w-full mt-2 pt-6 border-t border-border/50">
+                <CardComments cardId={card.id} canEdit={canEdit} />
+              </div>
+            )}
               
             {/* Sub-tarefas (Full Width Bottom) */}
             {card && (
