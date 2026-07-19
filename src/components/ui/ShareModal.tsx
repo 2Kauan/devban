@@ -225,14 +225,17 @@ export function ShareModal({ isOpen, onClose, project, onUpdate }: ShareModalPro
                               >
                                 <option value="admin">Administrador</option>
                                 <option value="editor">Editor</option>
-                                <option value="leitor">Leitor</option>
-                                <option value="cliente">Cliente</option>
+                                <option value="viewer">Leitor</option>
+                                <option value="client">Cliente</option>
                               </select>
                               <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                             </div>
                           ) : (
                             <span className="text-xs bg-muted/50 border border-border px-3 py-1 rounded-md text-muted-foreground capitalize">
-                              {member.permission === 'editor' ? 'Editor' : member.permission}
+                              {member.permission === 'admin' ? 'Administrador' : 
+                               member.permission === 'editor' ? 'Editor' : 
+                               member.permission === 'viewer' ? 'Leitor' : 
+                               member.permission === 'client' ? 'Cliente' : member.permission}
                             </span>
                           )}
                           
