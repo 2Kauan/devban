@@ -114,12 +114,12 @@ export default function ProjectDashboard() {
     const dayEnd = new Date(d.setHours(23,59,59,999));
     
     const createdThatDay = cards.filter(c => {
-      const cardDate = new Date(c.created_at);
+      const cardDate = new Date(c.created_at || 0);
       return cardDate >= dayStart && cardDate <= dayEnd;
     }).length;
 
     const completedThatDay = completedCardsList.filter(c => {
-      const cardDate = new Date(c.updated_at || c.created_at);
+      const cardDate = new Date(c.updated_at || c.created_at || 0);
       return cardDate >= dayStart && cardDate <= dayEnd;
     }).length;
 
