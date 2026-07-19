@@ -20,6 +20,7 @@ export default function Settings() {
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
   
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -81,20 +82,38 @@ export default function Settings() {
   };
 
   const handleCropComplete = async (croppedImageBlob: Blob) => {
+    if (!user) return;
+    setIsUploadingImage(true);
     try {
-      // Convert Blob to Base64 to save directly in the profile avatar_url
-      // For a production app with many large files, Supabase Storage should be used.
-      // Since it's just a small 256x256 avatar, Base64 is fine.
-      const reader = new FileReader();
-      reader.readAsDataURL(croppedImageBlob);
-      reader.onloadend = () => {
-        const base64data = reader.result as string;
-        setAvatarUrl(base64data);
-        setIsCropOpen(false);
-        setSelectedImageSrc(null);
-      };
-    } catch (e) {
-      toast.error('Erro ao processar imagem.');
+      const fileExt = 'png';
+      const filePath = `${user.id}.${fileExt}`;
+
+      // Envia a imagem para o bucket 'avatars'
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, croppedImageBlob, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Obtém a URL pública da imagem
+      const { data: publicUrlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Adiciona um parâmetro de tempo para forçar atualização no cache de imagem
+      const newUrl = `${publicUrlData.publicUrl}?t=${Date.now()}`;
+      
+      setAvatarUrl(newUrl);
+      setIsCropOpen(false);
+      setSelectedImageSrc(null);
+      toast.success('Foto de perfil processada com sucesso!');
+    } catch (e: any) {
+      toast.error('Erro ao enviar imagem: ' + e.message);
+    } finally {
+      setIsUploadingImage(false);
     }
   };
 
@@ -140,7 +159,9 @@ export default function Settings() {
               <form onSubmit={handleSave} className="space-y-4">
                 <div className="flex flex-col sm:flex-row gap-6 items-center">
                   <div className="relative w-24 h-24 rounded-full bg-muted border-2 border-border/60 overflow-hidden flex items-center justify-center shrink-0 group">
-                    {avatarUrl ? (
+                    {isUploadingImage ? (
+                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    ) : avatarUrl ? (
                       <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
                       <User size={40} className="text-muted-foreground/50" />
