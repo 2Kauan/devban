@@ -164,9 +164,13 @@ export default function ProjectHealth() {
 
               <div className="mt-6 pt-6 border-t border-border">
                 <p className="text-sm">
-                  <strong className="text-foreground">AVALIAÇÃO DE RISCO:</strong>{' '}
-                  <span className={metrics.avgRisk > 60 ? 'text-destructive font-bold' : metrics.avgRisk > 30 ? 'text-yellow-500 font-bold' : 'text-green-500 font-bold'}>
-                    {metrics.avgRisk > 60 ? 'Elevado' : metrics.avgRisk > 30 ? 'Moderado' : 'Baixo'} ({metrics.avgRisk}%)
+                  <strong className="text-foreground">SAÚDE GERAL:</strong>{' '}
+                  <span className={
+                    (100 - metrics.avgRisk) < 30 ? 'text-destructive font-bold' : 
+                    (100 - metrics.avgRisk) >= 80 ? 'text-green-500 font-bold' : 
+                    'text-yellow-500 font-bold'
+                  }>
+                    {(100 - metrics.avgRisk) < 30 ? 'Crítica' : (100 - metrics.avgRisk) >= 80 ? 'Excelente' : 'Moderada'} ({100 - metrics.avgRisk}%)
                   </span>
                 </p>
                 <p className="text-base text-muted-foreground mt-3 leading-relaxed">
