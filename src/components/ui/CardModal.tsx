@@ -841,7 +841,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
                               initial={{ opacity: 0, y: -5 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: -5 }}
-                              className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-xl overflow-hidden z-20"
+                              className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-xl overflow-hidden z-[60]"
                             >
                             <button
                               type="button"
@@ -915,7 +915,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
                               initial={{ opacity: 0, y: -5 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: -5 }}
-                              className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-xl overflow-hidden z-20 max-h-[250px] overflow-y-auto custom-scrollbar"
+                              className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-xl overflow-hidden z-[60] max-h-[250px] overflow-y-auto custom-scrollbar"
                             >
                             {projectMembers.map(member => {
                               const isSelected = localAssignees.some(a => a.id === member.profiles.id);

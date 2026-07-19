@@ -113,7 +113,7 @@ export function TagSelector({ selectedTags, projectTags, onToggleTag, onCreateTa
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
-            className="absolute top-full left-0 mt-2 w-64 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-20"
+            className="absolute top-full left-0 mt-2 w-64 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-[60]"
           >
             <div className="p-3 border-b border-border/50 bg-muted/30">
               <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
