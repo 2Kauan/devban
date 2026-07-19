@@ -23,6 +23,7 @@ export interface KanbanCardType {
   border_color: string | null;
   position: number;
   created_by: string | null;
+  is_completed?: boolean;
   created_at?: string;
   updated_at?: string;
   assignees?: Profile[];

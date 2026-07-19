@@ -138,7 +138,9 @@ export default function Calendar() {
               .map(ca => ca.profiles);
           }
 
-          return { ...card, categories: cardCategories, assignees: cardAssignees };
+          const isCompleted = columnsData?.find(c => c.id === card.column_id)?.is_completed || false;
+
+          return { ...card, categories: cardCategories, assignees: cardAssignees, is_completed: isCompleted };
         });
       }
 
