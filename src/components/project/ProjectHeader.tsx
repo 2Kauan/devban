@@ -79,7 +79,7 @@ export function ProjectHeader({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 mt-4 md:mt-0">
+      <div className="flex items-center justify-end gap-2 w-full sm:w-auto shrink-0 mt-4 md:mt-0 ml-auto">
         {userPermission === 'owner' && (
           <button
             onClick={onOpenAccessRequests}
