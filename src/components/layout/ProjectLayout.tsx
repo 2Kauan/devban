@@ -177,8 +177,8 @@ export function ProjectLayout() {
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
         <header className="h-14 border-b border-border/40 flex items-center px-4 sm:px-6 bg-background/50 backdrop-blur-md shrink-0">
-          <button className="p-1.5 -ml-1.5 mr-2 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50 transition-colors" onClick={() => setIsSidebarOpen(true)}>
-            <Menu size={20} />
+          <button className="p-2 -ml-2 mr-2 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50 transition-colors" onClick={() => setIsSidebarOpen(true)}>
+            <Menu size={24} />
           </button>
           
           <nav className="flex text-sm font-medium text-muted-foreground space-x-1 sm:space-x-2 truncate">
