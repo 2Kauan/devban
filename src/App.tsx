@@ -3,8 +3,11 @@ import { AppRoutes } from '@/routes';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { processSyncQueue } from '@/lib/offlineSync';
 import { NotificationService } from '@/services/notifications/notificationService';
+import { useNotificationScheduler } from '@/hooks/useNotificationScheduler';
 
 export default function App() {
+  useNotificationScheduler();
+
   useEffect(() => {
     // Escuta quando o celular recupera o sinal de internet
     window.addEventListener('online', processSyncQueue);

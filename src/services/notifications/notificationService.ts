@@ -8,13 +8,57 @@ export class NotificationService {
    * Returns true if granted.
    */
   static async requestPermissions(): Promise<boolean> {
+    let capacitorGranted = false;
+    let webGranted = false;
+
     try {
-      // Pede permissão pro SO ou Navegador
+      // Pede permissão pro SO ou Navegador pelo Capacitor
       const status = await LocalNotifications.requestPermissions();
-      return status.display === 'granted';
+      capacitorGranted = status.display === 'granted';
     } catch (error) {
-      console.warn('Falha ao pedir permissão de notificações:', error);
-      return false;
+      console.warn('Falha ao pedir permissão de notificações no Capacitor:', error);
+    }
+
+    try {
+      if ('Notification' in window) {
+        const permission = await Notification.requestPermission();
+        webGranted = permission === 'granted';
+      }
+    } catch (error) {
+      console.warn('Falha ao pedir permissão de notificações no Navegador:', error);
+    }
+
+    return capacitorGranted || webGranted;
+  }
+
+  /**
+   * Envia uma notificação imediata usando Capacitor ou Web Notification API
+   */
+  static async sendImmediateNotification(title: string, body: string): Promise<void> {
+    try {
+      const notificationId = Math.floor(Math.random() * 1000000);
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            title,
+            body,
+            id: notificationId,
+            schedule: { at: new Date() }
+          }
+        ]
+      });
+      console.log(`[Notification] Notificação via Capacitor disparada: ${title}`);
+    } catch (error) {
+      console.warn('Falha ao disparar notificação via Capacitor:', error);
+    }
+
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(title, { body });
+        console.log(`[Notification] Notificação via Web API disparada: ${title}`);
+      } catch (err) {
+        console.warn('Falha ao disparar notificação via Web API:', err);
+      }
     }
   }
 

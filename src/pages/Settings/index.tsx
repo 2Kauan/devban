@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopHeader } from '@/components/layout/TopHeader';
 import { useAuth } from '@/contexts/AuthContext';
-import { Save, User, Mail, Loader2, Camera } from 'lucide-react';
+import { Save, User, Mail, Loader2, Camera, Bell } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { ImageCropModal } from '@/components/ui/ImageCropModal';
+import { NotificationService } from '@/services/notifications/notificationService';
 
 export default function Settings() {
   const { user, profile } = useAuth();
@@ -17,6 +18,8 @@ export default function Settings() {
   
   const [isCropOpen, setIsCropOpen] = useState(false);
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
+  
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -24,6 +27,11 @@ export default function Settings() {
       setAvatarUrl(profile.avatar_url || '');
     }
   }, [profile]);
+
+  useEffect(() => {
+    const enabled = localStorage.getItem('devban_notifications_enabled') === 'true';
+    setNotificationsEnabled(enabled);
+  }, []);
 
 
   const handleSave = async (e: React.FormEvent) => {
@@ -87,6 +95,29 @@ export default function Settings() {
       };
     } catch (e) {
       toast.error('Erro ao processar imagem.');
+    }
+  };
+
+  const handleToggleNotifications = async (checked: boolean) => {
+    if (checked) {
+      const granted = await NotificationService.requestPermissions();
+      if (granted) {
+        localStorage.setItem('devban_notifications_enabled', 'true');
+        setNotificationsEnabled(true);
+        toast.success('Notificações ativadas com sucesso!');
+        NotificationService.sendImmediateNotification(
+          'Devban Notificações',
+          'Você receberá notificações sobre seus prazos de entrega!'
+        );
+      } else {
+        localStorage.setItem('devban_notifications_enabled', 'false');
+        setNotificationsEnabled(false);
+        toast.error('Permissão de notificação negada pelo navegador ou dispositivo.');
+      }
+    } else {
+      localStorage.setItem('devban_notifications_enabled', 'false');
+      setNotificationsEnabled(false);
+      toast.success('Notificações desativadas.');
     }
   };
 
@@ -168,7 +199,32 @@ export default function Settings() {
               </form>
             </div>
 
-
+            {/* Seção de Notificações */}
+            <div className="bg-card border border-border/60 rounded-xl p-6 shadow-sm">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Bell size={20} className="text-primary" />
+                Notificações de Prazos
+              </h2>
+              
+              <div className="flex items-center justify-between p-4 bg-muted/30 border border-border rounded-lg">
+                <div className="flex-1 pr-4">
+                  <h3 className="font-semibold text-sm text-foreground mb-1">Notificações de Entrega</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Receba avisos no seu dispositivo quando suas tarefas estiverem próximas do prazo de entrega (ex: faltando 1 minuto, 1 hora, etc.).
+                  </p>
+                </div>
+                
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={notificationsEnabled}
+                    onChange={(e) => handleToggleNotifications(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+              </div>
+            </div>
 
           </div>
         </div>
