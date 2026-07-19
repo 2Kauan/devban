@@ -54,10 +54,10 @@ export function TopHeader({ title, onOpenSidebar }: TopHeaderProps) {
     <header className="h-14 border-b border-border/40 flex items-center justify-between px-4 sm:px-6 bg-background/50 backdrop-blur-md shrink-0">
       <div className="flex items-center gap-4">
         <button 
-          className="md:hidden p-1.5 -ml-1.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50 transition-colors" 
+          className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50 transition-colors" 
           onClick={onOpenSidebar}
         >
-          <Menu size={20} />
+          <Menu size={24} />
         </button>
         <div className="flex items-center gap-2 text-sm">
           <span className="font-semibold text-foreground">{title}</span>
