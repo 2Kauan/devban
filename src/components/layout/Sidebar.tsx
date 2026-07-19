@@ -167,13 +167,6 @@ export function Sidebar({ onProjectCreated, isOpen, onClose, isProjectView = fal
               Calendário
             </Link>
             <Link 
-              to="/team" 
-              className={`flex items-center gap-3 px-3 py-3 rounded-md text-sm transition-colors ${isActive('/team') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
-            >
-              <History className="h-4 w-4" />
-              Atividades
-            </Link>
-            <Link 
               to="/notifications" 
               className={`flex items-center justify-between gap-3 px-3 py-3 rounded-md text-sm transition-colors ${isActive('/notifications') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
             >
