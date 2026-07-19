@@ -67,19 +67,19 @@ export function ProjectHeader({
   };
 
   return (
-    <header className="bg-card border-b border-border p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-      <div className="flex items-center gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-foreground leading-tight">{project.name}</h1>
-          <div className="flex items-center gap-3 text-sm text-muted-foreground mt-0.5">
+    <header className="bg-card border-b border-border py-2 px-4 flex items-center justify-between gap-4">
+      <div className="flex items-center gap-4 min-w-0">
+        <div className="min-w-0">
+          <h1 className="text-base sm:text-lg font-bold text-foreground leading-tight truncate" title={project.name}>{project.name}</h1>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 whitespace-nowrap">
             <span>{columnsCount} colunas</span>
-            <span className="w-1 h-1 bg-border rounded-full"></span>
+            <span className="w-1 h-1 bg-muted-foreground/30 rounded-full"></span>
             <span>{cardsCount} tarefas</span>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2 w-full sm:w-auto shrink-0 mt-4 md:mt-0 ml-auto">
+      <div className="flex items-center gap-1.5 shrink-0">
         {userPermission === 'owner' && (
           <button
             onClick={onOpenAccessRequests}
