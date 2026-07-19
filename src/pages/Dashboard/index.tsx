@@ -121,13 +121,6 @@ export default function Dashboard() {
               <h1 className="text-2xl font-bold tracking-tight">Visão Geral</h1>
               <p className="text-sm text-muted-foreground mt-1">Acompanhe o progresso dos seus projetos.</p>
             </div>
-            <button 
-              className="hidden sm:flex items-center gap-2 bg-foreground text-background px-4 py-2 rounded-lg text-sm font-medium hover:bg-foreground/90 transition-all shadow-sm shadow-primary/10"
-              onClick={() => document.dispatchEvent(new CustomEvent('open-create-project'))}
-            >
-              <Plus className="h-4 w-4" />
-              Criar Novo Projeto
-            </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
