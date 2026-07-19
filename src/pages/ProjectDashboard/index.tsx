@@ -106,14 +106,27 @@ export default function ProjectDashboard() {
     { name: 'Urgente', value: priorityCounts.urgent, color: '#ef4444' },
   ].filter(p => p.value > 0);
 
-  // --- Chart Data: Productivity Mock (last 7 days) ---
+  // --- Chart Data: Productivity (last 7 days) ---
   const productivityData = [...Array(7)].map((_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
+    const dayStart = new Date(d.setHours(0,0,0,0));
+    const dayEnd = new Date(d.setHours(23,59,59,999));
+    
+    const createdThatDay = cards.filter(c => {
+      const cardDate = new Date(c.created_at);
+      return cardDate >= dayStart && cardDate <= dayEnd;
+    }).length;
+
+    const completedThatDay = completedCardsList.filter(c => {
+      const cardDate = new Date(c.updated_at || c.created_at);
+      return cardDate >= dayStart && cardDate <= dayEnd;
+    }).length;
+
     return {
-      day: d.toLocaleDateString('pt-BR', { weekday: 'short' }),
-      Criadas: Math.floor(Math.random() * 5) + (i === 6 ? cards.length : 0), // Mock mixed with some real feeling
-      Concluídas: Math.floor(Math.random() * 4) + (i === 6 ? completedCards : 0)
+      day: new Date(dayStart).toLocaleDateString('pt-BR', { weekday: 'short' }),
+      Criadas: createdThatDay,
+      Concluídas: completedThatDay
     };
   });
 
