@@ -98,15 +98,15 @@ export function AIUploader({ onGenerate }: AIUploaderProps) {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <div className="p-6 md:p-10 flex flex-col items-center justify-center text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2">
-            <UploadCloud size={32} />
+        <div className="p-4 md:p-6 flex flex-col items-center justify-center text-center space-y-2">
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+            <UploadCloud size={24} />
           </div>
-          <h3 className="text-xl font-bold text-foreground">
+          <h3 className="text-base font-bold text-foreground">
             Arraste e solte seus documentos aqui
           </h3>
-          <p className="text-muted-foreground max-w-sm">
-            Suporta PDF, Imagens (PNG, JPG) e Texto. A IA lerá o conteúdo para gerar as tarefas.
+          <p className="text-xs text-muted-foreground max-w-sm">
+            Suporta PDF, Imagens (PNG, JPG) e Texto.
           </p>
           
           <input 
@@ -122,7 +122,7 @@ export function AIUploader({ onGenerate }: AIUploaderProps) {
           
           <button 
             onClick={() => fileInputRef.current?.click()}
-            className="px-6 py-2 bg-secondary text-secondary-foreground rounded-lg font-medium hover:bg-secondary/80 transition-colors"
+            className="mt-2 px-4 py-1.5 text-sm bg-secondary text-secondary-foreground rounded-lg font-medium hover:bg-secondary/80 transition-colors"
           >
             Procurar Arquivos
           </button>
