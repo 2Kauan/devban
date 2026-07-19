@@ -141,8 +141,8 @@ export default function TeamPage() {
             </div>
             
             {projects.length > 0 && (
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-medium text-muted-foreground">Filtrar por projeto:</span>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Filtrar por projeto:</span>
                 <select 
                   value={selectedProjectId}
                   onChange={(e) => setSelectedProjectId(e.target.value)}
