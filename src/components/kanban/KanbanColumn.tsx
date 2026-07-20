@@ -1,4 +1,4 @@
-import { useState, useMemo, memo } from 'react';
+import { useState, useMemo, memo, useRef, useEffect } from 'react';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { KanbanColumnType, KanbanCardType } from '@/types/kanban';
@@ -33,6 +33,23 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
   const [editSortByPriority, setEditSortByPriority] = useState(column.sort_by_priority || false);
   const [isHovered, setIsHovered] = useState(false);
   const [showCompletedCards, setShowCompletedCards] = useState(false);
+
+  const editPanelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isEditing) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (editPanelRef.current && !editPanelRef.current.contains(event.target as Node)) {
+        handleSaveEdit();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isEditing, editTitle, editColor, editIsCompleted, editSortByPriority, column, onUpdateColumn]);
 
   const COLUMN_COLORS = [
     { value: '', label: 'Padrão' },
@@ -112,7 +129,10 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
         <div className="flex items-center gap-1.5 flex-1 min-w-0" {...attributes} {...listeners} style={{ cursor: isEditing ? 'default' : 'grab' }}>
           
           {isEditing && canEdit ? (
-            <div className="flex flex-col gap-3 w-full bg-card p-3 rounded-lg border border-border/60 shadow-sm z-10 w-full relative">
+            <div 
+              ref={editPanelRef}
+              className="flex flex-col gap-3 w-full bg-card p-3 rounded-lg border border-border/60 shadow-sm z-10 w-full relative"
+            >
               <input
                 type="text"
                 value={editTitle}
