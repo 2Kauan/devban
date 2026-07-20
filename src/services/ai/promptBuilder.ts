@@ -24,6 +24,7 @@ INSTRUÇÕES DE PRIORIDADE:
       "id": "string única (ex: col-1)",
       "title": "Nome exato da Coluna exigida ou sugerida (ex: 'A Fazer', 'Em Progresso', 'Concluído')",
       "color": "#HEX_AQUI (Cor pastel baseada na categoria da coluna)",
+      "is_completed": true, // (boolean, defina true APENAS para a coluna de concluídos/entregas)
       "tasks": [
         {
           "id": "string única (ex: task-1)",

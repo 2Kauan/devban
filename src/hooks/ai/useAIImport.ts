@@ -25,6 +25,9 @@ export function useAIImport() {
       for (const col of board.columns) {
         baseColPosition += 1000;
         
+        const isColCompleted = !!col.is_completed || 
+          ['concluido', 'concluído', 'done', 'finalizado', 'concluidos', 'concluídos', 'terminado', 'entregue'].includes(col.title.toLowerCase().trim());
+
         // 2. Insert Column
         const { data: newCol, error: colError } = await supabase
           .from('columns')
@@ -32,7 +35,8 @@ export function useAIImport() {
             project_id: projectId,
             title: col.title,
             position: baseColPosition,
-            color: '#94a3b8' // Default color
+            color: '#94a3b8', // Default color
+            is_completed: isColCompleted
           })
           .select()
           .single();

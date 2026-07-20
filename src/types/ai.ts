@@ -17,6 +17,7 @@ export interface AIKanbanColumn {
   id: string; // Temporary ID
   title: string; // Backlog, To Do, In Progress, etc.
   tasks: AIKanbanTask[];
+  is_completed?: boolean;
 }
 
 export interface AIKanbanBoard {
