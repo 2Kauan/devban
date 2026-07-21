@@ -67,7 +67,6 @@ export function useFavorites(userId: string | undefined) {
     // Optimistic local state update
     setFavorites(newFavs);
     localStorage.setItem(`devban_favorites_${userId}`, JSON.stringify(newFavs));
-    window.dispatchEvent(new Event('devban_favorites_updated'));
 
     try {
       if (isFav) {
@@ -83,6 +82,9 @@ export function useFavorites(userId: string | undefined) {
           .insert({ user_id: userId, project_id: projectId });
         if (error) throw error;
       }
+      
+      // Dispatch event to sync state after successful DB write
+      window.dispatchEvent(new Event('devban_favorites_updated'));
     } catch (e) {
       console.error('Error toggling favorite in DB:', e);
       // Revert in case of error
