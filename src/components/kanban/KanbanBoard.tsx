@@ -293,7 +293,7 @@ export function KanbanBoard({
         onDragOver={onDragOver}
         onDragEnd={onDragEnd}
       >
-        <div className="flex gap-6 p-4 sm:p-8 pt-2 min-w-max flex-1 min-h-0 h-full">
+        <div className="flex gap-3 sm:gap-6 p-2.5 sm:p-8 pt-2 min-w-max flex-1 min-h-0 h-full">
           <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
             {localColumns.map((col, idx) => (
               <KanbanColumn
@@ -335,7 +335,7 @@ export function KanbanBoard({
           {canEdit && (
             <button 
               onClick={onAddColumn}
-              className="flex-shrink-0 w-[320px] h-[60px] bg-card/50 border border-dashed border-border rounded-2xl flex items-center justify-center text-muted-foreground hover:bg-card hover:text-foreground hover:border-primary/50 transition-all font-medium"
+              className="flex-shrink-0 w-[78vw] sm:w-[320px] h-[60px] bg-card/50 border border-dashed border-border rounded-2xl flex items-center justify-center text-muted-foreground hover:bg-card hover:text-foreground hover:border-primary/50 transition-all font-medium"
             >
               + Adicionar Coluna
             </button>

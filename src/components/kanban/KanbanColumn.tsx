@@ -97,7 +97,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
       <div 
         ref={setNodeRef}
         style={style}
-        className="flex flex-col bg-muted/20 border border-border/50 rounded-xl flex-shrink-0 w-[85vw] md:w-[320px] h-full transition-all opacity-40"
+        className="flex flex-col bg-muted/20 border border-border/50 rounded-xl flex-shrink-0 w-[78vw] sm:w-[85vw] md:w-[320px] h-full transition-all opacity-40"
       />
     );
   }
@@ -108,7 +108,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
       style={{
         ...style,
       }}
-      className="bg-background/40 backdrop-blur-xl border border-border/40 shadow-sm rounded-2xl flex-shrink-0 flex flex-col h-full w-[85vw] md:w-[300px] relative group/col overflow-hidden transition-colors hover:bg-background/50"
+      className="bg-background/40 backdrop-blur-xl border border-border/40 shadow-sm rounded-2xl flex-shrink-0 flex flex-col h-full w-[78vw] sm:w-[85vw] md:w-[300px] relative group/col overflow-hidden transition-colors hover:bg-background/50"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
