@@ -178,7 +178,7 @@ export default function ProjectPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-muted/10 overflow-hidden min-w-0 min-h-0">
+    <div className="flex-1 flex flex-col bg-background overflow-hidden min-w-0 min-h-0">
         {/* Project Header */}
         <ProjectHeader 
           project={project}

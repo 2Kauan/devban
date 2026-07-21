@@ -2,14 +2,16 @@ import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopHeader } from '@/components/layout/TopHeader';
 import { useAuth } from '@/contexts/AuthContext';
-import { Save, User, Mail, Loader2, Camera, Bell } from 'lucide-react';
+import { Save, User, Mail, Loader2, Camera, Bell, Sun, Moon, Monitor } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { ImageCropModal } from '@/components/ui/ImageCropModal';
 import { NotificationService } from '@/services/notifications/notificationService';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function Settings() {
   const { user, profile } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   const [name, setName] = useState('');
@@ -144,7 +146,7 @@ export default function Settings() {
     <div className="flex h-screen w-full bg-background overflow-hidden">
       <Sidebar projects={[]} onProjectCreated={() => {}} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-muted/10">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
         <TopHeader title="Configurações" onOpenSidebar={() => setIsSidebarOpen(true)} />
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
@@ -244,6 +246,58 @@ export default function Settings() {
                   />
                   <div className="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
+              </div>
+            </div>
+
+            {/* Seção de Aparência / Tema */}
+            <div className="bg-card border border-border/60 rounded-xl p-6 shadow-sm">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Sun size={20} className="text-primary" />
+                Aparência
+              </h2>
+              <p className="text-xs text-muted-foreground mb-4">
+                Escolha como deseja visualizar o painel do Devban no seu dispositivo.
+              </p>
+              
+              <div className="grid grid-cols-3 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setTheme('light')}
+                  className={`flex flex-col items-center gap-3 p-4 rounded-xl border text-center transition-all cursor-pointer ${
+                    theme === 'light'
+                      ? 'border-primary bg-primary/5 text-primary'
+                      : 'border-border hover:bg-muted/30 text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Sun size={24} className={theme === 'light' ? 'text-primary' : ''} />
+                  <span className="text-sm font-semibold">Claro</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTheme('dark')}
+                  className={`flex flex-col items-center gap-3 p-4 rounded-xl border text-center transition-all cursor-pointer ${
+                    theme === 'dark'
+                      ? 'border-primary bg-primary/5 text-primary'
+                      : 'border-border hover:bg-muted/30 text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Moon size={24} className={theme === 'dark' ? 'text-primary' : ''} />
+                  <span className="text-sm font-semibold">Escuro</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTheme('system')}
+                  className={`flex flex-col items-center gap-3 p-4 rounded-xl border text-center transition-all cursor-pointer ${
+                    theme === 'system'
+                      ? 'border-primary bg-primary/5 text-primary'
+                      : 'border-border hover:bg-muted/30 text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Monitor size={24} className={theme === 'system' ? 'text-primary' : ''} />
+                  <span className="text-sm font-semibold">Sistema</span>
+                </button>
               </div>
             </div>
 

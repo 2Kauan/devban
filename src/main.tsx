@@ -7,6 +7,7 @@ import App from './App.tsx';
 import '@/styles/index.css';
 
 import { AuthProvider } from '@/contexts/AuthContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -19,11 +20,13 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AuthProvider>
-      <QueryClientProvider client={queryClient}>
-        <App />
-        <Toaster position="top-right" richColors />
-      </QueryClientProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <QueryClientProvider client={queryClient}>
+          <App />
+          <Toaster position="top-right" richColors />
+        </QueryClientProvider>
+      </AuthProvider>
+    </ThemeProvider>
   </StrictMode>
 );

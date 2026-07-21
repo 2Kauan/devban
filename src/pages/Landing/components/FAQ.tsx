@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
@@ -59,15 +59,23 @@ const AnimatedText = ({ text }: { text: string }) => {
 
 export function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   return (
     <section id="faq" className="py-24 px-4 bg-muted/20 border-y border-border/40">
       <div className="container mx-auto max-w-3xl">
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={isMobile ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          whileInView={isMobile ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          transition={isMobile ? { duration: 0 } : { duration: 0.5 }}
           className="text-center mb-16"
         >
           <h2 className="text-3xl md:text-4xl font-extrabold mb-4 text-foreground tracking-tight">
@@ -79,15 +87,15 @@ export function FAQ() {
           {faqs.map((faq, idx) => (
             <motion.div
               key={idx}
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={isMobile ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+              whileInView={isMobile ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: idx * 0.1 }}
+              transition={isMobile ? { duration: 0 } : { duration: 0.4, delay: idx * 0.1 }}
               className="border border-border/50 rounded-2xl bg-background overflow-hidden"
             >
               <button
                 onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
-                className="w-full p-6 text-left flex items-center justify-between focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="w-full p-6 text-left flex items-center justify-between focus:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer"
               >
                 <span className="font-semibold text-lg text-foreground">{faq.question}</span>
                 <ChevronDown 
@@ -98,13 +106,13 @@ export function FAQ() {
               <AnimatePresence>
                 {openIndex === idx && (
                   <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                    initial={isMobile ? { opacity: 1, height: 'auto' } : { height: 0, opacity: 0 }}
+                    animate={isMobile ? { opacity: 1, height: 'auto' } : { height: 'auto', opacity: 1 }}
+                    exit={isMobile ? { opacity: 0, height: 0 } : { height: 0, opacity: 0 }}
+                    transition={isMobile ? { duration: 0 } : { duration: 0.3, ease: 'easeOut' }}
                   >
                     <div className="px-6 pb-6 text-muted-foreground leading-relaxed break-words">
-                      <AnimatedText text={faq.answer} />
+                      {isMobile ? faq.answer : <AnimatedText text={faq.answer} />}
                     </div>
                   </motion.div>
                 )}

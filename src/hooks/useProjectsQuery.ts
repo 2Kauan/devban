@@ -41,6 +41,11 @@ export function useProjectsQuery() {
       if (error) throw error;
 
       const projects = data || [];
+      projects.sort((a, b) => {
+        if (a.is_completed && !b.is_completed) return 1;
+        if (!a.is_completed && b.is_completed) return -1;
+        return 0;
+      });
       setCachedProjects(user.id, projects);
       return projects;
     },
