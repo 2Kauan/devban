@@ -88,7 +88,8 @@ export default function Register() {
       >
         <div className="text-center mb-4">
           <Link to="/" className="inline-flex items-center justify-center gap-2 -mb-16">
-            <img src="/logo-devban.webp" alt="DevBan" className="h-39 w-auto object-contain" />
+            <img src="/logo-devban.webp" alt="DevBan" className="h-39 w-auto object-contain dark:hidden" />
+            <img src="/logo-branca2.png" alt="DevBan" className="h-39 w-auto object-contain hidden dark:block" />
           </Link>
           <h2 className="text-2xl font-bold text-foreground">Crie sua conta</h2>
           <p className="text-muted-foreground mt-1 text-sm">Junte-se a milhares de equipes produtivas</p>

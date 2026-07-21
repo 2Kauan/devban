@@ -105,7 +105,8 @@ export default function Login() {
       >
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center justify-center gap-2 -mb-16">
-            <img src="/logo-devban.webp" alt="DevBan" className="h-39 w-auto object-contain" />
+            <img src="/logo-devban.webp" alt="DevBan" className="h-39 w-auto object-contain dark:hidden" />
+            <img src="/logo-branca2.png" alt="DevBan" className="h-39 w-auto object-contain hidden dark:block" />
           </Link>
           <h2 className="text-2xl font-bold text-foreground">
             {view === 'login' && 'Bem-vindo de volta'}
