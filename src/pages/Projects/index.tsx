@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -138,7 +138,7 @@ export default function Projects() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { favorites } = useFavorites(user?.id);
-  const [filter, setFilter] = useState<'all' | 'favorites'>('all');
+  const [filter, setFilter] = useState<'all' | 'favorites' | 'completed'>('all');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const { data: projects = [], isLoading } = useProjectsQuery();
@@ -146,10 +146,24 @@ export default function Projects() {
   const projectIds = projects.map(p => p.id);
   const { data: memberCounts = {} } = useProjectMemberCounts(projectIds);
 
-  const isFavorites = filter === 'favorites';
-  const displayedProjects = isFavorites 
-    ? projects.filter(p => favorites.includes(p.id))
-    : projects;
+  const displayedProjects = useMemo(() => {
+    let list = projects;
+    if (filter === 'favorites') {
+      list = projects.filter(p => favorites.includes(p.id));
+    } else if (filter === 'completed') {
+      list = projects.filter(p => p.is_completed);
+    }
+
+    if (filter === 'all') {
+      return [...list].sort((a, b) => {
+        if (a.is_completed && !b.is_completed) return 1;
+        if (!a.is_completed && b.is_completed) return -1;
+        return 0;
+      });
+    }
+
+    return list;
+  }, [projects, favorites, filter]);
 
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 
@@ -217,16 +231,23 @@ export default function Projects() {
           <div className="flex items-center gap-2 mb-8 bg-muted/30 p-1 rounded-lg w-max border border-border/50">
             <button 
               onClick={() => setFilter('all')} 
-              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${filter === 'all' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all cursor-pointer ${filter === 'all' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               Todos
             </button>
             <button 
               onClick={() => setFilter('favorites')} 
-              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${filter === 'favorites' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 cursor-pointer ${filter === 'favorites' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               <Star size={14} className={filter === 'favorites' ? "text-yellow-500 fill-yellow-500" : ""} />
               Favoritos
+            </button>
+            <button 
+              onClick={() => setFilter('completed')} 
+              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 cursor-pointer ${filter === 'completed' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              <CheckCircle2 size={14} className={filter === 'completed' ? "text-emerald-500" : ""} />
+              Finalizados
             </button>
           </div>
           
@@ -243,17 +264,19 @@ export default function Projects() {
           ) : displayedProjects.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
-                {isFavorites ? <Star size={32} /> : <FolderKanban size={32} />}
+                {filter === 'favorites' ? <Star size={32} /> : filter === 'completed' ? <CheckCircle2 size={32} /> : <FolderKanban size={32} />}
               </div>
               <h3 className="text-xl font-bold text-foreground mb-2">
-                {isFavorites ? 'Nenhum favorito' : 'Nenhum projeto'}
+                {filter === 'favorites' ? 'Nenhum favorito' : filter === 'completed' ? 'Nenhum projeto finalizado' : 'Nenhum projeto'}
               </h3>
               <p className="text-muted-foreground max-w-sm mb-6">
-                {isFavorites 
+                {filter === 'favorites' 
                   ? 'Você ainda não adicionou nenhum projeto aos favoritos. Clique na estrela de um projeto para favoritá-lo.' 
+                  : filter === 'completed'
+                  ? 'Você ainda não possui projetos finalizados. Quando marcar um projeto como finalizado, ele aparecerá aqui.'
                   : 'Você ainda não possui projetos. Crie seu primeiro projeto para começar.'}
               </p>
-              {!isFavorites && (
+              {filter === 'all' && (
                 <button 
                   onClick={() => document.dispatchEvent(new CustomEvent('open-create-project'))}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 rounded-lg font-medium transition-colors"
