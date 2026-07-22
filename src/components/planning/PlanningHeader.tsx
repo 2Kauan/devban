@@ -1,8 +1,8 @@
-import { useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { CalendarDays, Plus, ChevronDown, ChevronLeft, ChevronRight, List, Calendar, CalendarRange, Clock } from 'lucide-react';
 import { formatMonthYear } from '@/utils/calendar';
-import { format, addMonths, addDays, subDays } from 'date-fns';
-import { motion } from 'framer-motion';
+import { addMonths, addDays, subDays } from 'date-fns';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export type ViewType = 'month' | 'week' | 'day' | 'agenda';
 
@@ -27,7 +27,12 @@ export function PlanningHeader({
   onToday,
   onNewTask
 }: PlanningHeaderProps) {
-  const monthInputRef = useRef<HTMLInputElement>(null);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+
+  useEffect(() => {
+    setSelectedYear(currentDate.getFullYear());
+  }, [currentDate]);
 
   const views = [
     { id: 'agenda', label: 'Agenda', icon: List },
@@ -36,19 +41,7 @@ export function PlanningHeader({
     { id: 'day', label: 'Dia', icon: Clock }
   ];
 
-  const handleOpenMonthPicker = () => {
-    const el = monthInputRef.current;
-    if (!el) return;
-    try {
-      if ('showPicker' in el && typeof (el as any).showPicker === 'function') {
-        (el as any).showPicker();
-      } else {
-        el.click();
-      }
-    } catch {
-      el.click();
-    }
-  };
+  const months = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 
   const handlePrev = () => {
     if (onPrev) {
@@ -111,23 +104,95 @@ export function PlanningHeader({
               <ChevronLeft size={18} />
             </button>
 
-            {/* Bloco do Mês Clicável */}
-            <div className="relative group cursor-pointer" onClick={handleOpenMonthPicker}>
-              <input
-                ref={monthInputRef}
-                type="month"
-                value={format(currentDate, 'yyyy-MM')}
-                onChange={(e) => {
-                  if (!e.target.value) return;
-                  const [year, month] = e.target.value.split('-').map(Number);
-                  onDateChange?.(new Date(year, month - 1, 1));
-                }}
-                className="absolute inset-0 z-20 w-full h-full opacity-0 cursor-pointer pointer-events-auto"
-              />
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-background hover:bg-muted/70 rounded-lg text-sm font-semibold text-foreground capitalize transition-colors cursor-pointer select-none">
+            {/* Custom Month/Year Picker Dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsPickerOpen(!isPickerOpen)}
+                className="flex items-center gap-2 px-3 py-1.5 bg-background hover:bg-muted/70 rounded-lg text-sm font-semibold text-foreground capitalize transition-colors cursor-pointer select-none"
+              >
                 <span>{formatMonthYear(currentDate)}</span>
-                <ChevronDown size={14} className="text-muted-foreground group-hover:text-foreground transition-colors" />
-              </div>
+                <ChevronDown size={14} className={`text-muted-foreground group-hover:text-foreground transition-transform duration-200 ${isPickerOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {isPickerOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setIsPickerOpen(false)} />
+                    
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: 5 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: 5 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 sm:left-1/2 sm:-translate-x-1/2 top-full mt-2 z-50 w-72 bg-card border border-border shadow-2xl rounded-2xl p-4 backdrop-blur-md"
+                    >
+                      {/* Year Selector */}
+                      <div className="flex items-center justify-between pb-3 mb-3 border-b border-border/50">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedYear(y => y - 1)}
+                          className="p-1 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                        >
+                          <ChevronLeft size={18} />
+                        </button>
+                        <span className="font-bold text-base text-foreground">{selectedYear}</span>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedYear(y => y + 1)}
+                          className="p-1 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                        >
+                          <ChevronRight size={18} />
+                        </button>
+                      </div>
+
+                      {/* Months Grid */}
+                      <div className="grid grid-cols-4 gap-2">
+                        {months.map((m, idx) => {
+                          const isSelected = currentDate.getFullYear() === selectedYear && currentDate.getMonth() === idx;
+                          const isCurrentRealMonth = new Date().getFullYear() === selectedYear && new Date().getMonth() === idx;
+
+                          return (
+                            <button
+                              key={m}
+                              type="button"
+                              onClick={() => {
+                                onDateChange?.(new Date(selectedYear, idx, 1));
+                                setIsPickerOpen(false);
+                              }}
+                              className={`py-2 rounded-xl text-xs font-semibold capitalize transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'bg-primary text-primary-foreground font-bold shadow-md shadow-primary/20 scale-105'
+                                  : isCurrentRealMonth
+                                  ? 'border border-primary/50 text-primary hover:bg-primary/10'
+                                  : 'hover:bg-muted/70 text-muted-foreground hover:text-foreground'
+                              }`}
+                            >
+                              {m}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Footer */}
+                      <div className="flex items-center justify-end pt-3 mt-3 border-t border-border/50 text-xs font-medium">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const now = new Date();
+                            onDateChange?.(now);
+                            setSelectedYear(now.getFullYear());
+                            setIsPickerOpen(false);
+                          }}
+                          className="text-primary hover:underline font-semibold cursor-pointer"
+                        >
+                          Este mês
+                        </button>
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Botão Hoje */}
