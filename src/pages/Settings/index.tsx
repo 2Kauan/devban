@@ -263,39 +263,54 @@ export default function Settings() {
                 <button
                   type="button"
                   onClick={() => setTheme('light')}
-                  className={`flex flex-col items-center gap-3 p-4 rounded-xl border text-center transition-all cursor-pointer ${
+                  className={`relative flex flex-col items-center gap-3 p-4 rounded-xl border text-center transition-all cursor-pointer ${
                     theme === 'light'
-                      ? 'border-primary bg-primary/5 text-primary'
+                      ? 'border-primary bg-primary/5 text-primary dark:border-white dark:text-white dark:bg-white/10'
                       : 'border-border hover:bg-muted/30 text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  <Sun size={24} className={theme === 'light' ? 'text-primary' : ''} />
+                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${
+                    theme === 'light' ? 'border-primary dark:border-white' : 'border-muted-foreground/40'
+                  }`}>
+                    {theme === 'light' && <div className="w-2 h-2 rounded-full bg-primary dark:bg-white" />}
+                  </div>
+                  <Sun size={24} className={theme === 'light' ? 'text-primary dark:text-white' : ''} />
                   <span className="text-sm font-semibold">Claro</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setTheme('dark')}
-                  className={`flex flex-col items-center gap-3 p-4 rounded-xl border text-center transition-all cursor-pointer ${
+                  className={`relative flex flex-col items-center gap-3 p-4 rounded-xl border text-center transition-all cursor-pointer ${
                     theme === 'dark'
-                      ? 'border-primary bg-primary/5 text-primary'
+                      ? 'border-primary bg-primary/5 text-primary dark:border-white dark:text-white dark:bg-white/10'
                       : 'border-border hover:bg-muted/30 text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  <Moon size={24} className={theme === 'dark' ? 'text-primary' : ''} />
+                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${
+                    theme === 'dark' ? 'border-primary dark:border-white' : 'border-muted-foreground/40'
+                  }`}>
+                    {theme === 'dark' && <div className="w-2 h-2 rounded-full bg-primary dark:bg-white" />}
+                  </div>
+                  <Moon size={24} className={theme === 'dark' ? 'text-primary dark:text-white' : ''} />
                   <span className="text-sm font-semibold">Escuro</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setTheme('system')}
-                  className={`flex flex-col items-center gap-3 p-4 rounded-xl border text-center transition-all cursor-pointer ${
+                  className={`relative flex flex-col items-center gap-3 p-4 rounded-xl border text-center transition-all cursor-pointer ${
                     theme === 'system'
-                      ? 'border-primary bg-primary/5 text-primary'
+                      ? 'border-primary bg-primary/5 text-primary dark:border-white dark:text-white dark:bg-white/10'
                       : 'border-border hover:bg-muted/30 text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  <Monitor size={24} className={theme === 'system' ? 'text-primary' : ''} />
+                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${
+                    theme === 'system' ? 'border-primary dark:border-white' : 'border-muted-foreground/40'
+                  }`}>
+                    {theme === 'system' && <div className="w-2 h-2 rounded-full bg-primary dark:bg-white" />}
+                  </div>
+                  <Monitor size={24} className={theme === 'system' ? 'text-primary dark:text-white' : ''} />
                   <span className="text-sm font-semibold">Sistema</span>
                 </button>
               </div>

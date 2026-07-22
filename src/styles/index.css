@@ -79,6 +79,11 @@
     --input: 224 71% 16%;
     --ring: 221 83% 53%;
   }
+
+  .dark input[type="radio"],
+  .dark input[type="checkbox"] {
+    accent-color: #ffffff;
+  }
 }
 
 @layer base {
