@@ -9,6 +9,7 @@ import type { Project } from '@/types/database';
 import { toast } from 'sonner';
 import { useProjectsQuery } from '@/hooks/useProjectsQuery';
 import { useSharedProjectsQuery } from '@/hooks/useSharedProjectsQuery';
+import { useProjectQuery } from '@/hooks/useProjectQuery';
 import { useQueryClient } from '@tanstack/react-query';
 import { touchProject } from '@/utils/recentProjects';
 
@@ -19,38 +20,19 @@ export function ProjectLayout() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   
-  const [project, setProject] = useState<Project | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [isKicked, setIsKicked] = useState(false);
 
   const { data: ownedProjects = [] } = useProjectsQuery();
   const { data: sharedProjects = [] } = useSharedProjectsQuery();
+  const { data: projectData, isLoading: isProjectLoading } = useProjectQuery(id);
 
   const projects = [...ownedProjects, ...sharedProjects.filter(sp => !ownedProjects.some(op => op.id === sp.id))];
-
-  const fetchCurrentProject = async () => {
-    if (!id) return;
-    setIsLoading(true);
-    try {
-      const { data: currentProject, error: projErr } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (projErr) throw new Error('Projeto não encontrado ou sem permissão.');
-      setProject(currentProject);
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const project = projectData?.project || projects.find(p => p.id === id) || null;
+  const isLoading = isProjectLoading && !project;
 
   useEffect(() => {
     if (user && id) {
-      fetchCurrentProject();
       touchProject(id, queryClient);
     }
   }, [user, id]);
@@ -69,12 +51,7 @@ export function ProjectLayout() {
           filter: `id=eq.${project.id}`,
         },
         (payload) => {
-          setProject((prev) => {
-            if (JSON.stringify(prev) === JSON.stringify({ ...prev, ...payload.new })) {
-              return prev;
-            }
-            return { ...prev, ...payload.new } as Project;
-          });
+          queryClient.invalidateQueries({ queryKey: ['project', id] });
         }
       )
       .on(
@@ -86,35 +63,12 @@ export function ProjectLayout() {
           filter: `project_id=eq.${project.id}`,
         },
         async (payload) => {
-          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-            if (payload.new?.user_id === user.id) {
-              queryClient.invalidateQueries({ queryKey: ['project', project.id] });
-              if (payload.eventType === 'UPDATE') {
-                toast.info('Sua permissão neste projeto foi alterada. Atualizando...', { duration: 3000 });
-              }
-            }
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
-        },
-        async (payload) => {
-          const notif = payload.new;
-          if (notif?.title === 'Acesso Removido') {
+          if (payload.eventType === 'DELETE' && payload.old.user_id === user.id) {
             setIsKicked(true);
-            queryClient.invalidateQueries({ queryKey: ['sharedProjects'] });
-            queryClient.invalidateQueries({ queryKey: ['projects'] });
-            queryClient.removeQueries({ queryKey: ['project', project.id] });
-            toast.error(notif.message || 'Você foi removido deste projeto.', { duration: 8000 });
+            toast.error('Você foi removido deste projeto pelo proprietário.');
             setTimeout(() => {
               navigate('/projects');
-            }, 2000);
+            }, 3000);
           }
         }
       )

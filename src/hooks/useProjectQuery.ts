@@ -29,215 +29,175 @@ export function useProjectQuery(projectId: string | undefined) {
 
   const query = useQuery<ProjectData>({
     queryKey: ['project', projectId],
+    placeholderData: (prev) => {
+      if (prev) return prev;
+      if (!projectId) return undefined;
+      const cached = getCachedBoardData(projectId);
+      return cached?.fullData || undefined;
+    },
     queryFn: async () => {
       if (!projectId) throw new Error('No project ID');
 
       try {
-        // Fetch project
-        const { data: projectData, error: projError } = await supabase
-          .from('projects')
-          .select('*')
-          .eq('id', projectId)
-          .single();
-        
-        if (projError) throw projError;
+        // Parallel batch 1: Fetch project, members, columns, cards, categories, and access requests simultaneously
+        const [
+          projectRes,
+          membersRes,
+          colsRes,
+          cardsRes,
+          catRes,
+          pendingRequestsRes
+        ] = await Promise.all([
+          supabase.from('projects').select('*').eq('id', projectId).single(),
+          supabase.from('project_members').select('permission, job_title, profiles(*)').eq('project_id', projectId),
+          supabase.from('columns').select('*').eq('project_id', projectId).order('position', { ascending: true }),
+          supabase.from('cards').select('*').eq('project_id', projectId).order('position', { ascending: true }),
+          supabase.from('categories').select('*').eq('project_id', projectId),
+          user
+            ? supabase.from('project_access_requests').select('*', { count: 'exact', head: true }).eq('project_id', projectId).eq('status', 'pending')
+            : Promise.resolve({ count: 0, error: null }),
+        ]);
 
-      // Determine permission
-      let perm: ProjectPermission = 'viewer';
-      let pendingCount = 0;
+        if (projectRes.error) throw projectRes.error;
+        const projectData = projectRes.data;
 
-      if (user) {
-        if (projectData.owner_id === user.id) {
-          perm = 'owner';
-          const { count } = await supabase
-            .from('project_access_requests')
-            .select('*', { count: 'exact', head: true })
-            .eq('project_id', projectId)
-            .eq('status', 'pending');
-          pendingCount = count || 0;
-        } else {
-          const { data: memberData } = await supabase
-            .from('project_members')
-            .select('permission')
-            .eq('project_id', projectId)
-            .eq('user_id', user.id)
-            .maybeSingle();
-          if (memberData) {
-            perm = memberData.permission;
-          } else {
-            throw new Error('Acesso negado. Você não é mais membro deste projeto.');
-          }
-        }
-      } else if (projectData.share_enabled) {
-        perm = 'viewer';
-      } else {
-        throw new Error('Acesso negado. Faça login para acessar este projeto.');
-      }
+        // Determine permission & process members
+        let perm: ProjectPermission = 'viewer';
+        const pendingCount = (pendingRequestsRes as any).count || 0;
+        const allMembersData = membersRes.data || [];
 
-      // Fetch all project members
-      const { data: allMembersData, error: allMemError } = await supabase
-        .from('project_members')
-        .select('permission, job_title, profiles(*)')
-        .eq('project_id', projectId);
-      
-      let projectMembers: ProjectMember[] = [];
-      if (!allMemError && allMembersData) {
-        projectMembers = allMembersData
+        let projectMembers: ProjectMember[] = allMembersData
           .filter(m => m.profiles)
           .map(m => ({
             permission: m.permission as ProjectPermission,
             job_title: m.job_title,
             profiles: m.profiles as unknown as Profile
           }));
-      }
-      
-      // Also, we need to include the owner as a member if they are not explicitly in project_members
-      if (projectData.owner_id) {
-         const ownerInMembers = projectMembers.find(m => m.profiles.id === projectData.owner_id);
-         if (!ownerInMembers) {
-            const { data: ownerProfile } = await supabase.from('profiles').select('*').eq('id', projectData.owner_id).single();
-            if (ownerProfile) {
-               projectMembers.push({
-                 permission: 'owner',
-                 job_title: 'Dono do Projeto',
-                 profiles: ownerProfile
-               });
+
+        if (user) {
+          if (projectData.owner_id === user.id) {
+            perm = 'owner';
+          } else {
+            const currentMember = allMembersData.find((m: any) => m.profiles?.id === user.id);
+            if (currentMember) {
+              perm = currentMember.permission as ProjectPermission;
+            } else if (projectData.share_enabled) {
+              perm = 'editor';
+            } else {
+              throw new Error('Acesso negado. Você não é mais membro deste projeto.');
             }
-         }
-      }
-
-      // If user is authenticated and has access via public link, include them in projectMembers so they can assign themselves
-      if (user && perm === 'editor' && projectData.owner_id !== user.id) {
-         const userInMembers = projectMembers.find(m => m.profiles.id === user.id);
-         if (!userInMembers) {
-            const { data: userProfile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-            if (userProfile) {
-               projectMembers.push({
-                 permission: 'editor',
-                 job_title: 'Convidado (Link)',
-                 profiles: userProfile
-               });
-            }
-         }
-      }
-
-      // Fetch columns
-      const { data: colsData, error: colsError } = await supabase
-        .from('columns')
-        .select('*')
-        .eq('project_id', projectId)
-        .order('position', { ascending: true });
-      
-      if (colsError) throw colsError;
-      
-      let columns = colsData || [];
-
-      // Create default columns if none exist
-      if (columns.length === 0) {
-        const defaultCols = [
-          { project_id: projectId, title: 'Ideias', position: 1000 },
-          { project_id: projectId, title: 'A Fazer', position: 2000 },
-          { project_id: projectId, title: 'Fazendo', position: 3000 },
-          { project_id: projectId, title: 'Revisão', position: 4000 },
-          { project_id: projectId, title: 'Concluído', position: 5000, is_completed: true },
-        ];
-        const { data: insertedCols, error: insertError } = await supabase
-          .from('columns')
-          .insert(defaultCols)
-          .select();
-        
-        if (!insertError && insertedCols) {
-          columns = insertedCols;
+          }
+        } else if (projectData.share_enabled) {
+          perm = 'viewer';
+        } else {
+          throw new Error('Acesso negado. Faça login para acessar este projeto.');
         }
-      }
 
-      // Fetch cards
-      const { data: cardsData, error: cardsError } = await supabase
-        .from('cards')
-        .select('*')
-        .eq('project_id', projectId)
-        .order('position', { ascending: true });
-      
-      if (cardsError) throw cardsError;
+        // Include owner in members list if missing
+        if (projectData.owner_id && !projectMembers.some(m => m.profiles.id === projectData.owner_id)) {
+          const { data: ownerProfile } = await supabase.from('profiles').select('*').eq('id', projectData.owner_id).single();
+          if (ownerProfile) {
+            projectMembers.push({
+              permission: 'owner',
+              job_title: 'Dono do Projeto',
+              profiles: ownerProfile
+            });
+          }
+        }
 
-      // Fetch categories
-      const { data: catData, error: catError } = await supabase
-        .from('categories')
-        .select('*')
-        .eq('project_id', projectId);
-      
-      if (catError) throw catError;
-      const projectCategories = catData || [];
+        // Include guest user in members list if missing
+        if (user && perm === 'editor' && projectData.owner_id !== user.id && !projectMembers.some(m => m.profiles.id === user.id)) {
+          const { data: userProfile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+          if (userProfile) {
+            projectMembers.push({
+              permission: 'editor',
+              job_title: 'Convidado (Link)',
+              profiles: userProfile
+            });
+          }
+        }
 
-      // Fetch card_assignees
-      let enrichedCards = cardsData || [];
-      if (cardsData && cardsData.length > 0) {
-        const cardIds = cardsData.map(c => c.id);
-        
-        // Fetch categories
-        const { data: cardCatData, error: cardCatError } = await supabase
-          .from('card_categories')
-          .select('*')
-          .in('card_id', cardIds);
+        // Process columns
+        if (colsRes.error) throw colsRes.error;
+        let columns = colsRes.data || [];
+
+        if (columns.length === 0) {
+          const defaultCols = [
+            { project_id: projectId, title: 'Ideias', position: 1000 },
+            { project_id: projectId, title: 'A Fazer', position: 2000 },
+            { project_id: projectId, title: 'Fazendo', position: 3000 },
+            { project_id: projectId, title: 'Revisão', position: 4000 },
+            { project_id: projectId, title: 'Concluído', position: 5000, is_completed: true },
+          ];
+          const { data: insertedCols, error: insertError } = await supabase
+            .from('columns')
+            .insert(defaultCols)
+            .select();
           
-        // Fetch assignees
-        const { data: cardAssigneesData, error: assigneesError } = await supabase
-          .from('card_assignees')
-          .select('card_id, profiles(*)')
-          .in('card_id', cardIds);
-          
-        // Fetch comment counts
-        const { data: commentsCountData } = await supabase
-          .from('comments')
-          .select('card_id')
-          .in('card_id', cardIds);
+          if (!insertError && insertedCols) {
+            columns = insertedCols;
+          }
+        }
 
-        const commentsCounts: Record<string, number> = {};
-        if (commentsCountData) {
-          commentsCountData.forEach(c => {
+        // Process cards & categories
+        if (cardsRes.error) throw cardsRes.error;
+        const cardsData = cardsRes.data || [];
+        const projectCategories = catRes.data || [];
+
+        let enrichedCards = cardsData;
+
+        if (cardsData.length > 0) {
+          const cardIds = cardsData.map(c => c.id);
+
+          // Parallel batch 2: Fetch card_categories, card_assignees, and comments in parallel
+          const [cardCatRes, cardAssigneesRes, commentsCountRes] = await Promise.all([
+            supabase.from('card_categories').select('*').in('card_id', cardIds),
+            supabase.from('card_assignees').select('card_id, profiles(*)').in('card_id', cardIds),
+            supabase.from('comments').select('card_id').in('card_id', cardIds),
+          ]);
+
+          const cardCatData = cardCatRes.data || [];
+          const cardAssigneesData = cardAssigneesRes.data || [];
+          const commentsCountData = commentsCountRes.data || [];
+
+          const commentsCounts: Record<string, number> = {};
+          commentsCountData.forEach((c: any) => {
             commentsCounts[c.card_id] = (commentsCounts[c.card_id] || 0) + 1;
           });
-        }
-        
-        enrichedCards = cardsData.map(card => {
-          let cardCategories: Category[] = [];
-          if (!cardCatError && cardCatData) {
-            const cardCatRelations = cardCatData.filter(cc => cc.card_id === card.id);
-            cardCategories = cardCatRelations
-              .map(cc => projectCategories.find(c => c.id === cc.category_id))
+
+          enrichedCards = cardsData.map(card => {
+            const cardCatRelations = cardCatData.filter((cc: any) => cc.card_id === card.id);
+            const cardCategories = cardCatRelations
+              .map((cc: any) => projectCategories.find(c => c.id === cc.category_id))
               .filter(Boolean) as Category[];
-          }
-          
-          let cardAssignees: Profile[] = [];
-          if (!assigneesError && cardAssigneesData) {
-            cardAssignees = cardAssigneesData
-              .filter(ca => ca.card_id === card.id && ca.profiles)
-              .map(ca => ca.profiles as unknown as Profile);
-          }
-          
-          return { 
-            ...card, 
-            categories: cardCategories, 
-            assignees: cardAssignees,
-            comments_count: commentsCounts[card.id] || 0
-          };
-        });
-      }
 
-      const finalData = {
-        project: projectData,
-        columns,
-        cards: enrichedCards,
-        projectCategories,
-        userPermission: perm,
-        pendingRequestsCount: pendingCount,
-        projectMembers
-      };
+            const cardAssignees = cardAssigneesData
+              .filter((ca: any) => ca.card_id === card.id && ca.profiles)
+              .map((ca: any) => ca.profiles as unknown as Profile);
 
-      // Guardar na memória local (APK / Offline)
-      cacheBoardData(projectId, columns, enrichedCards, finalData);
-      
-      return finalData;
+            return {
+              ...card,
+              categories: cardCategories,
+              assignees: cardAssignees,
+              comments_count: commentsCounts[card.id] || 0
+            };
+          });
+        }
+
+        const finalData = {
+          project: projectData,
+          columns,
+          cards: enrichedCards,
+          projectCategories,
+          userPermission: perm,
+          pendingRequestsCount: pendingCount,
+          projectMembers
+        };
+
+        // Cache board data for instant future loads
+        cacheBoardData(projectId, columns, enrichedCards, finalData);
+        
+        return finalData;
 
       } catch (err: any) {
         if (isNetworkError(err)) {
