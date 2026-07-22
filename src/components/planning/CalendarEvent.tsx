@@ -11,12 +11,16 @@ export function CalendarEvent({ event, onClick, isHighlighted }: CalendarEventPr
   const category = event.categories?.[0];
   let color = category?.color || event.border_color || 'blue-500';
   
-  // Extrair horário se existir na string ISO (ex: "2023-10-12T14:30:00")
+  // Extrair horário se existir na string ISO no fuso horário local
   let timeStr = '';
   if (event.due_date && event.due_date.includes('T')) {
-    const timePart = event.due_date.split('T')[1];
-    if (timePart && timePart !== '00:00:00.000Z') {
-      timeStr = timePart.substring(0, 5);
+    const d = new Date(event.due_date);
+    if (!isNaN(d.getTime())) {
+      const h = d.getHours().toString().padStart(2, '0');
+      const m = d.getMinutes().toString().padStart(2, '0');
+      if (h !== '00' || m !== '00') {
+        timeStr = `${h}:${m}`;
+      }
     }
   }
 

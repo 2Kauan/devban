@@ -109,9 +109,13 @@ export function WeekView({ currentDate, cards, onEventClick, onDayClick, onEvent
                 return sortedEvents.map((event, index) => {
                   let timeStr = 'Dia Todo';
                   if (event.due_date && event.due_date.includes('T')) {
-                    const timePart = event.due_date.split('T')[1];
-                    if (timePart && !event.due_date.endsWith('T00:00:00.000Z')) {
-                      timeStr = timePart.substring(0, 5);
+                    const d = new Date(event.due_date);
+                    if (!isNaN(d.getTime())) {
+                      const h = d.getHours().toString().padStart(2, '0');
+                      const m = d.getMinutes().toString().padStart(2, '0');
+                      if (h !== '00' || m !== '00') {
+                        timeStr = `${h}:${m}`;
+                      }
                     }
                   }
 

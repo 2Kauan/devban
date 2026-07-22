@@ -35,9 +35,9 @@ export function MonthView({ currentDate, cards, onEventClick, onDayClick, onEven
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-background">
+    <div className="flex-1 flex flex-col h-full bg-background overflow-y-auto custom-scrollbar pb-8">
       {/* Header (Dias da Semana) */}
-      <div className="grid grid-cols-7 border-b border-border/50 bg-muted/30 shrink-0">
+      <div className="grid grid-cols-7 border-b border-border/50 bg-muted/30 shrink-0 sticky top-0 z-10 backdrop-blur-sm">
         {weekDaysHeader.map(day => (
           <div key={day} className="py-2 text-center text-xs font-semibold text-muted-foreground">
             {day}
@@ -46,7 +46,7 @@ export function MonthView({ currentDate, cards, onEventClick, onDayClick, onEven
       </div>
 
       {/* Grid Principal */}
-      <div className="flex-1 grid grid-cols-7 grid-rows-6">
+      <div className="flex-1 grid grid-cols-7 grid-rows-6 min-h-[580px]">
         {days.map((day, i) => {
           const isCurrentMonth = isSameMonth(day, currentDate);
           const isToday = isSameDay(day, new Date());

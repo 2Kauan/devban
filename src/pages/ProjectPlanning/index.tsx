@@ -128,7 +128,7 @@ export default function ProjectPlanning() {
         onNewTask={() => handleNewTask()}
       />
       
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-y-auto min-h-0">
         {/* Left Sidebar: Task Lists (Desktop only) */}
         <aside 
           className="w-80 border-r border-border/50 bg-card hidden xl:flex flex-col shrink-0 overflow-y-auto custom-scrollbar"
