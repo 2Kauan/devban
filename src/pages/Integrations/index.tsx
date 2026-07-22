@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopHeader } from '@/components/layout/TopHeader';
+import { useProjectsQuery } from '@/hooks/useProjectsQuery';
 import { 
   Plug, 
   Calendar as CalendarIcon, 
@@ -14,7 +15,8 @@ import {
   Settings2, 
   RefreshCw,
   BellRing,
-  Smartphone
+  Smartphone,
+  FolderKanban
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -30,23 +32,25 @@ interface Integration {
   isActive: boolean;
   statusText: string;
   configType: 'oauth' | 'ical' | 'webhook' | 'token';
+  projectId: string;
 }
 
 export default function Integrations() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<'all' | 'calendar' | 'notification' | 'productivity'>('all');
+  const { data: projects = [] } = useProjectsQuery();
   
   // Persisted state in localStorage for demonstration and persistent settings
-  const [integrationsState, setIntegrationsState] = useState<Record<string, { active: boolean; config?: any }>>(() => {
+  const [integrationsState, setIntegrationsState] = useState<Record<string, { active: boolean; projectId?: string; config?: any }>>(() => {
     const saved = localStorage.getItem('devban_integrations');
     return saved ? JSON.parse(saved) : {
-      google_calendar: { active: true, config: { email: 'usuario@gmail.com', syncMode: 'two-way' } },
-      ical_feed: { active: true },
-      discord: { active: false, config: { webhookUrl: '' } },
-      slack: { active: false, config: { webhookUrl: '' } },
-      notion: { active: false, config: { token: '' } },
-      github: { active: false, config: { repo: '' } },
-      custom_webhook: { active: false, config: { url: '' } }
+      google_calendar: { active: true, projectId: 'all', config: { email: 'usuario@gmail.com', syncMode: 'two-way' } },
+      ical_feed: { active: true, projectId: 'all' },
+      discord: { active: false, projectId: 'all', config: { webhookUrl: '' } },
+      slack: { active: false, projectId: 'all', config: { webhookUrl: '' } },
+      notion: { active: false, projectId: 'all', config: { token: '' } },
+      github: { active: false, projectId: 'all', config: { repo: '' } },
+      custom_webhook: { active: false, projectId: 'all', config: { url: '' } }
     };
   });
 
@@ -76,6 +80,15 @@ export default function Integrations() {
     setTimeout(() => setCopiedLink(false), 2500);
   };
 
+  const handleUpdateProjectBinding = (appId: string, projectId: string) => {
+    setIntegrationsState(prev => ({
+      ...prev,
+      [appId]: { ...(prev[appId] || { active: true }), projectId }
+    }));
+    const projName = projectId === 'all' ? 'Todos os Projetos' : projects.find(p => p.id === projectId)?.name || 'Projeto';
+    toast.success(`Integração vinculada a: ${projName}`);
+  };
+
   const handleSaveWebhook = (appId: string) => {
     if (!webhookUrlInput.startsWith('http')) {
       toast.error('Por favor, insira uma URL de Webhook válida.');
@@ -83,7 +96,7 @@ export default function Integrations() {
     }
     setIntegrationsState(prev => ({
       ...prev,
-      [appId]: { active: true, config: { webhookUrl: webhookUrlInput } }
+      [appId]: { ...(prev[appId] || { projectId: 'all' }), active: true, config: { webhookUrl: webhookUrlInput } }
     }));
     toast.success('Webhook salvo e integração ativada!');
     setSelectedModalApp(null);
@@ -109,7 +122,8 @@ export default function Integrations() {
       ),
       isActive: !!integrationsState.google_calendar?.active,
       statusText: integrationsState.google_calendar?.active ? 'Conectado (usuario@gmail.com)' : 'Desconectado',
-      configType: 'oauth'
+      configType: 'oauth',
+      projectId: integrationsState.google_calendar?.projectId || 'all'
     },
     {
       id: 'ical_feed',
@@ -125,7 +139,8 @@ export default function Integrations() {
       ),
       isActive: !!integrationsState.ical_feed?.active,
       statusText: integrationsState.ical_feed?.active ? 'Feed Ativo' : 'Desativado',
-      configType: 'ical'
+      configType: 'ical',
+      projectId: integrationsState.ical_feed?.projectId || 'all'
     },
     {
       id: 'discord',
@@ -141,7 +156,8 @@ export default function Integrations() {
       ),
       isActive: !!integrationsState.discord?.active,
       statusText: integrationsState.discord?.active ? 'Canal Conectado' : 'Não configurado',
-      configType: 'webhook'
+      configType: 'webhook',
+      projectId: integrationsState.discord?.projectId || 'all'
     },
     {
       id: 'slack',
@@ -157,7 +173,8 @@ export default function Integrations() {
       ),
       isActive: !!integrationsState.slack?.active,
       statusText: integrationsState.slack?.active ? 'Conectado ao canal #devban' : 'Não configurado',
-      configType: 'webhook'
+      configType: 'webhook',
+      projectId: integrationsState.slack?.projectId || 'all'
     },
     {
       id: 'notion',
@@ -173,7 +190,8 @@ export default function Integrations() {
       ),
       isActive: !!integrationsState.notion?.active,
       statusText: integrationsState.notion?.active ? 'Database Vinculada' : 'Não vinculado',
-      configType: 'token'
+      configType: 'token',
+      projectId: integrationsState.notion?.projectId || 'all'
     },
     {
       id: 'github',
@@ -189,7 +207,8 @@ export default function Integrations() {
       ),
       isActive: !!integrationsState.github?.active,
       statusText: integrationsState.github?.active ? 'Repositório Vinculado' : 'Não configurado',
-      configType: 'webhook'
+      configType: 'webhook',
+      projectId: integrationsState.github?.projectId || 'all'
     },
     {
       id: 'custom_webhook',
@@ -205,7 +224,8 @@ export default function Integrations() {
       ),
       isActive: !!integrationsState.custom_webhook?.active,
       statusText: integrationsState.custom_webhook?.active ? 'Endpoint Ativo' : 'Inativo',
-      configType: 'webhook'
+      configType: 'webhook',
+      projectId: integrationsState.custom_webhook?.projectId || 'all'
     }
   ];
 
@@ -324,9 +344,19 @@ export default function Integrations() {
                     <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">
                       {app.name}
                     </h3>
-                    <p className="text-xs text-muted-foreground leading-relaxed mt-1.5 min-h-[48px]">
+                    <p className="text-xs text-muted-foreground leading-relaxed mt-1.5 min-h-[44px]">
                       {app.description}
                     </p>
+
+                    {/* Badge do Projeto Vinculado */}
+                    <div className="mt-3 flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground bg-muted/50 border border-border/40 px-2.5 py-1 rounded-lg w-fit">
+                      <FolderKanban size={12} className="text-primary" />
+                      <span className="truncate max-w-[180px]">
+                        {app.projectId === 'all' 
+                          ? 'Todos os Projetos' 
+                          : projects.find(p => p.id === app.projectId)?.name || 'Projeto Selecionado'}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -374,7 +404,7 @@ export default function Integrations() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="relative w-full max-w-lg bg-card border border-border shadow-2xl rounded-3xl p-6 sm:p-8 z-50 space-y-6 overflow-hidden"
+              className="relative w-full max-w-lg bg-card border border-border shadow-2xl rounded-3xl p-6 sm:p-8 z-50 space-y-6 overflow-hidden max-h-[90vh] overflow-y-auto custom-scrollbar"
             >
               {/* Header Modal */}
               <div className="flex items-start justify-between">
@@ -383,7 +413,7 @@ export default function Integrations() {
                     Configurar {selectedModalApp.replace('_', ' ')}
                   </h2>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Defina as preferências de sincronização e credenciais.
+                    Defina as preferências de sincronização e o projeto vinculado.
                   </p>
                 </div>
                 <button
@@ -392,6 +422,26 @@ export default function Integrations() {
                 >
                   ✕
                 </button>
+              </div>
+
+              {/* Seleção de Projeto Vinculado */}
+              <div className="p-4 bg-muted/30 border border-border rounded-2xl space-y-2">
+                <label className="block text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <FolderKanban size={14} className="text-primary" />
+                  Vincular a qual projeto?
+                </label>
+                <select
+                  value={integrationsState[selectedModalApp]?.projectId || 'all'}
+                  onChange={e => handleUpdateProjectBinding(selectedModalApp, e.target.value)}
+                  className="w-full bg-background border border-border rounded-xl p-2.5 text-xs font-bold text-foreground focus:outline-none focus:border-primary cursor-pointer"
+                >
+                  <option value="all">🌟 Todos os Meus Projetos (Global)</option>
+                  {projects.map(p => (
+                    <option key={p.id} value={p.id}>
+                      📁 {p.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Conteúdo Dinâmico por Tipo de App */}
