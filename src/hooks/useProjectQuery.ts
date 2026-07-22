@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { supabase, createUniqueChannel } from '@/lib/supabase';
 import type { Project as ProjectType, Category, ProjectPermission } from '@/types/database';
 import type { KanbanColumnType, KanbanCardType } from '@/types/kanban';
 import { useAuth } from '@/contexts/AuthContext';
@@ -219,7 +219,7 @@ export function useProjectQuery(projectId: string | undefined) {
   useEffect(() => {
     if (!projectId) return;
 
-    const channel = supabase.channel(`project_${projectId}_${Date.now()}`)
+    const channel = createUniqueChannel(`project_${projectId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'cards', filter: `project_id=eq.${projectId}` },

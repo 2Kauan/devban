@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
+import { supabase, createUniqueChannel } from '@/lib/supabase';
 import type { Project } from '@/types/database';
 import { Activity, History, Clock } from 'lucide-react';
 import { toast } from 'sonner';
@@ -32,8 +32,7 @@ export default function ProjectActivity() {
     if (project?.id) {
       fetchActivity();
       
-      const subscription = supabase
-        .channel(`activity_${project.id}_${Date.now()}`)
+      const subscription = createUniqueChannel(`activity_${project.id}`)
         .on('postgres_changes', { 
           event: '*', 
           schema: 'public', 

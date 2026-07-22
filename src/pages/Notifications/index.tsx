@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase, createUniqueChannel } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Notification } from '@/types/database';
 import { Bell, Check, Trash2, ArrowRight } from 'lucide-react';
@@ -20,8 +20,7 @@ export default function Notifications() {
     if (!user) return;
     fetchNotifications();
 
-    const channel = supabase
-      .channel(`notifications_changes_${user.id}_${Date.now()}`)
+    const channel = createUniqueChannel(`notifications_changes_${user.id}`)
       .on(
         'postgres_changes',
         {

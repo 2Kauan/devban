@@ -2,7 +2,7 @@ import { Menu, Bell } from 'lucide-react';
 import { UserProfileButton } from '@/components/ui/UserProfileButton';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase, createUniqueChannel } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface TopHeaderProps {
@@ -29,8 +29,7 @@ export function TopHeader({ title, onOpenSidebar }: TopHeaderProps) {
 
     fetchUnreadCount();
 
-    const channel = supabase
-      .channel(`topheader_notifications_${user.id}_${Date.now()}`)
+    const channel = createUniqueChannel(`topheader_notifications_${user.id}`)
       .on(
         'postgres_changes',
         {

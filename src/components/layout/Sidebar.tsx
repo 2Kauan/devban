@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { CreateProjectModal } from '@/components/ui/CreateProjectModal';
 import type { Project } from '@/types/database';
-import { supabase } from '@/lib/supabase';
+import { supabase, createUniqueChannel } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -39,8 +39,7 @@ export function Sidebar({ onProjectCreated, isOpen, onClose, isProjectView = fal
 
     fetchUnreadCount();
 
-    const channel = supabase
-      .channel(`sidebar_notifications_${user.id}_${Date.now()}`)
+    const channel = createUniqueChannel(`sidebar_notifications_${user.id}`)
       .on(
         'postgres_changes',
         {

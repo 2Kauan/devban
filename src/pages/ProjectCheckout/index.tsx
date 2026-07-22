@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
+import { supabase, createUniqueChannel } from '@/lib/supabase';
 import type { Project } from '@/types/database';
 import { ArrowLeft, CheckCircle2, Shield, CreditCard, QrCode, Lock, Loader2, Sparkles, Copy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -78,8 +78,7 @@ export default function ProjectCheckout() {
       }
     };
 
-    const channel = supabase
-      .channel(`payment_${paymentRecordId}`)
+    const channel = createUniqueChannel(`payment_${paymentRecordId}`)
       .on(
         'postgres_changes',
         {

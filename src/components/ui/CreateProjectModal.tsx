@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { supabase } from '@/lib/supabase';
+import { supabase, createUniqueChannel } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { X, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -99,8 +99,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
   useEffect(() => {
     if (!showPayment || !paymentData?.id) return;
 
-    const channel = supabase
-      .channel(`payment_${paymentData.id}`)
+    const channel = createUniqueChannel(`payment_${paymentData.id}`)
       .on(
         'postgres_changes',
         {

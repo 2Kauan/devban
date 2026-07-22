@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase, createUniqueChannel } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { ChevronRight, LayoutDashboard, Layout, Users, Activity, Settings, Menu, CalendarDays, BrainCircuit, HeartPulse } from 'lucide-react';
@@ -39,8 +39,7 @@ export function ProjectLayout() {
   useEffect(() => {
     if (!project?.id || !user) return;
     
-    const channel = supabase
-      .channel(`project_layout_${project.id}_${Date.now()}`)
+    const channel = createUniqueChannel(`project_layout_${project.id}`)
       .on(
         'postgres_changes',
         {

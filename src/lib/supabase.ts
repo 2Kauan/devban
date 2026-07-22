@@ -76,3 +76,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: customStorage
   }
 });
+
+let channelCounter = 0;
+
+export function createUniqueChannel(prefix: string) {
+  channelCounter = (channelCounter + 1) % 1000000;
+  const uniqueId = `${prefix}_${Math.random().toString(36).substring(2, 9)}_${Date.now()}_${channelCounter}`;
+  return supabase.channel(uniqueId);
+}

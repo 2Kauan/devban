@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { supabase, createUniqueChannel } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 export interface ActivityProfile {
@@ -26,8 +26,7 @@ export function useCardActivity(cardId: string | undefined) {
   useEffect(() => {
     if (!cardId) return;
 
-    const channel = supabase
-      .channel(`card_activity_${cardId}_${Date.now()}`)
+    const channel = createUniqueChannel(`card_activity_${cardId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'comments', filter: `card_id=eq.${cardId}` },
