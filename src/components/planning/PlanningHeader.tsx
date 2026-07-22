@@ -1,6 +1,6 @@
-import { CalendarDays, Filter, Search, Plus, ChevronDown, ChevronLeft, ChevronRight, List, Calendar, CalendarRange, Clock } from 'lucide-react';
+import { CalendarDays, Plus, ChevronDown, ChevronLeft, ChevronRight, List, Calendar, CalendarRange, Clock } from 'lucide-react';
 import { formatMonthYear } from '@/utils/calendar';
-import { format } from 'date-fns';
+import { format, addMonths, addDays, subDays } from 'date-fns';
 import { motion } from 'framer-motion';
 
 export type ViewType = 'month' | 'week' | 'day' | 'agenda';
@@ -33,6 +33,42 @@ export function PlanningHeader({
     { id: 'day', label: 'Dia', icon: Clock }
   ];
 
+  const handlePrev = () => {
+    if (onPrev) {
+      onPrev();
+    } else if (onDateChange) {
+      if (view === 'week') {
+        onDateChange(subDays(currentDate, 7));
+      } else if (view === 'day') {
+        onDateChange(subDays(currentDate, 1));
+      } else {
+        onDateChange(addMonths(currentDate, -1));
+      }
+    }
+  };
+
+  const handleNext = () => {
+    if (onNext) {
+      onNext();
+    } else if (onDateChange) {
+      if (view === 'week') {
+        onDateChange(addDays(currentDate, 7));
+      } else if (view === 'day') {
+        onDateChange(addDays(currentDate, 1));
+      } else {
+        onDateChange(addMonths(currentDate, 1));
+      }
+    }
+  };
+
+  const handleToday = () => {
+    if (onToday) {
+      onToday();
+    } else {
+      onDateChange?.(new Date());
+    }
+  };
+
   return (
     <header className="flex flex-col gap-4 p-4 lg:p-6 border-b border-border/50 shrink-0 bg-background/95 backdrop-blur-sm z-10">
       {/* Row 1: Header + Nav + Actions */}
@@ -46,33 +82,54 @@ export function PlanningHeader({
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          {(onPrev || onNext || onToday) ? (
-            <div className="flex items-center gap-1 border border-border rounded-lg bg-background p-1">
-              <button onClick={onPrev} className="p-1.5 hover:bg-muted rounded-md"><ChevronLeft size={16} /></button>
-              <button onClick={onToday} className="px-3 py-1 text-xs font-medium hover:bg-muted rounded-md">Hoje</button>
-              <button onClick={onNext} className="p-1.5 hover:bg-muted rounded-md"><ChevronRight size={16} /></button>
-            </div>
-          ) : (
-            <div className="relative">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 border border-border rounded-xl bg-background p-1 shadow-sm">
+            {/* Seta Esquerda */}
+            <button
+              type="button"
+              onClick={handlePrev}
+              title="Anterior"
+              className="p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors cursor-pointer"
+            >
+              <ChevronLeft size={18} />
+            </button>
+
+            {/* Bloco do Mês Clicável */}
+            <div className="relative group">
               <input
                 type="month"
                 value={format(currentDate, 'yyyy-MM')}
                 onChange={(e) => {
+                  if (!e.target.value) return;
                   const [year, month] = e.target.value.split('-').map(Number);
                   onDateChange?.(new Date(year, month - 1, 1));
                 }}
                 className="absolute inset-0 z-20 w-full h-full opacity-0 cursor-pointer"
               />
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-background hover:bg-muted border border-border rounded-lg text-sm font-semibold text-foreground capitalize transition-colors">
-                {formatMonthYear(currentDate)}
-                <ChevronDown size={14} className="text-muted-foreground" />
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-background hover:bg-muted/70 rounded-lg text-sm font-semibold text-foreground capitalize transition-colors cursor-pointer select-none">
+                <span>{formatMonthYear(currentDate)}</span>
+                <ChevronDown size={14} className="text-muted-foreground group-hover:text-foreground transition-colors" />
               </div>
             </div>
-          )}
-          <div className="hidden md:flex items-center gap-2">
-            <button className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors"><Search size={18} /></button>
-            <button className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors"><Filter size={18} /></button>
+
+            {/* Botão Hoje */}
+            <button
+              type="button"
+              onClick={handleToday}
+              className="px-2.5 py-1.5 text-xs font-semibold hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors cursor-pointer"
+            >
+              Hoje
+            </button>
+
+            {/* Seta Direita */}
+            <button
+              type="button"
+              onClick={handleNext}
+              title="Próximo"
+              className="p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors cursor-pointer"
+            >
+              <ChevronRight size={18} />
+            </button>
           </div>
         </div>
       </div>
