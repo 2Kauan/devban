@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Plus, LayoutDashboard, Settings, LogOut, ShieldAlert, FolderKanban, Calendar, Bell, Users } from 'lucide-react';
+import { Plus, LayoutDashboard, Settings, LogOut, ShieldAlert, FolderKanban, Calendar, Bell, Users, Plug } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { CreateProjectModal } from '@/components/ui/CreateProjectModal';
@@ -165,6 +165,13 @@ export function Sidebar({ onProjectCreated, isOpen, onClose, isProjectView = fal
             >
               <Calendar className="h-4 w-4" />
               Calendário
+            </Link>
+            <Link 
+              to="/integrations" 
+              className={`flex items-center gap-3 px-3 py-3 rounded-md text-sm transition-colors ${isActive('/integrations') ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground font-medium'}`}
+            >
+              <Plug className="h-4 w-4" />
+              Integrações
             </Link>
             <Link 
               to="/notifications" 
