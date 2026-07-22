@@ -5,7 +5,6 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { ChevronRight, LayoutDashboard, Layout, Users, Activity, Settings, Menu, CalendarDays, BrainCircuit, HeartPulse } from 'lucide-react';
-import type { Project } from '@/types/database';
 import { toast } from 'sonner';
 import { useProjectsQuery } from '@/hooks/useProjectsQuery';
 import { useSharedProjectsQuery } from '@/hooks/useSharedProjectsQuery';
@@ -50,7 +49,7 @@ export function ProjectLayout() {
           table: 'projects',
           filter: `id=eq.${project.id}`,
         },
-        (payload) => {
+        (_payload) => {
           queryClient.invalidateQueries({ queryKey: ['project', id] });
         }
       )
@@ -77,7 +76,7 @@ export function ProjectLayout() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [project?.id, user?.id]);
+  }, [project?.id, user, navigate, id, queryClient]);
 
   const isOwner = project?.owner_id === user?.id;
 
@@ -128,7 +127,7 @@ export function ProjectLayout() {
         queryClient.invalidateQueries({ queryKey: ['projects'] });
         queryClient.invalidateQueries({ queryKey: ['sharedProjects'] });
         queryClient.invalidateQueries({ queryKey: ['stock'] });
-        fetchCurrentProject();
+        if (id) queryClient.invalidateQueries({ queryKey: ['project', id] });
       }} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} isProjectView={true} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
