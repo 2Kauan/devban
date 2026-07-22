@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { CalendarDays, Plus, ChevronDown, ChevronLeft, ChevronRight, List, Calendar, CalendarRange, Clock } from 'lucide-react';
 import { formatMonthYear } from '@/utils/calendar';
 import { format, addMonths, addDays, subDays } from 'date-fns';
@@ -26,12 +27,28 @@ export function PlanningHeader({
   onToday,
   onNewTask
 }: PlanningHeaderProps) {
+  const monthInputRef = useRef<HTMLInputElement>(null);
+
   const views = [
     { id: 'agenda', label: 'Agenda', icon: List },
     { id: 'month', label: 'Mês', icon: Calendar },
     { id: 'week', label: 'Semana', icon: CalendarRange },
     { id: 'day', label: 'Dia', icon: Clock }
   ];
+
+  const handleOpenMonthPicker = () => {
+    const el = monthInputRef.current;
+    if (!el) return;
+    try {
+      if ('showPicker' in el && typeof (el as any).showPicker === 'function') {
+        (el as any).showPicker();
+      } else {
+        el.click();
+      }
+    } catch {
+      el.click();
+    }
+  };
 
   const handlePrev = () => {
     if (onPrev) {
@@ -95,8 +112,9 @@ export function PlanningHeader({
             </button>
 
             {/* Bloco do Mês Clicável */}
-            <div className="relative group">
+            <div className="relative group cursor-pointer" onClick={handleOpenMonthPicker}>
               <input
+                ref={monthInputRef}
                 type="month"
                 value={format(currentDate, 'yyyy-MM')}
                 onChange={(e) => {
@@ -104,7 +122,7 @@ export function PlanningHeader({
                   const [year, month] = e.target.value.split('-').map(Number);
                   onDateChange?.(new Date(year, month - 1, 1));
                 }}
-                className="absolute inset-0 z-20 w-full h-full opacity-0 cursor-pointer"
+                className="absolute inset-0 z-20 w-full h-full opacity-0 cursor-pointer pointer-events-auto"
               />
               <div className="flex items-center gap-2 px-3 py-1.5 bg-background hover:bg-muted/70 rounded-lg text-sm font-semibold text-foreground capitalize transition-colors cursor-pointer select-none">
                 <span>{formatMonthYear(currentDate)}</span>
