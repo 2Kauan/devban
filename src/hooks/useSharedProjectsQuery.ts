@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Project } from '@/types/database';
+import { sortProjectsByRecent } from '@/utils/recentProjects';
 
 const CACHE_KEY = 'devban_shared_projects_cache_';
 const CACHE_TTL = 1000 * 60 * 5;
@@ -17,7 +18,7 @@ function getCachedSharedProjects(userId: string): SharedProject[] | null {
     if (!raw) return null;
     const { data, timestamp } = JSON.parse(raw);
     if (Date.now() - timestamp > CACHE_TTL) return null;
-    return data;
+    return sortProjectsByRecent(data);
   } catch {
     return null;
   }
@@ -64,11 +65,11 @@ export function useSharedProjectsQuery() {
 
       const ownerMap = new Map((owners || []).map(o => [o.id, o.name]));
 
-      const sharedProjects: SharedProject[] = (projectsData || []).map(p => ({
+      const sharedProjects: SharedProject[] = sortProjectsByRecent((projectsData || []).map(p => ({
         ...p,
         owner_name: ownerMap.get(p.owner_id),
         permission: permissionMap.get(p.id),
-      }));
+      })));
 
       setCachedSharedProjects(user.id, sharedProjects);
       return sharedProjects;

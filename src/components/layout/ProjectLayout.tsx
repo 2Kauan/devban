@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { useProjectsQuery } from '@/hooks/useProjectsQuery';
 import { useSharedProjectsQuery } from '@/hooks/useSharedProjectsQuery';
 import { useQueryClient } from '@tanstack/react-query';
+import { touchProject } from '@/utils/recentProjects';
 
 export function ProjectLayout() {
   const { id } = useParams<{ id: string }>();
@@ -50,6 +51,7 @@ export function ProjectLayout() {
   useEffect(() => {
     if (user && id) {
       fetchCurrentProject();
+      touchProject(id, queryClient);
     }
   }, [user, id]);
 

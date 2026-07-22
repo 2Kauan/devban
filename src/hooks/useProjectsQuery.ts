@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Project } from '@/types/database';
+import { sortProjectsByRecent } from '@/utils/recentProjects';
 
 const CACHE_KEY = 'devban_projects_cache_';
 const CACHE_TTL = 1000 * 60 * 5; // 5 min
@@ -12,7 +13,7 @@ function getCachedProjects(userId: string): Project[] | null {
     if (!raw) return null;
     const { data, timestamp } = JSON.parse(raw);
     if (Date.now() - timestamp > CACHE_TTL) return null;
-    return data;
+    return sortProjectsByRecent(data);
   } catch {
     return null;
   }
@@ -40,12 +41,7 @@ export function useProjectsQuery() {
 
       if (error) throw error;
 
-      const projects = data || [];
-      projects.sort((a, b) => {
-        if (a.is_completed && !b.is_completed) return 1;
-        if (!a.is_completed && b.is_completed) return -1;
-        return 0;
-      });
+      const projects = sortProjectsByRecent(data || []);
       setCachedProjects(user.id, projects);
       return projects;
     },

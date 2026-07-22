@@ -5,6 +5,7 @@ import type { KanbanColumnType, KanbanCardType } from '@/types/kanban';
 import type { User } from '@supabase/supabase-js';
 import { queueMutation, isNetworkError } from '@/lib/offlineSync';
 import { reorderCardsByPriority } from '@/utils/kanban';
+import { touchProject } from '@/utils/recentProjects';
 
 interface UseKanbanActionsProps {
   projectId: string | undefined;
@@ -34,6 +35,7 @@ export function useKanbanActions({
 
   const handleColumnsChange = useEvent(async (newColumns: KanbanColumnType[]) => {
     if (!projectId) return;
+    touchProject(projectId);
     const updatedColumns = newColumns.map((col, index) => ({
       ...col,
       position: (index + 1) * 1000
@@ -63,6 +65,7 @@ export function useKanbanActions({
 
   const handleCardsChange = useEvent(async (newCards: KanbanCardType[]) => {
     if (!projectId) return;
+    touchProject(projectId);
     
     // Calcula as novas posições matematicamente por coluna
     const updatedCards = newCards.map((card) => {

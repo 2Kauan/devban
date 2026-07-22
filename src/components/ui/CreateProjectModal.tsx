@@ -6,6 +6,8 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { X, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { touchProject } from '@/utils/recentProjects';
+import { useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const projectSchema = z.object({
@@ -39,6 +41,7 @@ const isValidCPF = (cpf: string) => {
 
 export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProjectModalProps) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [paymentData, setPaymentData] = useState<{ id: string; pixQrCode: string | null; invoiceUrl: string | null; pixEncodedImage?: string | null } | null>(null);
@@ -239,6 +242,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
         }).select().single();
 
         if (error) throw error;
+        touchProject(newProject.id, queryClient);
         
         // Marca que o usuário já utilizou o seu projeto gratuito
         if (canCreateFree) {

@@ -14,6 +14,7 @@ import { useProjectsQuery } from '@/hooks/useProjectsQuery';
 import { useStockQuery } from '@/hooks/useStockQuery';
 import { useProjectMemberCounts } from '@/hooks/useProjectMemberCounts';
 import { useQueryClient } from '@tanstack/react-query';
+import { sortProjectsByRecent } from '@/utils/recentProjects';
 
 function ProjectCard({ project, onDelete, onComplete, memberCount = 1 }: { project: Project, onDelete: (p: Project) => void, onComplete?: (p: Project) => void, memberCount?: number }) {
   const { user } = useAuth();
@@ -154,15 +155,7 @@ export default function Projects() {
       list = projects.filter(p => p.is_completed);
     }
 
-    if (filter === 'all') {
-      return [...list].sort((a, b) => {
-        if (a.is_completed && !b.is_completed) return 1;
-        if (!a.is_completed && b.is_completed) return -1;
-        return 0;
-      });
-    }
-
-    return list;
+    return sortProjectsByRecent(list);
   }, [projects, favorites, filter]);
 
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);

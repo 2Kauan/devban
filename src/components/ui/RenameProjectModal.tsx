@@ -4,6 +4,9 @@ import { X, Edit2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
+import { touchProject } from '@/utils/recentProjects';
+import { useQueryClient } from '@tanstack/react-query';
+
 interface RenameProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -15,6 +18,7 @@ interface RenameProjectModalProps {
 export function RenameProjectModal({ isOpen, onClose, projectName, projectId, onSuccess }: RenameProjectModalProps) {
   const [newName, setNewName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (isOpen) {
@@ -36,6 +40,7 @@ export function RenameProjectModal({ isOpen, onClose, projectName, projectId, on
         .eq('id', projectId);
       
       if (error) throw error;
+      touchProject(projectId, queryClient);
       toast.success('Nome do projeto atualizado!');
       onSuccess();
       onClose();
