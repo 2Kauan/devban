@@ -40,7 +40,7 @@ export function Sidebar({ onProjectCreated, isOpen, onClose, isProjectView = fal
     fetchUnreadCount();
 
     const channel = supabase
-      .channel('sidebar_notifications')
+      .channel(`sidebar_notifications_${user.id}_${Date.now()}`)
       .on(
         'postgres_changes',
         {

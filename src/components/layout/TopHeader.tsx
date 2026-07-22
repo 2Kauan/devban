@@ -30,7 +30,7 @@ export function TopHeader({ title, onOpenSidebar }: TopHeaderProps) {
     fetchUnreadCount();
 
     const channel = supabase
-      .channel('topheader_notifications')
+      .channel(`topheader_notifications_${user.id}_${Date.now()}`)
       .on(
         'postgres_changes',
         {

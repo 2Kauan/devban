@@ -81,7 +81,7 @@ export function useSharedProjectQuery(token: string | undefined) {
   useEffect(() => {
     if (!projectId) return;
 
-    const channel = supabase.channel(`public:shared_project_${projectId}`)
+    const channel = supabase.channel(`shared_project_${projectId}_${Date.now()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'cards', filter: `project_id=eq.${projectId}` },

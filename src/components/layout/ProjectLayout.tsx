@@ -40,7 +40,7 @@ export function ProjectLayout() {
     if (!project?.id || !user) return;
     
     const channel = supabase
-      .channel(`project_layout_${project.id}`)
+      .channel(`project_layout_${project.id}_${Date.now()}`)
       .on(
         'postgres_changes',
         {

@@ -219,7 +219,7 @@ export function useProjectQuery(projectId: string | undefined) {
   useEffect(() => {
     if (!projectId) return;
 
-    const channel = supabase.channel(`public:project_${projectId}`)
+    const channel = supabase.channel(`project_${projectId}_${Date.now()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'cards', filter: `project_id=eq.${projectId}` },

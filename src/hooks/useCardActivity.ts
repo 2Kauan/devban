@@ -27,7 +27,7 @@ export function useCardActivity(cardId: string | undefined) {
     if (!cardId) return;
 
     const channel = supabase
-      .channel(`card_activity_${cardId}`)
+      .channel(`card_activity_${cardId}_${Date.now()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'comments', filter: `card_id=eq.${cardId}` },

@@ -21,7 +21,7 @@ export default function Notifications() {
     fetchNotifications();
 
     const channel = supabase
-      .channel('notifications_changes')
+      .channel(`notifications_changes_${user.id}_${Date.now()}`)
       .on(
         'postgres_changes',
         {

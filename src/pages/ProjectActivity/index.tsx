@@ -33,7 +33,7 @@ export default function ProjectActivity() {
       fetchActivity();
       
       const subscription = supabase
-        .channel(`activity_${project.id}`)
+        .channel(`activity_${project.id}_${Date.now()}`)
         .on('postgres_changes', { 
           event: '*', 
           schema: 'public', 
