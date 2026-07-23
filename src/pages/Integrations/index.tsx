@@ -230,26 +230,6 @@ export default function Integrations() {
       projectId: integrationsState.discord?.projectId || 'all'
     },
     {
-      id: 'slack',
-      name: 'Slack Notifications',
-      category: 'notification',
-      description: 'Envie relatórios diários de progresso dos quadros Kanban diretamente para o espaço de trabalho do Slack.',
-      iconBg: 'bg-amber-500/10 border-amber-500/20',
-      iconColor: 'text-amber-500',
-      brandSvg: (
-        <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
-          <path d="M6 14.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zm0-10a2.5 2.5 0 000 5h5V4.5a2.5 2.5 0 00-5 0zm10 0a2.5 2.5 0 005 0 2.5 2.5 0 00-5 0zm-5 5a2.5 2.5 0 000 5h5v-5h-5zm0 10a2.5 2.5 0 005 0v-5h-5v5z" fill="#E01E5A"/>
-          <path d="M4.5 9.5A2.5 2.5 0 0 1 7 7h5v5H7a2.5 2.5 0 0 1-2.5-2.5z" fill="#ECB22E"/>
-          <path d="M14.5 4.5A2.5 2.5 0 0 1 17 7v5h-5V7a2.5 2.5 0 0 1 2.5-2.5z" fill="#2EB67D"/>
-          <path d="M19.5 14.5A2.5 2.5 0 0 1 17 17h-5v-5h5a2.5 2.5 0 0 1 2.5 2.5z" fill="#36C5F0"/>
-        </svg>
-      ),
-      isActive: !!integrationsState.slack?.active,
-      statusText: integrationsState.slack?.active ? 'Conectado ao canal #devban' : 'Não configurado',
-      configType: 'webhook',
-      projectId: integrationsState.slack?.projectId || 'all'
-    },
-    {
       id: 'notion',
       name: 'Notion Database Sync',
       category: 'productivity',
@@ -280,27 +260,6 @@ export default function Integrations() {
       statusText: integrationsState.github?.active ? 'Repositório Vinculado' : 'Não configurado',
       configType: 'webhook',
       projectId: integrationsState.github?.projectId || 'all'
-    },
-    {
-      id: 'custom_webhook',
-      name: 'Webhooks Customizados (Zapier / Make / n8n)',
-      category: 'productivity',
-      description: 'Dispare dados em formato JSON para qualquer endpoint HTTP ou plataforma de automação.',
-      iconBg: 'bg-rose-500/10 border-rose-500/20',
-      iconColor: 'text-rose-500',
-      brandSvg: (
-        <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
-          <rect x="2" y="2" width="20" height="20" rx="5" fill="#FF4A00" fillOpacity="0.1"/>
-          <circle cx="18" cy="5" r="3" stroke="#FF4A00" strokeWidth="2"/>
-          <circle cx="6" cy="12" r="3" stroke="#6E2CF4" strokeWidth="2"/>
-          <circle cx="18" cy="19" r="3" stroke="#EA4335" strokeWidth="2"/>
-          <path d="M8.6 10.7L15.4 6.3M8.6 13.3L15.4 17.7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-        </svg>
-      ),
-      isActive: !!integrationsState.custom_webhook?.active,
-      statusText: integrationsState.custom_webhook?.active ? 'Endpoint Ativo' : 'Inativo',
-      configType: 'webhook',
-      projectId: integrationsState.custom_webhook?.projectId || 'all'
     }
   ];
 
@@ -348,7 +307,7 @@ export default function Integrations() {
                   : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50'
               }`}
             >
-              Todas (7)
+              Todas ({list.length})
             </button>
             <button
               onClick={() => setActiveCategory('calendar')}
