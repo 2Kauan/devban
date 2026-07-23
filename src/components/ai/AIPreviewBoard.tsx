@@ -2,8 +2,21 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { AIKanbanBoard } from '@/types/ai';
 import { useAIImport } from '@/hooks/ai/useAIImport';
-import { BrainCircuit, ArrowRight, ArrowDownRight, ArrowUpRight, AlertCircle, Clock, ListChecks, ListTree } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { 
+  BrainCircuit, 
+  ArrowRight, 
+  ArrowDownRight, 
+  ArrowUpRight, 
+  AlertCircle, 
+  Clock, 
+  ListChecks, 
+  ListTree,
+  Trash2,
+  Plus,
+  Eye,
+  EyeOff
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AIPreviewBoardProps {
   board: AIKanbanBoard;
@@ -13,6 +26,7 @@ interface AIPreviewBoardProps {
 
 export function AIPreviewBoard({ board: initialBoard, projectId, onCancel }: AIPreviewBoardProps) {
   const [board, setBoard] = useState(initialBoard);
+  const [expandedTasks, setExpandedTasks] = useState<Record<string, boolean>>({});
   const { importBoard, isImporting } = useAIImport();
   const navigate = useNavigate();
 
@@ -33,6 +47,76 @@ export function AIPreviewBoard({ board: initialBoard, projectId, onCancel }: AIP
   const updateTaskField = (colIndex: number, taskIndex: number, field: 'title' | 'description', value: string) => {
     const newBoard = { ...board };
     newBoard.columns[colIndex].tasks[taskIndex][field] = value;
+    setBoard(newBoard);
+  };
+
+  const toggleExpandTask = (taskId: string) => {
+    setExpandedTasks(prev => ({
+      ...prev,
+      [taskId]: !prev[taskId]
+    }));
+  };
+
+  // Checklist Helpers
+  const updateChecklistItem = (colIndex: number, taskIndex: number, itemIndex: number, newValue: string) => {
+    const newBoard = { ...board };
+    const task = newBoard.columns[colIndex].tasks[taskIndex];
+    if (task.checklist) {
+      task.checklist[itemIndex] = newValue;
+      setBoard(newBoard);
+    }
+  };
+
+  const removeChecklistItem = (colIndex: number, taskIndex: number, itemIndex: number) => {
+    const newBoard = { ...board };
+    const task = newBoard.columns[colIndex].tasks[taskIndex];
+    if (task.checklist) {
+      task.checklist.splice(itemIndex, 1);
+      setBoard(newBoard);
+    }
+  };
+
+  const addChecklistItem = (colIndex: number, taskIndex: number) => {
+    const newBoard = { ...board };
+    const task = newBoard.columns[colIndex].tasks[taskIndex];
+    if (!task.checklist) {
+      task.checklist = [];
+    }
+    task.checklist.push('Novo item sugerido');
+    setBoard(newBoard);
+  };
+
+  // Subtasks Helpers
+  const updateSubtaskField = (colIndex: number, taskIndex: number, subIndex: number, field: 'title' | 'description', value: string) => {
+    const newBoard = { ...board };
+    const task = newBoard.columns[colIndex].tasks[taskIndex];
+    if (task.subtasks && task.subtasks[subIndex]) {
+      task.subtasks[subIndex][field] = value;
+      setBoard(newBoard);
+    }
+  };
+
+  const removeSubtask = (colIndex: number, taskIndex: number, subIndex: number) => {
+    const newBoard = { ...board };
+    const task = newBoard.columns[colIndex].tasks[taskIndex];
+    if (task.subtasks) {
+      task.subtasks.splice(subIndex, 1);
+      setBoard(newBoard);
+    }
+  };
+
+  const addSubtask = (colIndex: number, taskIndex: number) => {
+    const newBoard = { ...board };
+    const task = newBoard.columns[colIndex].tasks[taskIndex];
+    if (!task.subtasks) {
+      task.subtasks = [];
+    }
+    task.subtasks.push({
+      id: Math.random().toString(),
+      title: 'Nova sub-tarefa sugerida',
+      description: '',
+      priority: 'medium'
+    });
     setBoard(newBoard);
   };
 
@@ -103,6 +187,8 @@ export function AIPreviewBoard({ board: initialBoard, projectId, onCancel }: AIP
                   urgent: AlertCircle,
                 }[priorityKey];
 
+                const isExpanded = !!expandedTasks[task.id];
+
                 return (
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
@@ -164,23 +250,141 @@ export function AIPreviewBoard({ board: initialBoard, projectId, onCancel }: AIP
                     </div>
                   </div>
 
-                  {(task.checklist && task.checklist.length > 0) || (task.subtasks && task.subtasks.length > 0) ? (
+                  {((task.checklist && task.checklist.length > 0) || (task.subtasks && task.subtasks.length > 0)) ? (
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       {task.checklist && task.checklist.length > 0 && (
-                        <div className="flex items-center gap-1.5 text-[11px] font-medium text-primary bg-primary/5 border border-primary/10 w-fit px-2 py-1 rounded-md">
+                        <button
+                          type="button"
+                          onClick={() => toggleExpandTask(task.id)}
+                          className={`flex items-center gap-1.5 text-[11px] font-medium border px-2 py-1 rounded-md transition-all cursor-pointer select-none ${
+                            isExpanded
+                              ? 'text-primary bg-primary/10 border-primary/20 shadow-sm font-semibold'
+                              : 'text-primary bg-primary/5 border-primary/10 hover:bg-primary/10'
+                          }`}
+                        >
                           <ListChecks size={13} />
-                          {task.checklist.length} itens sugeridos
-                        </div>
+                          <span>{task.checklist.length} itens sugeridos</span>
+                          {isExpanded ? <EyeOff size={10} className="ml-1 opacity-70" /> : <Eye size={10} className="ml-1 opacity-70" />}
+                        </button>
                       )}
                       
                       {task.subtasks && task.subtasks.length > 0 && (
-                        <div className="flex items-center gap-1.5 text-[11px] font-medium text-amber-600 bg-amber-500/10 border border-amber-500/20 w-fit px-2 py-1 rounded-md">
+                        <button
+                          type="button"
+                          onClick={() => toggleExpandTask(task.id)}
+                          className={`flex items-center gap-1.5 text-[11px] font-medium border px-2 py-1 rounded-md transition-all cursor-pointer select-none ${
+                            isExpanded
+                              ? 'text-amber-600 bg-amber-500/15 border-amber-500/25 shadow-sm font-semibold'
+                              : 'text-amber-600 bg-amber-500/10 border-amber-500/20 hover:bg-amber-500/15'
+                          }`}
+                        >
                           <ListTree size={13} />
-                          {task.subtasks.length} sub-tarefas ocultas
-                        </div>
+                          <span>{task.subtasks.length} sub-tarefas</span>
+                          {isExpanded ? <EyeOff size={10} className="ml-1 opacity-70" /> : <Eye size={10} className="ml-1 opacity-70" />}
+                        </button>
                       )}
                     </div>
                   ) : null}
+
+                  {/* Expanded checklist & subtasks editor */}
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mt-3 pt-3 border-t border-border/50 space-y-4 overflow-hidden"
+                      >
+                        {/* Checklist Items Editor */}
+                        {task.checklist && task.checklist.length > 0 && (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[11px] font-bold text-foreground flex items-center gap-1">
+                                <ListChecks size={12} className="text-primary" />
+                                Itens da Checklist
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => addChecklistItem(cIdx, tIdx)}
+                                className="text-[10px] font-bold text-primary hover:underline flex items-center gap-0.5 cursor-pointer"
+                              >
+                                <Plus size={10} /> Add
+                              </button>
+                            </div>
+
+                            <div className="space-y-1.5">
+                              {task.checklist.map((item, idx) => (
+                                <div key={idx} className="flex items-center gap-1.5">
+                                  <input
+                                    type="text"
+                                    value={item}
+                                    onChange={(e) => updateChecklistItem(cIdx, tIdx, idx, e.target.value)}
+                                    className="flex-1 bg-background border border-border/60 rounded px-2 py-1 text-xs text-foreground focus:outline-none focus:border-primary/50"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => removeChecklistItem(cIdx, tIdx, idx)}
+                                    className="p-1 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded transition-colors cursor-pointer shrink-0"
+                                  >
+                                    <Trash2 size={12} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Subtasks Editor */}
+                        {task.subtasks && task.subtasks.length > 0 && (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[11px] font-bold text-foreground flex items-center gap-1">
+                                <ListTree size={12} className="text-amber-500" />
+                                Sub-tarefas
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => addSubtask(cIdx, tIdx)}
+                                className="text-[10px] font-bold text-amber-600 hover:underline flex items-center gap-0.5 cursor-pointer"
+                              >
+                                <Plus size={10} /> Add
+                              </button>
+                            </div>
+
+                            <div className="space-y-2">
+                              {task.subtasks.map((sub, sIdx) => (
+                                <div key={sub.id || sIdx} className="bg-muted/20 border border-border/40 p-2.5 rounded-lg space-y-1.5 relative group/sub">
+                                  <button
+                                    type="button"
+                                    onClick={() => removeSubtask(cIdx, tIdx, sIdx)}
+                                    className="absolute right-2 top-2 p-1 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded transition-colors cursor-pointer shrink-0"
+                                  >
+                                    <Trash2 size={12} />
+                                  </button>
+                                  
+                                  <input
+                                    type="text"
+                                    placeholder="Título da sub-tarefa"
+                                    value={sub.title}
+                                    onChange={(e) => updateSubtaskField(cIdx, tIdx, sIdx, 'title', e.target.value)}
+                                    className="w-full bg-background border border-border/60 rounded px-2 py-1 text-xs text-foreground focus:outline-none focus:border-primary/50 pr-8"
+                                  />
+                                  
+                                  <textarea
+                                    placeholder="Descrição (opcional)"
+                                    value={sub.description || ''}
+                                    rows={2}
+                                    onChange={(e) => updateSubtaskField(cIdx, tIdx, sIdx, 'description', e.target.value)}
+                                    className="w-full bg-background border border-border/60 rounded px-2 py-1 text-[11px] text-muted-foreground focus:outline-none focus:border-primary/50 resize-none custom-scrollbar"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
                 );
               })}
