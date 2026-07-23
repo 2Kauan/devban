@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { supabase, createUniqueChannel } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -145,31 +146,47 @@ export function ProjectLayout() {
         </header>
 
         <div className="border-b border-border/40 bg-card shrink-0">
-          <div className="flex items-center gap-6 px-6 overflow-x-auto custom-scrollbar no-scrollbar-arrows">
-            {tabs.filter(tab => !(tab.restricted && !isOwner)).map((tab) => {
-              const isActive = location.pathname === tab.path;
-              const Icon = tab.icon;
+          <LayoutGroup>
+            <div className="flex items-center gap-6 px-6 overflow-x-auto custom-scrollbar no-scrollbar-arrows">
+              {tabs.filter(tab => !(tab.restricted && !isOwner)).map((tab) => {
+                const isActive = location.pathname === tab.path;
+                const Icon = tab.icon;
 
-              return (
-                <Link
-                  key={tab.path}
-                  to={tab.path}
-                  className={`group flex items-center gap-2 py-3 px-1 border-b-2 text-sm font-bold whitespace-nowrap transition-all duration-300 ${
-                    isActive 
-                      ? 'border-primary text-primary' 
-                      : 'border-transparent text-muted-foreground hover:text-primary hover:border-primary/50'
-                  }`}
-                >
-                  <Icon size={16} className="transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-0.5" />
-                  <span className="transition-transform duration-300 group-hover:translate-x-0.5">{tab.name}</span>
-                </Link>
-              );
-            })}
-          </div>
+                return (
+                  <Link
+                    key={tab.path}
+                    to={tab.path}
+                    className="relative flex items-center gap-2 py-3 px-1 text-sm font-bold whitespace-nowrap transition-colors duration-200"
+                  >
+                    <Icon size={16} className={`transition-colors duration-200 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <span className={`transition-colors duration-200 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>{tab.name}</span>
+                    {isActive && (
+                      <motion.div
+                        layoutId="tab-indicator"
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full"
+                        transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                      />
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </LayoutGroup>
         </div>
 
         <div className="flex-1 flex flex-col overflow-hidden relative min-h-0">
-          <Outlet key={location.pathname} context={{ project }} />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+              className="flex-1 flex flex-col min-h-0"
+            >
+              <Outlet context={{ project }} />
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
     </div>

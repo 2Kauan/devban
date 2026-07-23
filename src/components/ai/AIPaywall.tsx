@@ -19,7 +19,7 @@ export function AIPaywall({ project }: AIPaywallProps) {
     { icon: FileText, text: 'Importação mágica de Documentos e PDFs' },
     { icon: Image, text: 'OCR Avançado: Leia imagens e quadros brancos' },
     { icon: Zap, text: 'Geração inteligente de Cards, Categorias e Checklists' },
-    { icon: Sparkles, text: 'Modelos adaptativos (Planejamento, Sprint, Resumo)' },
+    { icon: Sparkles, text: 'Modelos: Criar Projeto, Tarefas da Semana, Extrair Ações' },
   ];
 
   return (

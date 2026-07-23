@@ -1,11 +1,17 @@
 import { useState, useRef, type DragEvent } from 'react';
 import { UploadCloud, FileText, Image as ImageIcon, Send, Target, FastForward } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import type { AIGenerationMode } from '@/types/ai';
 
 interface AIUploaderProps {
   onGenerate: (mode: AIGenerationMode, text: string, files: File[]) => void;
 }
+
+const modeItems = [
+  { key: 'planning' as const, icon: Target, label: 'Criar Projeto', desc: 'Cria um novo quadro com a estrutura completa do projeto.' },
+  { key: 'sprint' as const, icon: FastForward, label: 'Tarefas da Semana', desc: 'Organiza as tarefas da semana de forma prática e acionável.' },
+  { key: 'summary' as const, icon: FileText, label: 'Extrair Ações da Semana', desc: 'Extrai ações e decisões definidas na reunião da semana.' },
+];
 
 export function AIUploader({ onGenerate }: AIUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
@@ -55,38 +61,61 @@ export function AIUploader({ onGenerate }: AIUploaderProps) {
   return (
     <div className="w-full space-y-6">
       {/* Mode Selection */}
-      <div className="flex flex-wrap gap-3">
-        {(['planning', 'sprint', 'summary'] as const).map((m) => (
-          <button
-            key={m}
-            onClick={() => setMode(m)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              mode === m 
-                ? 'bg-primary text-primary-foreground shadow-md scale-105' 
-                : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
-            }`}
+      <LayoutGroup>
+        <div className="flex flex-wrap gap-3">
+          {modeItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = mode === item.key;
+            return (
+              <motion.button
+                key={item.key}
+                layout
+                onClick={() => setMode(item.key)}
+                className={`relative flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  isActive 
+                    ? 'text-primary-foreground' 
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                style={{ zIndex: isActive ? 1 : 0 }}
+              >
+                {isActive && (
+                  <motion.span
+                    layoutId="active-bg"
+                    className="absolute inset-0 bg-primary rounded-full shadow-md"
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+                <motion.span
+                  className="relative flex items-center gap-2"
+                  animate={{ scale: isActive ? 1.05 : 1 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                >
+                  <motion.span
+                    animate={{ rotate: isActive ? [0, -10, 10, 0] : 0 }}
+                    transition={{ duration: 0.4, ease: 'easeInOut' }}
+                  >
+                    <Icon size={16} />
+                  </motion.span>
+                  {item.label}
+                </motion.span>
+              </motion.button>
+            );
+          })}
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.p 
+            key={mode}
+            initial={{ opacity: 0, y: -6, filter: 'blur(4px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: 6, filter: 'blur(4px)' }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            className="text-sm text-muted-foreground ml-1 mt-1"
           >
-            {m === 'planning' && <><Target size={16} /> Planejamento</>}
-            {m === 'sprint' && <><FastForward size={16} /> Sprint Backlog</>}
-            {m === 'summary' && <><FileText size={16} /> Resumo de Reunião</>}
-          </button>
-        ))}
-      </div>
-      
-      <AnimatePresence mode="wait">
-        <motion.p 
-          key={mode}
-          initial={{ opacity: 0, y: -5 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -5 }}
-          transition={{ duration: 0.2 }}
-          className="text-sm text-muted-foreground ml-1"
-        >
-          {mode === 'planning' && 'Gera um Kanban estrutural focado na visão macro e grandes fases do projeto.'}
-          {mode === 'sprint' && 'Quebra o escopo em tarefas curtas e acionáveis para o dia a dia.'}
-          {mode === 'summary' && 'Extrai apenas as "ações práticas" e acordos definidos em uma reunião.'}
-        </motion.p>
-      </AnimatePresence>
+            {modeItems.find(m => m.key === mode)?.desc}
+          </motion.p>
+        </AnimatePresence>
+      </LayoutGroup>
 
       <div 
         className={`relative w-full rounded-2xl border-2 border-dashed transition-all duration-300 bg-card overflow-hidden ${
