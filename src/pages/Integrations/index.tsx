@@ -45,8 +45,8 @@ export default function Integrations() {
   const [integrationsState, setIntegrationsState] = useState<Record<string, { active: boolean; projectId?: string; config?: any }>>(() => {
     const saved = localStorage.getItem('devban_integrations');
     return saved ? JSON.parse(saved) : {
-      google_calendar: { active: true, projectId: 'all', config: { email: 'usuario@gmail.com', syncMode: 'two-way' } },
-      ical_feed: { active: true, projectId: 'all' },
+      google_calendar: { active: false, projectId: 'all', config: { email: '', syncMode: 'two-way' } },
+      ical_feed: { active: false, projectId: 'all' },
       discord: { active: false, projectId: 'all', config: { webhookUrl: '' } },
       slack: { active: false, projectId: 'all', config: { webhookUrl: '' } },
       notion: { active: false, projectId: 'all', config: { token: '' } },
@@ -59,6 +59,25 @@ export default function Integrations() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [webhookUrlInput, setWebhookUrlInput] = useState('');
   const [notionTokenInput, setNotionTokenInput] = useState('');
+
+  useEffect(() => {
+    // Detect if user logged in / connected via Google provider
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        const isGoogleConnected = user.identities?.some(id => id.provider === 'google') || user.app_metadata?.provider === 'google';
+        if (isGoogleConnected) {
+          setIntegrationsState(prev => ({
+            ...prev,
+            google_calendar: { 
+              ...(prev.google_calendar || { projectId: 'all' }), 
+              active: true, 
+              config: { email: user.email || 'Conta Google', syncMode: 'two-way' } 
+            }
+          }));
+        }
+      }
+    });
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('devban_integrations', JSON.stringify(integrationsState));
