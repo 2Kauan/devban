@@ -578,20 +578,58 @@ export default function Integrations() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-xs font-bold text-foreground">Eventos Notificados:</label>
+                    <label className="block text-xs font-bold text-foreground">
+                      {selectedModalApp === 'github' ? 'Ações do Webhook:' : selectedModalApp === 'notion' ? 'Preferências de Sincronização:' : 'Eventos Notificados:'}
+                    </label>
                     <div className="space-y-2 text-xs text-muted-foreground">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" defaultChecked className="rounded accent-primary" />
-                        <span>Quando um novo cartão for criado</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" defaultChecked className="rounded accent-primary" />
-                        <span>Quando um cartão for movido para "Concluído"</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" defaultChecked className="rounded accent-primary" />
-                        <span>Alertas de tarefa próxima do prazo (1 hora antes)</span>
-                      </label>
+                      {selectedModalApp === 'discord' && (
+                        <>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" defaultChecked className="rounded accent-primary" />
+                            <span>Enviar alerta ao canal quando um novo cartão for criado</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" defaultChecked className="rounded accent-primary" />
+                            <span>Enviar alerta ao canal quando um cartão for movido para "Concluído"</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" defaultChecked className="rounded accent-primary" />
+                            <span>Alertas de tarefa próxima do prazo (1 hora antes)</span>
+                          </label>
+                        </>
+                      )}
+                      {selectedModalApp === 'notion' && (
+                        <>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" defaultChecked className="rounded accent-primary" />
+                            <span>Criar nova página no Notion ao adicionar cartão no Devban</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" defaultChecked className="rounded accent-primary" />
+                            <span>Atualizar status/coluna no Notion ao arrastar cartão no Devban</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" defaultChecked className="rounded accent-primary" />
+                            <span>Sincronizar checklists e responsáveis do cartão</span>
+                          </label>
+                        </>
+                      )}
+                      {selectedModalApp === 'github' && (
+                        <>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" defaultChecked className="rounded accent-primary" />
+                            <span>Mover cartão para "Concluído" ao fechar a Pull Request no repositório</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" defaultChecked className="rounded accent-primary" />
+                            <span>Inserir link da Pull Request nos comentários do cartão</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" defaultChecked className="rounded accent-primary" />
+                            <span>Vincular branches/commits nos detalhes do cartão</span>
+                          </label>
+                        </>
+                      )}
                     </div>
                   </div>
 
