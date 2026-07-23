@@ -70,7 +70,7 @@ export function MonthView({ currentDate, cards, onEventClick, onDayClick, onEven
               onDrop={(e) => handleDrop(e, day)}
               onClick={() => onDayClick(day)}
               className={`
-                min-h-[80px] p-1 sm:p-2 border-r border-b border-border/40 transition-all duration-200 cursor-pointer
+                min-h-[80px] p-1 sm:p-2 border-r border-b border-border/40 transition-all duration-200 cursor-pointer overflow-hidden
                 ${isCurrentMonth ? 'bg-background hover:bg-muted/10' : 'bg-muted/5 hover:bg-muted/20'}
                 ${i % 7 === 6 ? 'border-r-0' : ''}
                 ${isHovered ? 'scale-[1.05] border-primary z-10 shadow-lg bg-muted/20' : ''}
