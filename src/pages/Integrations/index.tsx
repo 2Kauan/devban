@@ -552,19 +552,68 @@ export default function Integrations() {
                     </ol>
                   </div>
                 </div>
-              ) : selectedModalApp === 'discord' || selectedModalApp === 'slack' || selectedModalApp === 'custom_webhook' ? (
+              ) : selectedModalApp === 'discord' || selectedModalApp === 'slack' || selectedModalApp === 'custom_webhook' || selectedModalApp === 'notion' || selectedModalApp === 'github' ? (
                 <div className="space-y-4">
+                  {/* Passo a Passo de Conexão */}
+                  <div className="p-4 bg-muted/40 border border-border/80 rounded-2xl space-y-2 text-left">
+                    <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <Sparkles size={14} className="text-primary" />
+                      Passo a passo para conectar {selectedModalApp === 'discord' ? 'o Discord' : selectedModalApp === 'slack' ? 'o Slack' : selectedModalApp === 'notion' ? 'o Notion' : selectedModalApp === 'github' ? 'o GitHub' : 'seu Webhook'}:
+                    </h4>
+                    {selectedModalApp === 'discord' && (
+                      <ol className="text-[11px] text-muted-foreground space-y-1.5 list-decimal pl-4 leading-relaxed">
+                        <li>No Discord, vá nas <strong>Configurações do Servidor</strong> ➔ <strong>Integrações</strong> ➔ <strong>Webhooks</strong>.</li>
+                        <li>Clique em <strong>Novo Webhook</strong>, escolha o canal desejado e clique em <strong>Copiar URL do Webhook</strong>.</li>
+                        <li>Cole o link copiado no campo abaixo e clique em <strong>Salvar Webhook e Ativar</strong>.</li>
+                      </ol>
+                    )}
+                    {selectedModalApp === 'slack' && (
+                      <ol className="text-[11px] text-muted-foreground space-y-1.5 list-decimal pl-4 leading-relaxed">
+                        <li>Acesse <strong>api.slack.com/apps</strong> e crie um aplicativo com a opção <strong>Incoming Webhooks</strong>.</li>
+                        <li>Ative o recurso e adicione um novo webhook selecionando o canal de destino (ex: <em>#devban</em>).</li>
+                        <li>Copie a Webhook URL gerada, cole no campo abaixo e clique em <strong>Salvar Webhook e Ativar</strong>.</li>
+                      </ol>
+                    )}
+                    {selectedModalApp === 'notion' && (
+                      <ol className="text-[11px] text-muted-foreground space-y-1.5 list-decimal pl-4 leading-relaxed">
+                        <li>Acesse <strong>notion.so/my-integrations</strong> e crie uma nova integração de API.</li>
+                        <li>Copie a chave <strong>Internal Integration Secret</strong> gerada (começa com <em>secret_...</em>).</li>
+                        <li>No seu banco de dados no Notion, clique em <strong>... ➔ Conectar a ➔ Escolher sua integração</strong>.</li>
+                      </ol>
+                    )}
+                    {selectedModalApp === 'github' && (
+                      <ol className="text-[11px] text-muted-foreground space-y-1.5 list-decimal pl-4 leading-relaxed">
+                        <li>No seu repositório no GitHub, acesse <strong>Settings ➔ Webhooks ➔ Add webhook</strong>.</li>
+                        <li>no campo <em>Payload URL</em>, informe o endpoint do Devban e selecione Content-type como <strong>application/json</strong>.</li>
+                        <li>Selecione os eventos de <strong>Pull requests</strong> e salve o Webhook.</li>
+                      </ol>
+                    )}
+                    {selectedModalApp === 'custom_webhook' && (
+                      <ol className="text-[11px] text-muted-foreground space-y-1.5 list-decimal pl-4 leading-relaxed">
+                        <li>No Zapier, Make ou n8n, crie um novo fluxo de trabalho com gatilho <strong>Custom Webhook / Catch Hook</strong>.</li>
+                        <li>Copie a URL de destino gerada pela ferramenta de automação.</li>
+                        <li>Cole o link no campo abaixo para enviar atualizações de cartões em JSON automaticamente.</li>
+                      </ol>
+                    )}
+                  </div>
+
                   <div>
-                    <label className="block text-xs font-bold text-foreground mb-1.5">URL do Webhook</label>
+                    <label className="block text-xs font-bold text-foreground mb-1.5">
+                      {selectedModalApp === 'notion' ? 'Token de Integração do Notion' : 'URL do Webhook'}
+                    </label>
                     <input
-                      type="url"
+                      type={selectedModalApp === 'notion' ? 'password' : 'url'}
                       placeholder={
                         selectedModalApp === 'discord' 
                           ? 'https://discord.com/api/webhooks/...' 
-                          : 'https://hooks.slack.com/services/...'
+                          : selectedModalApp === 'slack'
+                          ? 'https://hooks.slack.com/services/...'
+                          : selectedModalApp === 'notion'
+                          ? 'secret_...'
+                          : 'https://api.suaempresa.com/webhook'
                       }
-                      value={webhookUrlInput}
-                      onChange={e => setWebhookUrlInput(e.target.value)}
+                      value={selectedModalApp === 'notion' ? notionTokenInput : webhookUrlInput}
+                      onChange={e => selectedModalApp === 'notion' ? setNotionTokenInput(e.target.value) : setWebhookUrlInput(e.target.value)}
                       className="w-full bg-background border border-border rounded-xl p-3 text-sm focus:outline-none focus:border-primary transition-all font-mono"
                     />
                   </div>
@@ -591,7 +640,7 @@ export default function Integrations() {
                     onClick={() => handleSaveWebhook(selectedModalApp)}
                     className="w-full py-3 bg-primary text-primary-foreground rounded-xl text-sm font-bold hover:bg-primary/90 transition-all shadow-md cursor-pointer"
                   >
-                    Salvar Webhook e Ativar
+                    Salvar e Ativar Integração
                   </button>
                 </div>
               ) : selectedModalApp === 'google_calendar' ? (
@@ -602,6 +651,20 @@ export default function Integrations() {
                   <div className="space-y-1">
                     <h3 className="font-bold text-base text-foreground">Conta Google Vinculada</h3>
                     <p className="text-xs text-muted-foreground">{userEmail || integrationsState.google_calendar?.config?.email || 'Conta Google Conectada'}</p>
+                  </div>
+
+                  {/* Passo a Passo Google Agenda */}
+                  <div className="p-4 bg-muted/40 border border-border/80 rounded-2xl space-y-2 text-left">
+                    <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <Sparkles size={14} className="text-primary" />
+                      Como funciona a sincronização:
+                    </h4>
+                    <ol className="text-[11px] text-muted-foreground space-y-1.5 list-decimal pl-4 leading-relaxed">
+                      <li>Conecte sua conta do Google clicando em <strong>Conectar</strong>.</li>
+                      <li>Escolha a qual <strong>projeto</strong> do Devban deseja vincular no topo do modal.</li>
+                      <li>Escolha se prefere sincronizar <strong>todos os cartões</strong> ou selecionar <strong>cartões específicos</strong>.</li>
+                      <li>Sua agenda será atualizada em tempo real sempre que você criar, editar datas ou mover cartões!</li>
+                    </ol>
                   </div>
 
                   {/* Sync Mode Toggle */}
