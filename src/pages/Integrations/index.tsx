@@ -481,6 +481,19 @@ export default function Integrations() {
               {/* Conteúdo Dinâmico por Tipo de App */}
               {selectedModalApp === 'ical_feed' ? (
                 <div className="space-y-4">
+                  {/* Passo a Passo de Conexão */}
+                  <div className="p-4 bg-muted/40 border border-border/80 rounded-2xl space-y-2 text-left">
+                    <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <Sparkles size={14} className="text-primary" />
+                      Como adicionar o Calendário no seu dispositivo:
+                    </h4>
+                    <ol className="text-[11px] text-muted-foreground space-y-1.5 list-decimal pl-4 leading-relaxed">
+                      <li>No <strong>iPhone / iPad</strong>: Vá em <em>Ajustes ➔ Calendário ➔ Contas ➔ Adicionar Conta ➔ Outra ➔ Adicionar Calendário Assinado</em> e cole o link abaixo.</li>
+                      <li>No <strong>Google Agenda</strong>: Clique no botão <strong>+</strong> ao lado de "Outros agendas" ➔ <em>Do URL</em> e cole a URL.</li>
+                      <li>No <strong>Mac / Outlook</strong>: Vá em <em>Arquivo ➔ Nova Assinatura de Calendário</em>.</li>
+                    </ol>
+                  </div>
+
                   <div className="p-4 bg-muted/40 border border-border rounded-2xl space-y-2">
                     <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider">
                       Seu Link de Assinatura iCal exclusivo (.ics)
@@ -502,13 +515,18 @@ export default function Integrations() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <h4 className="text-xs font-bold text-foreground">Como adicionar no seu dispositivo:</h4>
-                    <ol className="text-xs text-muted-foreground space-y-1.5 list-decimal pl-4">
-                      <li>No <strong>iPhone / iPad</strong>: Vá em <em>Ajustes ➔ Calendário ➔ Contas ➔ Adicionar Conta ➔ Outra ➔ Adicionar Calendário Assinado</em> e cole o link acima.</li>
-                      <li>No <strong>Google Agenda</strong>: Clique no símbolo <strong>+</strong> ao lado de "Outros agendas" ➔ <em>Do URL</em> e cole a URL.</li>
-                      <li>No <strong>Mac / Outlook</strong>: Vá em <em>Arquivo ➔ Nova Assinatura de Calendário</em>.</li>
-                    </ol>
+                  <div className="space-y-2 text-left">
+                    <label className="block text-xs font-bold text-foreground">Preferências do Feed:</label>
+                    <div className="space-y-2 text-xs text-muted-foreground">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" defaultChecked className="rounded accent-primary" />
+                        <span>Sincronizar apenas cartões não concluídos</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" defaultChecked className="rounded accent-primary" />
+                        <span>Incluir checklists e responsáveis nos detalhes do evento</span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               ) : selectedModalApp === 'discord' || selectedModalApp === 'slack' || selectedModalApp === 'custom_webhook' || selectedModalApp === 'notion' || selectedModalApp === 'github' ? (
