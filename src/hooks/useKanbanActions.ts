@@ -150,6 +150,9 @@ export function useKanbanActions({
         new_value: { column_title: destCol.title }
       });
 
+      // Sincroniza imediatamente a mudança de coluna e cor no Google Agenda!
+      syncCardToGoogleCalendar(cardId, destColId);
+
       // Se moveu o cartão pai, move automaticamente todos os cartões filhos (sub-tarefas) para a mesma coluna!
       const subtasks = cards.filter(c => c.parent_id === cardId);
       if (subtasks.length > 0) {

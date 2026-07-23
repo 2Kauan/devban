@@ -120,7 +120,7 @@ export const buildRichEventDescription = (
 /**
  * Helper to fetch full details for a card (column title, column color, tags, assignees, checklists)
  */
-export const fetchCardFullDetails = async (cardId: string) => {
+export const fetchCardFullDetails = async (cardId: string, overrideColumnId?: string) => {
   let tags: string[] = [];
   let assignees: string[] = [];
   let checklists: Array<{ title: string; items: Array<{ title: string; is_completed: boolean }> }> = [];
@@ -138,17 +138,30 @@ export const fetchCardFullDetails = async (cardId: string) => {
 
     if (cardData) {
       borderColor = cardData.border_color;
-      if (cardData.column_id) {
+      const colIdToUse = overrideColumnId || cardData.column_id;
+
+      if (colIdToUse) {
         const { data: colData } = await supabase
           .from('columns')
           .select('title, color')
-          .eq('id', cardData.column_id)
+          .eq('id', colIdToUse)
           .single();
 
         if (colData) {
           columnTitle = colData.title;
           columnColor = colData.color;
         }
+      }
+    } else if (overrideColumnId) {
+      const { data: colData } = await supabase
+        .from('columns')
+        .select('title, color')
+        .eq('id', overrideColumnId)
+        .single();
+
+      if (colData) {
+        columnTitle = colData.title;
+        columnColor = colData.color;
       }
     }
 
@@ -215,14 +228,17 @@ export const fetchCardFullDetails = async (cardId: string) => {
 
 /**
  * Pushes or updates a Google Calendar event in-place using a deterministic event ID (PUT/POST).
- * Always fetches the current card state from Supabase DB to ensure 100% accuracy.
+ * Always fetches current card state from DB or override column.
  */
-export const syncCardToGoogleCalendar = async (cardId: string) => {
+export const syncCardToGoogleCalendar = async (cardId: string, overrideColumnId?: string) => {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.provider_token;
 
-    if (!token) return;
+    if (!token) {
+      console.warn('No Google OAuth provider token found in current session.');
+      return;
+    }
 
     // Fetch up-to-date card from DB
     const { data: card } = await supabase
@@ -234,7 +250,7 @@ export const syncCardToGoogleCalendar = async (cardId: string) => {
     if (!card || !card.due_date) return;
 
     const eventId = getGCalEventId(cardId);
-    const { tags, assignees, checklists, columnTitle, columnColor } = await fetchCardFullDetails(cardId);
+    const { tags, assignees, checklists, columnTitle, columnColor } = await fetchCardFullDetails(cardId, overrideColumnId);
     const richDescription = buildRichEventDescription(card.description, card.priority, columnTitle, tags, assignees, checklists);
     const colorId = mapColorToGoogleColorId(columnColor || card.border_color);
 
@@ -273,7 +289,10 @@ export const syncCardToGoogleCalendar = async (cardId: string) => {
     }
 
     if (res.ok) {
-      console.log('Google Calendar updated for card:', cardId);
+      console.log('Google Calendar updated successfully for card:', cardId);
+    } else {
+      const errText = await res.text();
+      console.error('Google Calendar API Error:', res.status, errText);
     }
   } catch (err) {
     console.error('Erro ao atualizar Google Calendar:', err);
