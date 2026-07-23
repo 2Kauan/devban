@@ -186,7 +186,7 @@ export default function Integrations() {
       iconBg: 'bg-blue-500/10 border-blue-500/20',
       iconColor: 'text-blue-500',
       brandSvg: (
-        <img src="/google-calendar--v1.webp" alt="Google Calendar" className="w-8 h-8 object-contain rounded-xl shadow-xs" />
+        <img src="/google-calendar--v1.webp" alt="Google Calendar" className="w-full h-full object-cover rounded-xl" />
       ),
       isActive: !!integrationsState.google_calendar?.active,
       statusText: integrationsState.google_calendar?.active ? 'Conectado (usuario@gmail.com)' : 'Desconectado',
@@ -201,7 +201,7 @@ export default function Integrations() {
       iconBg: 'bg-emerald-500/10 border-emerald-500/20',
       iconColor: 'text-emerald-500',
       brandSvg: (
-        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none">
+        <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
           <rect x="3" y="3" width="18" height="18" rx="4" fill="#FF3B30"/>
           <path d="M3 8.5H21V17C21 19.2091 19.2091 21 17 21H7C4.79086 21 3 19.2091 3 17V8.5Z" fill="#FFFFFF"/>
           <text x="12" y="17.5" textAnchor="middle" fill="#1C1C1E" fontSize="9" fontWeight="800" fontFamily="system-ui, -apple-system, sans-serif">31</text>
@@ -222,7 +222,7 @@ export default function Integrations() {
       iconBg: 'bg-indigo-500/10 border-indigo-500/20',
       iconColor: 'text-indigo-500',
       brandSvg: (
-        <img src="/discord-logo-discord-icon-transparent-free-png.webp" alt="Discord" className="w-8 h-8 object-contain rounded-xl shadow-xs" />
+        <img src="/discord-logo-discord-icon-transparent-free-png.webp" alt="Discord" className="w-full h-full object-cover rounded-xl" />
       ),
       isActive: !!integrationsState.discord?.active,
       statusText: integrationsState.discord?.active ? 'Canal Conectado' : 'Não configurado',
@@ -237,7 +237,7 @@ export default function Integrations() {
       iconBg: 'bg-amber-500/10 border-amber-500/20',
       iconColor: 'text-amber-500',
       brandSvg: (
-        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none">
+        <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
           <path d="M6 14.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zm0-10a2.5 2.5 0 000 5h5V4.5a2.5 2.5 0 00-5 0zm10 0a2.5 2.5 0 005 0 2.5 2.5 0 00-5 0zm-5 5a2.5 2.5 0 000 5h5v-5h-5zm0 10a2.5 2.5 0 005 0v-5h-5v5z" fill="#E01E5A"/>
           <path d="M4.5 9.5A2.5 2.5 0 0 1 7 7h5v5H7a2.5 2.5 0 0 1-2.5-2.5z" fill="#ECB22E"/>
           <path d="M14.5 4.5A2.5 2.5 0 0 1 17 7v5h-5V7a2.5 2.5 0 0 1 2.5-2.5z" fill="#2EB67D"/>
@@ -257,7 +257,7 @@ export default function Integrations() {
       iconBg: 'bg-neutral-500/10 border-neutral-500/20',
       iconColor: 'text-foreground',
       brandSvg: (
-        <img src="/free-notion-icon-svg-download-png-1911999.webp" alt="Notion" className="w-8 h-8 object-contain rounded-xl shadow-xs" />
+        <img src="/free-notion-icon-svg-download-png-1911999.webp" alt="Notion" className="w-full h-full object-cover rounded-xl" />
       ),
       isActive: !!integrationsState.notion?.active,
       statusText: integrationsState.notion?.active ? 'Database Vinculada' : 'Não vinculado',
@@ -272,7 +272,7 @@ export default function Integrations() {
       iconBg: 'bg-purple-500/10 border-purple-500/20',
       iconColor: 'text-purple-500',
       brandSvg: (
-        <svg className="w-7 h-7 text-foreground dark:text-white" viewBox="0 0 24 24" fill="currentColor">
+        <svg className="w-10 h-10 text-foreground dark:text-white" viewBox="0 0 24 24" fill="currentColor">
           <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
         </svg>
       ),
@@ -289,7 +289,7 @@ export default function Integrations() {
       iconBg: 'bg-rose-500/10 border-rose-500/20',
       iconColor: 'text-rose-500',
       brandSvg: (
-        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none">
+        <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
           <rect x="2" y="2" width="20" height="20" rx="5" fill="#FF4A00" fillOpacity="0.1"/>
           <circle cx="18" cy="5" r="3" stroke="#FF4A00" strokeWidth="2"/>
           <circle cx="6" cy="12" r="3" stroke="#6E2CF4" strokeWidth="2"/>
@@ -398,7 +398,7 @@ export default function Integrations() {
                 <div className="space-y-4">
                   {/* Top Bar Card */}
                   <div className="flex items-start justify-between gap-4">
-                    <div className={`p-3 rounded-2xl border ${app.iconBg} flex items-center justify-center shrink-0`}>
+                    <div className={`w-14 h-14 rounded-2xl border ${app.iconBg} flex items-center justify-center shrink-0 overflow-hidden shadow-xs p-1`}>
                       {app.brandSvg}
                     </div>
 
