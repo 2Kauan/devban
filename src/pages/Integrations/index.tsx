@@ -488,10 +488,10 @@ export default function Integrations() {
                   onChange={e => handleUpdateProjectBinding(selectedModalApp, e.target.value)}
                   className="w-full bg-background border border-border rounded-xl p-2.5 text-xs font-bold text-foreground focus:outline-none focus:border-primary cursor-pointer"
                 >
-                  <option value="all">🌟 Todos os Meus Projetos (Global)</option>
+                  <option value="all">Todos os Meus Projetos (Global)</option>
                   {projects.map(p => (
                     <option key={p.id} value={p.id}>
-                      📁 {p.name}
+                      {p.name}
                     </option>
                   ))}
                 </select>
