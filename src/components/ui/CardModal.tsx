@@ -13,6 +13,7 @@ import { TagSelector } from '@/components/ui/TagSelector';
 import type { Category, Profile } from '@/types/database';
 import { useAuth } from '@/contexts/AuthContext';
 import { NotificationService } from '@/services/notifications/notificationService';
+import { syncCardToGoogleCalendar, getGoogleCalendarWebUrl } from '@/services/googleCalendarService';
 import type { ProjectMember } from '@/hooks/useProjectQuery';
 
 interface CardModalProps {
@@ -158,6 +159,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
 
       if (data.due_date) {
         NotificationService.scheduleTaskReminder(card.id, data.title, data.due_date);
+        syncCardToGoogleCalendar(data.title, sanitizedDescription, data.due_date);
       } else {
         NotificationService.cancelTaskReminder(card.id);
       }
@@ -987,6 +989,16 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
                           setValue('due_date', selectedValue, { shouldDirty: true });
                         }}
                       />
+                      {watch('due_date') && (
+                        <a
+                          href={getGoogleCalendarWebUrl(watch('title') || 'Tarefa', watch('description'), watch('due_date'))}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 text-xs font-bold transition-all border border-blue-500/20"
+                        >
+                          📅 Adicionar ao Google Agenda
+                        </a>
+                      )}
                     </div>
                     
                     {/* Link Externo */}
