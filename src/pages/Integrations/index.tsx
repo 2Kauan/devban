@@ -74,8 +74,7 @@ export default function Integrations() {
       if (user) {
         if (user.email) setUserEmail(user.email);
         const hasToken = !!localStorage.getItem('devban_gcal_token');
-        const isGoogleConnected = user.identities?.some(id => id.provider === 'google') || user.app_metadata?.provider === 'google';
-        if (isGoogleConnected || hasToken) {
+        if (hasToken) {
           setIntegrationsState(prev => ({
             ...prev,
             google_calendar: { 
@@ -123,6 +122,10 @@ export default function Integrations() {
         toast.error('Erro ao conectar com Google: ' + err.message);
         return;
       }
+    }
+
+    if (!nextActive && id === 'google_calendar') {
+      localStorage.removeItem('devban_gcal_token');
     }
 
     if (nextActive && id === 'github') {
