@@ -182,13 +182,13 @@ export default function Integrations() {
       iconBg: 'bg-blue-500/10 border-blue-500/20',
       iconColor: 'text-blue-500',
       brandSvg: (
-        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
-          <path d="M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z" fill="#4285F4" fillOpacity="0.15" stroke="#4285F4" strokeWidth="2"/>
-          <path d="M16 2V6M8 2V6M3 10H21" stroke="#4285F4" strokeWidth="2" strokeLinecap="round"/>
-          <rect x="7" y="13" width="3" height="3" rx="0.5" fill="#4285F4"/>
-          <rect x="14" y="13" width="3" height="3" rx="0.5" fill="#34A853"/>
-          <rect x="7" y="17" width="3" height="3" rx="0.5" fill="#EA4335"/>
-          <rect x="14" y="17" width="3" height="3" rx="0.5" fill="#FBBC05"/>
+        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="4" width="18" height="18" rx="3" fill="#4285F4" fillOpacity="0.12" stroke="#4285F4" strokeWidth="2"/>
+          <path d="M16 2V6M8 2V6M3 9.5H21" stroke="#4285F4" strokeWidth="2" strokeLinecap="round"/>
+          <rect x="7" y="12" width="3.5" height="3.5" rx="1" fill="#4285F4"/>
+          <rect x="13.5" y="12" width="3.5" height="3.5" rx="1" fill="#34A853"/>
+          <rect x="7" y="16.5" width="3.5" height="3.5" rx="1" fill="#EA4335"/>
+          <rect x="13.5" y="16.5" width="3.5" height="3.5" rx="1" fill="#FBBC05"/>
         </svg>
       ),
       isActive: !!integrationsState.google_calendar?.active,
@@ -204,12 +204,12 @@ export default function Integrations() {
       iconBg: 'bg-emerald-500/10 border-emerald-500/20',
       iconColor: 'text-emerald-500',
       brandSvg: (
-        <svg className="w-8 h-8 drop-shadow-sm" viewBox="0 0 24 24" fill="none">
-          <rect x="3" y="4" width="18" height="17" rx="3" fill="#FF3B30" />
-          <rect x="3" y="9" width="18" height="12" rx="1" fill="#FFFFFF" />
-          <text x="12" y="17.5" textAnchor="middle" fill="#1C1C1E" fontSize="8" fontWeight="bold" fontFamily="sans-serif">31</text>
-          <circle cx="8" cy="6.5" r="1" fill="#FFFFFF" />
-          <circle cx="16" cy="6.5" r="1" fill="#FFFFFF" />
+        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="3" width="18" height="18" rx="4" fill="#FF3B30"/>
+          <path d="M3 8.5H21V17C21 19.2091 19.2091 21 17 21H7C4.79086 21 3 19.2091 3 17V8.5Z" fill="#FFFFFF"/>
+          <text x="12" y="17.5" textAnchor="middle" fill="#1C1C1E" fontSize="9" fontWeight="800" fontFamily="system-ui, -apple-system, sans-serif">31</text>
+          <circle cx="8" cy="5.8" r="1.2" fill="#FFFFFF"/>
+          <circle cx="16" cy="5.8" r="1.2" fill="#FFFFFF"/>
         </svg>
       ),
       isActive: !!integrationsState.ical_feed?.active,
@@ -225,8 +225,9 @@ export default function Integrations() {
       iconBg: 'bg-indigo-500/10 border-indigo-500/20',
       iconColor: 'text-indigo-500',
       brandSvg: (
-        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
-          <path d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 00-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 00-4.8 0c-.14-.34-.35-.76-.54-1.09-.01-.02-.04-.03-.07-.03-1.5.26-2.93.71-4.27 1.33-.01 0-.02.01-.03.02-2.72 4.07-3.47 8.03-3.1 11.95 0 .02.01.04.03.05 1.8 1.32 3.53 2.12 5.24 2.65.03.01.06 0 .07-.02.4-.55.76-1.13 1.07-1.74.02-.04 0-.08-.04-.09-.57-.22-1.11-.48-1.64-.78-.04-.02-.04-.08 0-.11.11-.08.22-.17.33-.25.02-.02.05-.02.07-.01 3.44 1.57 7.15 1.57 10.55 0 .02-.01.05-.01.07.01.11.09.22.17.33.26.04.03.04.09 0 .11-.53.3-1.07.56-1.64.78-.04.01-.05.06-.04.09.32.61.68 1.19 1.07 1.74.01.02.04.03.07.02 1.72-.53 3.45-1.33 5.25-2.65.02-.01.03-.03.03-.05.44-4.53-.73-8.46-3.1-11.95-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.83 2.12-1.89 2.12z" fill="#5865F2"/>
+        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="2" width="20" height="20" rx="5" fill="#5865F2"/>
+          <path d="M16.5 7.8A12.4 12.4 0 0013.2 6.8A.1.1 0 0013.1 6.9C13 7.2 12.8 7.5 12.7 7.8A11.7 11.7 0 008.3 7.8C8.2 7.5 8 7.2 7.8 6.9A.1.1 0 007.7 6.8A12.4 12.4 0 004.5 7.8C2 11.5 2.7 15.1 3 18.7A.1.1 0 003.1 18.8A12.5 12.5 0 007.8 21.2A.1.1 0 007.9 21.1C8.3 20.6 8.6 20.1 8.9 19.5A.1.1 0 008.8 19.4A8.2 8.2 0 017.3 18.7A.1.1 0 017.3 18.6C7.4 18.5 7.5 18.4 7.6 18.4A.1.1 0 017.7 18.4C10.8 19.8 14.2 19.8 17.3 18.4A.1.1 0 0117.4 18.4C17.5 18.5 17.6 18.5 17.7 18.6A.1.1 0 0117.7 18.7A8.1 8.1 0 0116.2 19.4A.1.1 0 0016.1 19.5C16.4 20.1 16.7 20.6 17.1 21.1A.1.1 0 0017.2 21.2A12.5 12.5 0 0021.9 18.8A.1.1 0 0022 18.7C22.4 14.5 21.3 10.9 19.5 7.8ZM8.5 15.5C7.4 15.5 6.5 14.5 6.5 13.3C6.5 12.1 7.4 11.1 8.5 11.1C9.6 11.1 10.5 12.1 10.5 13.3C10.5 14.5 9.6 15.5 8.5 15.5ZM15.5 15.5C14.4 15.5 13.5 14.5 13.5 13.3C13.5 12.1 14.4 11.1 15.5 11.1C16.6 11.1 17.5 12.1 17.5 13.3C17.5 14.5 16.6 15.5 15.5 15.5Z" fill="#FFFFFF"/>
         </svg>
       ),
       isActive: !!integrationsState.discord?.active,
@@ -242,12 +243,11 @@ export default function Integrations() {
       iconBg: 'bg-amber-500/10 border-amber-500/20',
       iconColor: 'text-amber-500',
       brandSvg: (
-        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
-          <path d="M6 15a2.5 2.5 0 100 5 2.5 2.5 0 000-5zm0-10a2.5 2.5 0 000 5h5V5a2.5 2.5 0 00-5 0zm10 0a2.5 2.5 0 005 0 2.5 2.5 0 00-5 0zm-5 5a2.5 2.5 0 000 5h5v-5h-5zm0 10a2.5 2.5 0 005 0v-5h-5v5z" fill="#E01E5A"/>
-          <path d="M5 9.5A2.5 2.5 0 0 1 7.5 7H10v5H7.5A2.5 2.5 0 0 1 5 9.5z" fill="#ECB22E"/>
-          <path d="M14.5 5a2.5 2.5 0 0 1 2.5 2.5V10h-5V7.5A2.5 2.5 0 0 1 14.5 5z" fill="#2EB67D"/>
-          <path d="M19 14.5a2.5 2.5 0 0 1-2.5 2.5H14v-5h2.5a2.5 2.5 0 0 1 2.5 2.5z" fill="#36C5F0"/>
-          <path d="M9.5 19a2.5 2.5 0 0 1-2.5-2.5V14h5v2.5a2.5 2.5 0 0 1-2.5 2.5z" fill="#E01E5A"/>
+        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none">
+          <path d="M6 14.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zm0-10a2.5 2.5 0 000 5h5V4.5a2.5 2.5 0 00-5 0zm10 0a2.5 2.5 0 005 0 2.5 2.5 0 00-5 0zm-5 5a2.5 2.5 0 000 5h5v-5h-5zm0 10a2.5 2.5 0 005 0v-5h-5v5z" fill="#E01E5A"/>
+          <path d="M4.5 9.5A2.5 2.5 0 0 1 7 7h5v5H7a2.5 2.5 0 0 1-2.5-2.5z" fill="#ECB22E"/>
+          <path d="M14.5 4.5A2.5 2.5 0 0 1 17 7v5h-5V7a2.5 2.5 0 0 1 2.5-2.5z" fill="#2EB67D"/>
+          <path d="M19.5 14.5A2.5 2.5 0 0 1 17 17h-5v-5h5a2.5 2.5 0 0 1 2.5 2.5z" fill="#36C5F0"/>
         </svg>
       ),
       isActive: !!integrationsState.slack?.active,
@@ -263,7 +263,7 @@ export default function Integrations() {
       iconBg: 'bg-neutral-500/10 border-neutral-500/20',
       iconColor: 'text-foreground',
       brandSvg: (
-        <svg className="w-8 h-8 text-foreground" viewBox="0 0 24 24" fill="currentColor">
+        <svg className="w-7 h-7 text-foreground" viewBox="0 0 24 24" fill="currentColor">
           <path d="M4.459 4.208c.746.606 1.026.56 2.427.466l11.114-.7c.326-.023.466-.186.373-.466-.14-.373-.466-.653-.933-.653L6.09 3.415c-.653 0-1.165.28-1.631.793zm1.119 3.493v12.274c0 .886.42 1.353 1.306 1.446l11.72.699c.793.047 1.399-.373 1.399-1.26V8.404c0-.746-.373-1.165-1.119-1.213L6.884 6.538c-.746-.047-1.306.373-1.306 1.163zm11.86 1.026c.093.42 0 .84-.42.886l-1.026.14v8.814c.606.326.606.7.047.886l-3.31 1.026c-.373.093-.7-.093-.7-.466V13.88l-3.357 5.69c-.28.466-.7.606-1.119.513l-2.75-.793c-.42-.14-.513-.513-.42-.98l.093-.42 1.119-.186V10.14c-.466-.233-.606-.56-.466-.98.14-.373.466-.513.886-.466l3.45.28c.373.047.606.28.606.653v5.69l3.543-5.83c.28-.466.7-.606 1.119-.513l2.846.186z"/>
         </svg>
       ),
@@ -280,7 +280,7 @@ export default function Integrations() {
       iconBg: 'bg-purple-500/10 border-purple-500/20',
       iconColor: 'text-purple-500',
       brandSvg: (
-        <svg className="w-8 h-8 text-foreground dark:text-white" viewBox="0 0 24 24" fill="currentColor">
+        <svg className="w-7 h-7 text-foreground dark:text-white" viewBox="0 0 24 24" fill="currentColor">
           <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
         </svg>
       ),
@@ -297,10 +297,11 @@ export default function Integrations() {
       iconBg: 'bg-rose-500/10 border-rose-500/20',
       iconColor: 'text-rose-500',
       brandSvg: (
-        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
-          <path d="M18 8C19.6569 8 21 6.65685 21 5C21 3.34315 19.6569 2 18 2C16.3431 2 15 3.34315 15 5C15 6.65685 16.3431 8 18 8Z" stroke="#FF4A00" strokeWidth="2"/>
-          <path d="M6 15C7.65685 15 9 13.6569 9 12C9 10.3431 7.65685 9 6 9C4.34315 9 3 10.3431 3 12C3 13.6569 4.34315 15 6 15Z" stroke="#6E2CF4" strokeWidth="2"/>
-          <path d="M18 22C19.6569 22 21 20.6569 21 19C21 17.3431 19.6569 16 18 16C16.3431 16 15 17.3431 15 19C15 20.6569 16.3431 22 18 22Z" stroke="#EA4335" strokeWidth="2"/>
+        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="2" width="20" height="20" rx="5" fill="#FF4A00" fillOpacity="0.1"/>
+          <circle cx="18" cy="5" r="3" stroke="#FF4A00" strokeWidth="2"/>
+          <circle cx="6" cy="12" r="3" stroke="#6E2CF4" strokeWidth="2"/>
+          <circle cx="18" cy="19" r="3" stroke="#EA4335" strokeWidth="2"/>
           <path d="M8.6 10.7L15.4 6.3M8.6 13.3L15.4 17.7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
         </svg>
       ),
