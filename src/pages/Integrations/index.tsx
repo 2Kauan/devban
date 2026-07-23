@@ -19,8 +19,7 @@ import {
   FolderKanban,
   Lock,
   KeyRound,
-  ArrowRight,
-  ShieldCheck
+  ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -315,10 +314,7 @@ export default function Integrations() {
                 )}
               </form>
 
-              <div className="pt-4 border-t border-border/40 text-[11px] text-muted-foreground flex items-center justify-center gap-1.5">
-                <ShieldCheck size={14} className="text-emerald-500" />
-                <span>Protegido via variável `VITE_INTEGRATIONS_PASS`</span>
-              </div>
+              {/* Removed protection text */}
             </motion.div>
           </main>
         </div>
