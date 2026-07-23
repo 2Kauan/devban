@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/lib/supabase';
 import type { KanbanCardType } from '@/types/kanban';
-import { Clock, CheckSquare, Trash2, Tag, Loader2, ArrowRight, X, AlignLeft, Plus, Flag, ChevronDown, ArrowDownRight, ArrowUpRight, AlertCircle, Users, ListTree, CheckCircle2, Pencil } from 'lucide-react';
+import { Clock, CheckSquare, Trash2, Tag, Loader2, ArrowRight, X, AlignLeft, Plus, Flag, ChevronDown, ArrowDownRight, ArrowUpRight, AlertCircle, Users, ListTree, CheckCircle2, Pencil, Calendar } from 'lucide-react';
 import { queueMutation, isNetworkError } from '@/lib/offlineSync';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -1001,7 +1001,8 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
                           rel="noopener noreferrer"
                           className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 text-xs font-bold transition-all border border-blue-500/20"
                         >
-                          📅 Adicionar ao Google Agenda
+                          <Calendar className="w-3.5 h-3.5" />
+                          Adicionar ao Google Agenda
                         </a>
                       )}
                     </div>

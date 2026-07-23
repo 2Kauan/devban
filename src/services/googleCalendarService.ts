@@ -318,7 +318,7 @@ export const syncCardToGoogleCalendar = async (
 
     if (res.ok) {
       console.log('Google Calendar updated successfully for card:', cardId);
-      toast.success('📅 Sincronizado com o Google Agenda!');
+      toast.success('Sincronizado com o Google Agenda!');
     } else {
       const errText = await res.text();
       console.error('Google Calendar API Error:', res.status, errText);
