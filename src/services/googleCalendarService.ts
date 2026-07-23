@@ -479,14 +479,20 @@ export const syncSelectedCardsToGoogleCalendar = async (cardIds: string[]) => {
 };
 
 /**
- * Fetches all cards with due dates.
+ * Fetches all cards with due dates, optionally filtered by project_id.
  */
-export const fetchCardsWithDueDate = async () => {
-  const { data: cards, error } = await supabase
+export const fetchCardsWithDueDate = async (projectId?: string) => {
+  let query = supabase
     .from('cards')
-    .select('id, title, due_date, is_completed, priority')
+    .select('id, title, due_date, is_completed, priority, project_id')
     .not('due_date', 'is', null)
     .order('due_date', { ascending: true });
+
+  if (projectId && projectId !== 'all') {
+    query = query.eq('project_id', projectId);
+  }
+
+  const { data: cards, error } = await query;
 
   if (error || !cards) return [];
   return cards;

@@ -60,6 +60,7 @@ export default function Integrations() {
   const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
   const [availableCards, setAvailableCards] = useState<Array<{ id: string; title: string; due_date: string; is_completed: boolean; priority: string | null }>>([]);
   const [loadingCards, setLoadingCards] = useState(false);
+  const [userEmail, setUserEmail] = useState<string>('');
 
   useEffect(() => {
     // Detect if user logged in / connected via Google provider
@@ -71,6 +72,7 @@ export default function Integrations() {
 
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
+        if (user.email) setUserEmail(user.email);
         const hasToken = !!localStorage.getItem('devban_gcal_token');
         const isGoogleConnected = user.identities?.some(id => id.provider === 'google') || user.app_metadata?.provider === 'google';
         if (isGoogleConnected || hasToken) {
@@ -91,15 +93,17 @@ export default function Integrations() {
     localStorage.setItem('devban_integrations', JSON.stringify(integrationsState));
   }, [integrationsState]);
 
+  const currentGCalProjectId = integrationsState.google_calendar?.projectId;
+
   useEffect(() => {
     if (selectedModalApp === 'google_calendar' && syncMode === 'selected') {
       setLoadingCards(true);
-      fetchCardsWithDueDate().then(cards => {
+      fetchCardsWithDueDate(currentGCalProjectId).then(cards => {
         setAvailableCards(cards);
         setLoadingCards(false);
       });
     }
-  }, [selectedModalApp, syncMode]);
+  }, [selectedModalApp, syncMode, currentGCalProjectId]);
 
   const toggleIntegration = async (id: string) => {
     const current = integrationsState[id] || { active: false };
@@ -597,7 +601,7 @@ export default function Integrations() {
                   </div>
                   <div className="space-y-1">
                     <h3 className="font-bold text-base text-foreground">Conta Google Vinculada</h3>
-                    <p className="text-xs text-muted-foreground">usuario@gmail.com</p>
+                    <p className="text-xs text-muted-foreground">{userEmail || integrationsState.google_calendar?.config?.email || 'Conta Google Conectada'}</p>
                   </div>
 
                   {/* Sync Mode Toggle */}
