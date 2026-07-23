@@ -182,7 +182,7 @@ export default function Integrations() {
       iconBg: 'bg-blue-500/10 border-blue-500/20',
       iconColor: 'text-blue-500',
       brandSvg: (
-        <img src="/google-calendar--v1.webp" alt="Google Calendar" className="w-8 h-8 object-contain" />
+        <img src="/google-calendar--v1.webp" alt="Google Calendar" className="w-8 h-8 object-contain rounded-xl shadow-xs" />
       ),
       isActive: !!integrationsState.google_calendar?.active,
       statusText: integrationsState.google_calendar?.active ? 'Conectado (usuario@gmail.com)' : 'Desconectado',
@@ -218,7 +218,7 @@ export default function Integrations() {
       iconBg: 'bg-indigo-500/10 border-indigo-500/20',
       iconColor: 'text-indigo-500',
       brandSvg: (
-        <img src="/discord-logo-discord-icon-transparent-free-png.webp" alt="Discord" className="w-8 h-8 object-contain" />
+        <img src="/discord-logo-discord-icon-transparent-free-png.webp" alt="Discord" className="w-8 h-8 object-contain rounded-xl shadow-xs" />
       ),
       isActive: !!integrationsState.discord?.active,
       statusText: integrationsState.discord?.active ? 'Canal Conectado' : 'Não configurado',
@@ -253,7 +253,7 @@ export default function Integrations() {
       iconBg: 'bg-neutral-500/10 border-neutral-500/20',
       iconColor: 'text-foreground',
       brandSvg: (
-        <img src="/free-notion-icon-svg-download-png-1911999.webp" alt="Notion" className="w-8 h-8 object-contain" />
+        <img src="/free-notion-icon-svg-download-png-1911999.webp" alt="Notion" className="w-8 h-8 object-contain rounded-xl shadow-xs" />
       ),
       isActive: !!integrationsState.notion?.active,
       statusText: integrationsState.notion?.active ? 'Database Vinculada' : 'Não vinculado',
