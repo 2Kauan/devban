@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopHeader } from '@/components/layout/TopHeader';
 import { useProjectsQuery } from '@/hooks/useProjectsQuery';
@@ -43,25 +44,8 @@ export default function Integrations() {
   const [activeCategory, setActiveCategory] = useState<'all' | 'calendar' | 'notification' | 'productivity'>('all');
   const { data: projects = [] } = useProjectsQuery();
 
-  // Password Lock Screen State
-  const [isUnlocked, setIsUnlocked] = useState<boolean>(() => {
-    return sessionStorage.getItem('devban_integrations_unlocked') === 'true';
-  });
-  const [passInput, setPassInput] = useState('');
-  const [passError, setPassError] = useState(false);
-
-  const handleUnlock = (e: React.FormEvent) => {
-    e.preventDefault();
-    const secret = import.meta.env.VITE_INTEGRATIONS_PASS || 'devban2026';
-    if (passInput.trim() === secret.trim()) {
-      sessionStorage.setItem('devban_integrations_unlocked', 'true');
-      setIsUnlocked(true);
-      toast.success('Acesso concedido! Bem-vindo à Central de Integrações.');
-    } else {
-      setPassError(true);
-      toast.error('Senha incorreta! Acesso negado.');
-    }
-  };
+  // Password Lock Screen State (Unlocked by default for authenticated users)
+  const [isUnlocked] = useState<boolean>(true);
   
   // Persisted state in localStorage for demonstration and persistent settings
   const [integrationsState, setIntegrationsState] = useState<Record<string, { active: boolean; projectId?: string; config?: any }>>(() => {
@@ -86,11 +70,44 @@ export default function Integrations() {
     localStorage.setItem('devban_integrations', JSON.stringify(integrationsState));
   }, [integrationsState]);
 
-  const toggleIntegration = (id: string) => {
+  const toggleIntegration = async (id: string) => {
+    const current = integrationsState[id] || { active: false };
+    const nextActive = !current.active;
+
+    if (nextActive && id === 'google_calendar') {
+      try {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            scopes: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly',
+            redirectTo: `${window.location.origin}/integrations`
+          }
+        });
+        if (error) throw error;
+      } catch (err: any) {
+        toast.error('Erro ao conectar com Google: ' + err.message);
+        return;
+      }
+    }
+
+    if (nextActive && id === 'github') {
+      try {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'github',
+          options: {
+            scopes: 'repo read:user',
+            redirectTo: `${window.location.origin}/integrations`
+          }
+        });
+        if (error) throw error;
+      } catch (err: any) {
+        toast.error('Erro ao conectar com GitHub: ' + err.message);
+        return;
+      }
+    }
+
     setIntegrationsState(prev => {
-      const current = prev[id] || { active: false };
-      const nextActive = !current.active;
-      toast.success(nextActive ? `Integração com ${id} ativada!` : `Integração desativada.`);
+      toast.success(nextActive ? `Integração ativada!` : `Integração desativada.`);
       return { ...prev, [id]: { ...current, active: nextActive } };
     });
   };
