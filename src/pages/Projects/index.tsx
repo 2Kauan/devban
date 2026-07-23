@@ -54,9 +54,9 @@ function ProjectCard({ project, onDelete, onComplete, memberCount = 1 }: { proje
   return (
     <div 
       onClick={handleCardClick}
-      className={`group relative cursor-pointer bg-card border border-border/40 hover:border-primary/40 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col h-[220px] ${project.is_completed ? 'opacity-50 grayscale hover:opacity-80 hover:grayscale-0' : ''}`}
+      className={`group relative cursor-pointer bg-card border border-border/40 hover:border-primary/40 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col min-h-[220px] ${project.is_completed ? 'opacity-50 grayscale hover:opacity-80 hover:grayscale-0' : ''}`}
     >
-      <div className="flex justify-between items-start mb-4 relative z-20">
+      <div className="flex justify-between items-start mb-3 relative z-20 shrink-0">
         <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
           <Folder size={22} />
         </div>
@@ -105,18 +105,18 @@ function ProjectCard({ project, onDelete, onComplete, memberCount = 1 }: { proje
         </div>
       </div>
       
-      <h3 className="font-bold text-lg text-foreground mb-1 truncate group-hover:text-primary transition-colors pr-2 relative z-10 pointer-events-none">{project.name}</h3>
-      <p className="text-[13px] text-muted-foreground line-clamp-2 mb-4 flex-1 relative z-10 pointer-events-none">
+      <h3 className="font-bold text-base text-foreground mb-1 line-clamp-1 group-hover:text-primary transition-colors pr-2 relative z-10 pointer-events-none shrink-0">{project.name}</h3>
+      <p className="text-[13px] text-muted-foreground line-clamp-2 mb-3 flex-1 relative z-10 pointer-events-none min-h-[36px]">
         {project.description || 'Nenhuma descrição fornecida para este projeto.'}
       </p>
 
-      <div className="mt-auto space-y-4 relative z-10">
+      <div className="mt-auto space-y-3 relative z-10 shrink-0">
         <div className="flex gap-4 text-xs font-medium text-muted-foreground pointer-events-none">
           <div className="flex items-center gap-1.5"><Users size={14} /> {memberCount}</div>
           <div className="flex items-center gap-1.5"><CheckCircle2 size={14} /> 0/0</div>
         </div>
         
-        <div className="flex items-center justify-between border-t border-border/40 pt-4">
+        <div className="flex items-center justify-between border-t border-border/40 pt-3">
           <div className="flex items-center gap-2 text-[11px] font-bold pointer-events-none">
             <span className={`px-2 py-1 rounded-md ${project.is_free ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary'}`}>
               {project.is_free ? 'GRATUITO' : 'PREMIUM'}
