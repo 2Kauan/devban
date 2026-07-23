@@ -17,10 +17,7 @@ import {
   RefreshCw,
   BellRing,
   Smartphone,
-  FolderKanban,
-  Lock,
-  KeyRound,
-  ArrowRight
+  FolderKanban
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -43,9 +40,6 @@ export default function Integrations() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<'all' | 'calendar' | 'notification' | 'productivity'>('all');
   const { data: projects = [] } = useProjectsQuery();
-
-  // Password Lock Screen State (Unlocked by default for authenticated users)
-  const [isUnlocked] = useState<boolean>(true);
   
   // Persisted state in localStorage for demonstration and persistent settings
   const [integrationsState, setIntegrationsState] = useState<Record<string, { active: boolean; projectId?: string; config?: any }>>(() => {
