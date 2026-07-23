@@ -159,7 +159,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
 
       if (data.due_date) {
         NotificationService.scheduleTaskReminder(card.id, data.title, data.due_date);
-        syncCardToGoogleCalendar(data.title, sanitizedDescription, data.due_date);
+        syncCardToGoogleCalendar(card.id, data.title, sanitizedDescription, data.due_date, data.priority);
       } else {
         NotificationService.cancelTaskReminder(card.id);
       }

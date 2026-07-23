@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { syncAllCardsToGoogleCalendar } from '@/services/googleCalendarService';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopHeader } from '@/components/layout/TopHeader';
 import { useProjectsQuery } from '@/hooks/useProjectsQuery';
@@ -594,8 +595,8 @@ export default function Integrations() {
                   </div>
 
                   <button
-                    onClick={() => {
-                      toast.success('Sincronização forçada realizada com sucesso!');
+                    onClick={async () => {
+                      await syncAllCardsToGoogleCalendar();
                       setSelectedModalApp(null);
                     }}
                     className="w-full py-3 bg-primary text-primary-foreground rounded-xl text-sm font-bold hover:bg-primary/90 transition-all cursor-pointer flex items-center justify-center gap-2"
