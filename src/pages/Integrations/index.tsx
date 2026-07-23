@@ -7,17 +7,13 @@ import { useProjectsQuery } from '@/hooks/useProjectsQuery';
 import { 
   Plug, 
   Calendar as CalendarIcon, 
-  MessageSquare, 
   FileText, 
-  GitBranch, 
-  Webhook as WebhookIcon, 
   Copy, 
   Check, 
   Sparkles, 
   Settings2, 
   RefreshCw,
   BellRing,
-  Smartphone,
   FolderKanban
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -208,9 +204,13 @@ export default function Integrations() {
       iconBg: 'bg-emerald-500/10 border-emerald-500/20',
       iconColor: 'text-emerald-500',
       brandSvg: (
-        <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold text-lg">
-          <Smartphone size={20} />
-        </div>
+        <svg className="w-8 h-8 drop-shadow-sm" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="4" width="18" height="17" rx="3" fill="#FF3B30" />
+          <rect x="3" y="9" width="18" height="12" rx="1" fill="#FFFFFF" />
+          <text x="12" y="17.5" textAnchor="middle" fill="#1C1C1E" fontSize="8" fontWeight="bold" fontFamily="sans-serif">31</text>
+          <circle cx="8" cy="6.5" r="1" fill="#FFFFFF" />
+          <circle cx="16" cy="6.5" r="1" fill="#FFFFFF" />
+        </svg>
       ),
       isActive: !!integrationsState.ical_feed?.active,
       statusText: integrationsState.ical_feed?.active ? 'Feed Ativo' : 'Desativado',
@@ -225,9 +225,9 @@ export default function Integrations() {
       iconBg: 'bg-indigo-500/10 border-indigo-500/20',
       iconColor: 'text-indigo-500',
       brandSvg: (
-        <div className="w-8 h-8 rounded-xl bg-[#5865F2]/20 text-[#5865F2] flex items-center justify-center font-bold">
-          <MessageSquare size={20} />
-        </div>
+        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+          <path d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 00-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 00-4.8 0c-.14-.34-.35-.76-.54-1.09-.01-.02-.04-.03-.07-.03-1.5.26-2.93.71-4.27 1.33-.01 0-.02.01-.03.02-2.72 4.07-3.47 8.03-3.1 11.95 0 .02.01.04.03.05 1.8 1.32 3.53 2.12 5.24 2.65.03.01.06 0 .07-.02.4-.55.76-1.13 1.07-1.74.02-.04 0-.08-.04-.09-.57-.22-1.11-.48-1.64-.78-.04-.02-.04-.08 0-.11.11-.08.22-.17.33-.25.02-.02.05-.02.07-.01 3.44 1.57 7.15 1.57 10.55 0 .02-.01.05-.01.07.01.11.09.22.17.33.26.04.03.04.09 0 .11-.53.3-1.07.56-1.64.78-.04.01-.05.06-.04.09.32.61.68 1.19 1.07 1.74.01.02.04.03.07.02 1.72-.53 3.45-1.33 5.25-2.65.02-.01.03-.03.03-.05.44-4.53-.73-8.46-3.1-11.95-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.83 2.12-1.89 2.12z" fill="#5865F2"/>
+        </svg>
       ),
       isActive: !!integrationsState.discord?.active,
       statusText: integrationsState.discord?.active ? 'Canal Conectado' : 'Não configurado',
@@ -242,9 +242,13 @@ export default function Integrations() {
       iconBg: 'bg-amber-500/10 border-amber-500/20',
       iconColor: 'text-amber-500',
       brandSvg: (
-        <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center font-bold">
-          <BellRing size={20} />
-        </div>
+        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+          <path d="M6 15a2.5 2.5 0 100 5 2.5 2.5 0 000-5zm0-10a2.5 2.5 0 000 5h5V5a2.5 2.5 0 00-5 0zm10 0a2.5 2.5 0 005 0 2.5 2.5 0 00-5 0zm-5 5a2.5 2.5 0 000 5h5v-5h-5zm0 10a2.5 2.5 0 005 0v-5h-5v5z" fill="#E01E5A"/>
+          <path d="M5 9.5A2.5 2.5 0 0 1 7.5 7H10v5H7.5A2.5 2.5 0 0 1 5 9.5z" fill="#ECB22E"/>
+          <path d="M14.5 5a2.5 2.5 0 0 1 2.5 2.5V10h-5V7.5A2.5 2.5 0 0 1 14.5 5z" fill="#2EB67D"/>
+          <path d="M19 14.5a2.5 2.5 0 0 1-2.5 2.5H14v-5h2.5a2.5 2.5 0 0 1 2.5 2.5z" fill="#36C5F0"/>
+          <path d="M9.5 19a2.5 2.5 0 0 1-2.5-2.5V14h5v2.5a2.5 2.5 0 0 1-2.5 2.5z" fill="#E01E5A"/>
+        </svg>
       ),
       isActive: !!integrationsState.slack?.active,
       statusText: integrationsState.slack?.active ? 'Conectado ao canal #devban' : 'Não configurado',
@@ -259,9 +263,9 @@ export default function Integrations() {
       iconBg: 'bg-neutral-500/10 border-neutral-500/20',
       iconColor: 'text-foreground',
       brandSvg: (
-        <div className="w-8 h-8 rounded-xl bg-foreground/10 text-foreground flex items-center justify-center font-bold">
-          <FileText size={20} />
-        </div>
+        <svg className="w-8 h-8 text-foreground" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M4.459 4.208c.746.606 1.026.56 2.427.466l11.114-.7c.326-.023.466-.186.373-.466-.14-.373-.466-.653-.933-.653L6.09 3.415c-.653 0-1.165.28-1.631.793zm1.119 3.493v12.274c0 .886.42 1.353 1.306 1.446l11.72.699c.793.047 1.399-.373 1.399-1.26V8.404c0-.746-.373-1.165-1.119-1.213L6.884 6.538c-.746-.047-1.306.373-1.306 1.163zm11.86 1.026c.093.42 0 .84-.42.886l-1.026.14v8.814c.606.326.606.7.047.886l-3.31 1.026c-.373.093-.7-.093-.7-.466V13.88l-3.357 5.69c-.28.466-.7.606-1.119.513l-2.75-.793c-.42-.14-.513-.513-.42-.98l.093-.42 1.119-.186V10.14c-.466-.233-.606-.56-.466-.98.14-.373.466-.513.886-.466l3.45.28c.373.047.606.28.606.653v5.69l3.543-5.83c.28-.466.7-.606 1.119-.513l2.846.186z"/>
+        </svg>
       ),
       isActive: !!integrationsState.notion?.active,
       statusText: integrationsState.notion?.active ? 'Database Vinculada' : 'Não vinculado',
@@ -276,9 +280,9 @@ export default function Integrations() {
       iconBg: 'bg-purple-500/10 border-purple-500/20',
       iconColor: 'text-purple-500',
       brandSvg: (
-        <div className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-500 flex items-center justify-center font-bold">
-          <GitBranch size={20} />
-        </div>
+        <svg className="w-8 h-8 text-foreground dark:text-white" viewBox="0 0 24 24" fill="currentColor">
+          <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+        </svg>
       ),
       isActive: !!integrationsState.github?.active,
       statusText: integrationsState.github?.active ? 'Repositório Vinculado' : 'Não configurado',
@@ -293,9 +297,12 @@ export default function Integrations() {
       iconBg: 'bg-rose-500/10 border-rose-500/20',
       iconColor: 'text-rose-500',
       brandSvg: (
-        <div className="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-500 flex items-center justify-center font-bold">
-          <WebhookIcon size={20} />
-        </div>
+        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+          <path d="M18 8C19.6569 8 21 6.65685 21 5C21 3.34315 19.6569 2 18 2C16.3431 2 15 3.34315 15 5C15 6.65685 16.3431 8 18 8Z" stroke="#FF4A00" strokeWidth="2"/>
+          <path d="M6 15C7.65685 15 9 13.6569 9 12C9 10.3431 7.65685 9 6 9C4.34315 9 3 10.3431 3 12C3 13.6569 4.34315 15 6 15Z" stroke="#6E2CF4" strokeWidth="2"/>
+          <path d="M18 22C19.6569 22 21 20.6569 21 19C21 17.3431 19.6569 16 18 16C16.3431 16 15 17.3431 15 19C15 20.6569 16.3431 22 18 22Z" stroke="#EA4335" strokeWidth="2"/>
+          <path d="M8.6 10.7L15.4 6.3M8.6 13.3L15.4 17.7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
       ),
       isActive: !!integrationsState.custom_webhook?.active,
       statusText: integrationsState.custom_webhook?.active ? 'Endpoint Ativo' : 'Inativo',
