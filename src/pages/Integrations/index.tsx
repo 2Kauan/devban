@@ -182,14 +182,7 @@ export default function Integrations() {
       iconBg: 'bg-blue-500/10 border-blue-500/20',
       iconColor: 'text-blue-500',
       brandSvg: (
-        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none">
-          <rect x="3" y="4" width="18" height="18" rx="3" fill="#4285F4" fillOpacity="0.12" stroke="#4285F4" strokeWidth="2"/>
-          <path d="M16 2V6M8 2V6M3 9.5H21" stroke="#4285F4" strokeWidth="2" strokeLinecap="round"/>
-          <rect x="7" y="12" width="3.5" height="3.5" rx="1" fill="#4285F4"/>
-          <rect x="13.5" y="12" width="3.5" height="3.5" rx="1" fill="#34A853"/>
-          <rect x="7" y="16.5" width="3.5" height="3.5" rx="1" fill="#EA4335"/>
-          <rect x="13.5" y="16.5" width="3.5" height="3.5" rx="1" fill="#FBBC05"/>
-        </svg>
+        <img src="/google-calendar--v1.webp" alt="Google Calendar" className="w-8 h-8 object-contain" />
       ),
       isActive: !!integrationsState.google_calendar?.active,
       statusText: integrationsState.google_calendar?.active ? 'Conectado (usuario@gmail.com)' : 'Desconectado',
@@ -225,10 +218,7 @@ export default function Integrations() {
       iconBg: 'bg-indigo-500/10 border-indigo-500/20',
       iconColor: 'text-indigo-500',
       brandSvg: (
-        <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none">
-          <rect x="2" y="2" width="20" height="20" rx="5" fill="#5865F2"/>
-          <path d="M16.5 7.8A12.4 12.4 0 0013.2 6.8A.1.1 0 0013.1 6.9C13 7.2 12.8 7.5 12.7 7.8A11.7 11.7 0 008.3 7.8C8.2 7.5 8 7.2 7.8 6.9A.1.1 0 007.7 6.8A12.4 12.4 0 004.5 7.8C2 11.5 2.7 15.1 3 18.7A.1.1 0 003.1 18.8A12.5 12.5 0 007.8 21.2A.1.1 0 007.9 21.1C8.3 20.6 8.6 20.1 8.9 19.5A.1.1 0 008.8 19.4A8.2 8.2 0 017.3 18.7A.1.1 0 017.3 18.6C7.4 18.5 7.5 18.4 7.6 18.4A.1.1 0 017.7 18.4C10.8 19.8 14.2 19.8 17.3 18.4A.1.1 0 0117.4 18.4C17.5 18.5 17.6 18.5 17.7 18.6A.1.1 0 0117.7 18.7A8.1 8.1 0 0116.2 19.4A.1.1 0 0016.1 19.5C16.4 20.1 16.7 20.6 17.1 21.1A.1.1 0 0017.2 21.2A12.5 12.5 0 0021.9 18.8A.1.1 0 0022 18.7C22.4 14.5 21.3 10.9 19.5 7.8ZM8.5 15.5C7.4 15.5 6.5 14.5 6.5 13.3C6.5 12.1 7.4 11.1 8.5 11.1C9.6 11.1 10.5 12.1 10.5 13.3C10.5 14.5 9.6 15.5 8.5 15.5ZM15.5 15.5C14.4 15.5 13.5 14.5 13.5 13.3C13.5 12.1 14.4 11.1 15.5 11.1C16.6 11.1 17.5 12.1 17.5 13.3C17.5 14.5 16.6 15.5 15.5 15.5Z" fill="#FFFFFF"/>
-        </svg>
+        <img src="/discord-logo-discord-icon-transparent-free-png.webp" alt="Discord" className="w-8 h-8 object-contain" />
       ),
       isActive: !!integrationsState.discord?.active,
       statusText: integrationsState.discord?.active ? 'Canal Conectado' : 'Não configurado',
@@ -263,9 +253,7 @@ export default function Integrations() {
       iconBg: 'bg-neutral-500/10 border-neutral-500/20',
       iconColor: 'text-foreground',
       brandSvg: (
-        <svg className="w-7 h-7 text-foreground" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M4.459 4.208c.746.606 1.026.56 2.427.466l11.114-.7c.326-.023.466-.186.373-.466-.14-.373-.466-.653-.933-.653L6.09 3.415c-.653 0-1.165.28-1.631.793zm1.119 3.493v12.274c0 .886.42 1.353 1.306 1.446l11.72.699c.793.047 1.399-.373 1.399-1.26V8.404c0-.746-.373-1.165-1.119-1.213L6.884 6.538c-.746-.047-1.306.373-1.306 1.163zm11.86 1.026c.093.42 0 .84-.42.886l-1.026.14v8.814c.606.326.606.7.047.886l-3.31 1.026c-.373.093-.7-.093-.7-.466V13.88l-3.357 5.69c-.28.466-.7.606-1.119.513l-2.75-.793c-.42-.14-.513-.513-.42-.98l.093-.42 1.119-.186V10.14c-.466-.233-.606-.56-.466-.98.14-.373.466-.513.886-.466l3.45.28c.373.047.606.28.606.653v5.69l3.543-5.83c.28-.466.7-.606 1.119-.513l2.846.186z"/>
-        </svg>
+        <img src="/free-notion-icon-svg-download-png-1911999.webp" alt="Notion" className="w-8 h-8 object-contain" />
       ),
       isActive: !!integrationsState.notion?.active,
       statusText: integrationsState.notion?.active ? 'Database Vinculada' : 'Não vinculado',
