@@ -228,17 +228,18 @@ export const fetchCardFullDetails = async (cardId: string, overrideColumnId?: st
 
 /**
  * Pushes or updates a Google Calendar event in-place using a deterministic event ID (PUT/POST).
- * Always fetches current card state from DB or override column.
+ * Supports overrideColumnId and overrideDueDate for real-time responsiveness.
  */
-export const syncCardToGoogleCalendar = async (cardId: string, overrideColumnId?: string) => {
+export const syncCardToGoogleCalendar = async (
+  cardId: string,
+  overrideColumnId?: string,
+  overrideDueDate?: string | null
+) => {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.provider_token;
 
-    if (!token) {
-      console.warn('No Google OAuth provider token found in current session.');
-      return;
-    }
+    if (!token) return;
 
     // Fetch up-to-date card from DB
     const { data: card } = await supabase
@@ -247,14 +248,21 @@ export const syncCardToGoogleCalendar = async (cardId: string, overrideColumnId?
       .eq('id', cardId)
       .single();
 
-    if (!card || !card.due_date) return;
+    if (!card) return;
+
+    const targetDueDate = overrideDueDate !== undefined ? overrideDueDate : card.due_date;
+
+    if (!targetDueDate) {
+      await deleteGoogleCalendarEvent(cardId);
+      return;
+    }
 
     const eventId = getGCalEventId(cardId);
     const { tags, assignees, checklists, columnTitle, columnColor } = await fetchCardFullDetails(cardId, overrideColumnId);
     const richDescription = buildRichEventDescription(card.description, card.priority, columnTitle, tags, assignees, checklists);
     const colorId = mapColorToGoogleColorId(columnColor || card.border_color);
 
-    const startDate = new Date(card.due_date);
+    const startDate = new Date(targetDueDate);
     const endDate = new Date(startDate.getTime() + 3600000); // 1 hour duration
 
     const eventPayload = {
@@ -289,7 +297,7 @@ export const syncCardToGoogleCalendar = async (cardId: string, overrideColumnId?
     }
 
     if (res.ok) {
-      console.log('Google Calendar updated successfully for card:', cardId);
+      console.log('Google Calendar updated successfully for card:', cardId, 'New Date:', targetDueDate);
     } else {
       const errText = await res.text();
       console.error('Google Calendar API Error:', res.status, errText);

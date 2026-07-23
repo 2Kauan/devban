@@ -13,6 +13,7 @@ import { DayDrawer } from '@/components/planning/DayDrawer';
 import type { KanbanCardType } from '@/types/kanban';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { syncCardToGoogleCalendar, deleteGoogleCalendarEvent } from '@/services/googleCalendarService';
 import { addDays, subDays } from 'date-fns';
 
 export default function ProjectPlanning() {
@@ -66,6 +67,7 @@ export default function ProjectPlanning() {
         
       if (error) throw error;
       toast.success('Data atualizada com sucesso');
+      syncCardToGoogleCalendar(cardId, undefined, newDate.toISOString());
       refetch();
     } catch (err: any) {
       toast.error('Erro ao atualizar data: ' + err.message);
@@ -85,6 +87,7 @@ export default function ProjectPlanning() {
         
       if (error) throw error;
       toast.success('Data removida com sucesso!');
+      deleteGoogleCalendarEvent(cardId);
       refetch();
     } catch (err: any) {
       toast.error('Erro ao remover data: ' + err.message);
