@@ -126,7 +126,11 @@ export function useAIImport() {
                 position: index * 1000
               }));
               
-              await supabase.from('checklist_items').insert(checklistInserts);
+              const { error: checklistItemsError } = await supabase.from('checklist_items').insert(checklistInserts);
+              if (checklistItemsError) {
+                console.error('Error inserting checklist items:', checklistItemsError);
+                throw new Error('Erro ao criar itens da checklist: ' + checklistItemsError.message);
+              }
             }
           }
 
@@ -150,7 +154,11 @@ export function useAIImport() {
               };
             });
             
-            await supabase.from('cards').insert(subtaskInserts);
+            const { error: subtaskError } = await supabase.from('cards').insert(subtaskInserts);
+            if (subtaskError) {
+              console.error('Error inserting subtasks:', subtaskError);
+              throw new Error('Erro ao criar sub-tarefas: ' + subtaskError.message);
+            }
           }
         }
       }
