@@ -13,7 +13,7 @@ import { TagSelector } from '@/components/ui/TagSelector';
 import type { Category, Profile } from '@/types/database';
 import { useAuth } from '@/contexts/AuthContext';
 import { NotificationService } from '@/services/notifications/notificationService';
-import { syncCardToGoogleCalendar, getGoogleCalendarWebUrl } from '@/services/googleCalendarService';
+import { syncCardToGoogleCalendar, getGoogleCalendarWebUrl, deleteGoogleCalendarEvent } from '@/services/googleCalendarService';
 import type { ProjectMember } from '@/hooks/useProjectQuery';
 
 interface CardModalProps {
@@ -162,6 +162,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
         syncCardToGoogleCalendar(card.id, data.title, sanitizedDescription, data.due_date, data.priority);
       } else {
         NotificationService.cancelTaskReminder(card.id);
+        deleteGoogleCalendarEvent(card.id);
       }
 
       if (card.priority !== data.priority && onPriorityChange) {

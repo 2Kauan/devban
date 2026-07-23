@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { syncAllCardsToGoogleCalendar } from '@/services/googleCalendarService';
+import { syncAllCardsToGoogleCalendar, syncSelectedCardsToGoogleCalendar, fetchCardsWithDueDate } from '@/services/googleCalendarService';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopHeader } from '@/components/layout/TopHeader';
 import { useProjectsQuery } from '@/hooks/useProjectsQuery';
@@ -60,6 +60,10 @@ export default function Integrations() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [webhookUrlInput, setWebhookUrlInput] = useState('');
   const [notionTokenInput, setNotionTokenInput] = useState('');
+  const [syncMode, setSyncMode] = useState<'all' | 'selected'>('all');
+  const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
+  const [availableCards, setAvailableCards] = useState<Array<{ id: string; title: string; due_date: string; is_completed: boolean; priority: string | null }>>([]);
+  const [loadingCards, setLoadingCards] = useState(false);
 
   useEffect(() => {
     // Detect if user logged in / connected via Google provider
@@ -83,6 +87,16 @@ export default function Integrations() {
   useEffect(() => {
     localStorage.setItem('devban_integrations', JSON.stringify(integrationsState));
   }, [integrationsState]);
+
+  useEffect(() => {
+    if (selectedModalApp === 'google_calendar' && syncMode === 'selected') {
+      setLoadingCards(true);
+      fetchCardsWithDueDate().then(cards => {
+        setAvailableCards(cards);
+        setLoadingCards(false);
+      });
+    }
+  }, [selectedModalApp, syncMode]);
 
   const toggleIntegration = async (id: string) => {
     const current = integrationsState[id] || { active: false };
@@ -583,6 +597,96 @@ export default function Integrations() {
                     <p className="text-xs text-muted-foreground">usuario@gmail.com</p>
                   </div>
 
+                  {/* Sync Mode Toggle */}
+                  <div className="p-4 bg-muted/30 border border-border rounded-2xl text-left space-y-3">
+                    <label className="block text-xs font-bold text-foreground">O que deseja sincronizar?</label>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => { setSyncMode('all'); setSelectedCardIds([]); }}
+                        className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                          syncMode === 'all'
+                            ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                            : 'bg-background text-muted-foreground border-border hover:border-primary/40'
+                        }`}
+                      >
+                        Todos os cartões
+                      </button>
+                      <button
+                        onClick={() => setSyncMode('selected')}
+                        className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                          syncMode === 'selected'
+                            ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                            : 'bg-background text-muted-foreground border-border hover:border-primary/40'
+                        }`}
+                      >
+                        Só os selecionados
+                      </button>
+                    </div>
+
+                    {/* Card Selection List */}
+                    {syncMode === 'selected' && (
+                      <div className="space-y-2 pt-2">
+                        {loadingCards ? (
+                          <p className="text-xs text-muted-foreground text-center py-3">Carregando cartões...</p>
+                        ) : availableCards.length === 0 ? (
+                          <p className="text-xs text-muted-foreground text-center py-3">Nenhum cartão com data encontrado.</p>
+                        ) : (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <button
+                                onClick={() => setSelectedCardIds(availableCards.map(c => c.id))}
+                                className="text-[10px] font-bold text-primary hover:underline cursor-pointer"
+                              >
+                                Selecionar Todos
+                              </button>
+                              <button
+                                onClick={() => setSelectedCardIds([])}
+                                className="text-[10px] font-bold text-muted-foreground hover:underline cursor-pointer"
+                              >
+                                Limpar
+                              </button>
+                            </div>
+                            <div className="max-h-[200px] overflow-y-auto custom-scrollbar space-y-1.5">
+                              {availableCards.map(card => (
+                                <label
+                                  key={card.id}
+                                  className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all text-left ${
+                                    selectedCardIds.includes(card.id)
+                                      ? 'border-primary/40 bg-primary/5'
+                                      : 'border-border bg-background hover:border-primary/20'
+                                  }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedCardIds.includes(card.id)}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setSelectedCardIds(prev => [...prev, card.id]);
+                                      } else {
+                                        setSelectedCardIds(prev => prev.filter(id => id !== card.id));
+                                      }
+                                    }}
+                                    className="rounded accent-primary shrink-0"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="text-xs font-semibold text-foreground truncate">{card.title}</div>
+                                    <div className="text-[10px] text-muted-foreground">
+                                      {new Date(card.due_date).toLocaleDateString('pt-BR')}
+                                      {card.is_completed ? ' · Concluído' : ''}
+                                    </div>
+                                  </div>
+                                </label>
+                              ))}
+                            </div>
+                            <p className="text-[10px] text-muted-foreground text-center">
+                              {selectedCardIds.length} cartão(ão) selecionado(s)
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                   <div className="p-4 bg-muted/30 border border-border rounded-2xl text-left space-y-2">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">Modo de Sincronização:</span>
@@ -596,10 +700,19 @@ export default function Integrations() {
 
                   <button
                     onClick={async () => {
-                      await syncAllCardsToGoogleCalendar();
+                      if (syncMode === 'all') {
+                        await syncAllCardsToGoogleCalendar();
+                      } else {
+                        await syncSelectedCardsToGoogleCalendar(selectedCardIds);
+                      }
                       setSelectedModalApp(null);
                     }}
-                    className="w-full py-3 bg-primary text-primary-foreground rounded-xl text-sm font-bold hover:bg-primary/90 transition-all cursor-pointer flex items-center justify-center gap-2"
+                    disabled={syncMode === 'selected' && selectedCardIds.length === 0}
+                    className={`w-full py-3 rounded-xl text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                      syncMode === 'selected' && selectedCardIds.length === 0
+                        ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                        : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                    }`}
                   >
                     <RefreshCw size={16} />
                     Sincronizar Agora
