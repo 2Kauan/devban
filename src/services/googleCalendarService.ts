@@ -118,7 +118,7 @@ export const buildRichEventDescription = (
 };
 
 /**
- * Helper to fetch full details for a card (column color, tags, assignees, checklists)
+ * Helper to fetch full details for a card (column title, column color, tags, assignees, checklists)
  */
 export const fetchCardFullDetails = async (cardId: string) => {
   let tags: string[] = [];
@@ -129,39 +129,63 @@ export const fetchCardFullDetails = async (cardId: string) => {
   let borderColor: string | null = null;
 
   try {
-    // 0. Fetch card column details
+    // 0. Fetch card details & column directly
     const { data: cardData } = await supabase
       .from('cards')
-      .select('border_color, column_id, columns(title, color)')
+      .select('border_color, column_id')
       .eq('id', cardId)
       .single();
 
     if (cardData) {
       borderColor = cardData.border_color;
-      if (cardData.columns) {
-        columnTitle = (cardData.columns as any).title || null;
-        columnColor = (cardData.columns as any).color || null;
+      if (cardData.column_id) {
+        const { data: colData } = await supabase
+          .from('columns')
+          .select('title, color')
+          .eq('id', cardData.column_id)
+          .single();
+
+        if (colData) {
+          columnTitle = colData.title;
+          columnColor = colData.color;
+        }
       }
     }
 
     // 1. Fetch categories / tags
     const { data: cardCats } = await supabase
       .from('card_categories')
-      .select('categories(name)')
+      .select('category_id')
       .eq('card_id', cardId);
 
-    if (cardCats) {
-      tags = cardCats.map((c: any) => c.categories?.name).filter(Boolean);
+    if (cardCats && cardCats.length > 0) {
+      const catIds = cardCats.map((c: any) => c.category_id);
+      const { data: cats } = await supabase
+        .from('categories')
+        .select('name')
+        .in('id', catIds);
+
+      if (cats) {
+        tags = cats.map(c => c.name).filter(Boolean);
+      }
     }
 
     // 2. Fetch assignees
     const { data: cardAssignees } = await supabase
       .from('card_assignees')
-      .select('profiles(name)')
+      .select('user_id')
       .eq('card_id', cardId);
 
-    if (cardAssignees) {
-      assignees = cardAssignees.map((a: any) => a.profiles?.name).filter(Boolean);
+    if (cardAssignees && cardAssignees.length > 0) {
+      const uIds = cardAssignees.map((a: any) => a.user_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('name')
+        .in('id', uIds);
+
+      if (profiles) {
+        assignees = profiles.map(p => p.name).filter(Boolean);
+      }
     }
 
     // 3. Fetch checklists and items
@@ -191,32 +215,35 @@ export const fetchCardFullDetails = async (cardId: string) => {
 
 /**
  * Pushes or updates a Google Calendar event in-place using a deterministic event ID (PUT/POST).
- * Prevents duplicating events when changing dates or column colors!
+ * Always fetches the current card state from Supabase DB to ensure 100% accuracy.
  */
-export const upsertGoogleCalendarEvent = async (
-  cardId: string,
-  title: string,
-  rawDescription: string | null,
-  dueDate: string,
-  priority: string | null = null
-) => {
+export const syncCardToGoogleCalendar = async (cardId: string) => {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.provider_token;
 
     if (!token) return;
 
+    // Fetch up-to-date card from DB
+    const { data: card } = await supabase
+      .from('cards')
+      .select('*')
+      .eq('id', cardId)
+      .single();
+
+    if (!card || !card.due_date) return;
+
     const eventId = getGCalEventId(cardId);
     const { tags, assignees, checklists, columnTitle, columnColor } = await fetchCardFullDetails(cardId);
-    const richDescription = buildRichEventDescription(rawDescription, priority, columnTitle, tags, assignees, checklists);
-    const colorId = mapColorToGoogleColorId(columnColor);
+    const richDescription = buildRichEventDescription(card.description, card.priority, columnTitle, tags, assignees, checklists);
+    const colorId = mapColorToGoogleColorId(columnColor || card.border_color);
 
-    const startDate = new Date(dueDate);
+    const startDate = new Date(card.due_date);
     const endDate = new Date(startDate.getTime() + 3600000); // 1 hour duration
 
     const eventPayload = {
       id: eventId,
-      summary: title,
+      summary: card.title,
       description: richDescription,
       colorId: colorId,
       start: { dateTime: startDate.toISOString() },
@@ -246,17 +273,12 @@ export const upsertGoogleCalendarEvent = async (
     }
 
     if (res.ok) {
-      toast.success('📅 Google Agenda atualizado com sucesso!');
+      console.log('Google Calendar updated for card:', cardId);
     }
   } catch (err) {
     console.error('Erro ao atualizar Google Calendar:', err);
   }
 };
-
-/**
- * Alias for backward compatibility
- */
-export const syncCardToGoogleCalendar = upsertGoogleCalendarEvent;
 
 /**
  * Deletes a Google Calendar event if the task due_date is removed or card deleted.
@@ -309,48 +331,8 @@ export const syncAllCardsToGoogleCalendar = async () => {
     let successCount = 0;
 
     for (const card of cards) {
-      const eventId = getGCalEventId(card.id);
-      const { tags, assignees, checklists, columnTitle, columnColor } = await fetchCardFullDetails(card.id);
-      const richDescription = buildRichEventDescription(card.description, card.priority, columnTitle, tags, assignees, checklists);
-      const colorId = mapColorToGoogleColorId(columnColor);
-
-      const startDate = new Date(card.due_date);
-      const endDate = new Date(startDate.getTime() + 3600000);
-
-      const eventPayload = {
-        id: eventId,
-        summary: card.title,
-        description: richDescription,
-        colorId: colorId,
-        start: { dateTime: startDate.toISOString() },
-        end: { dateTime: endDate.toISOString() }
-      };
-
-      // Try PUT first (update in-place)
-      let res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(eventPayload)
-      });
-
-      // If 404, POST to create
-      if (res.status === 404) {
-        res = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(eventPayload)
-        });
-      }
-
-      if (res.ok) {
-        successCount++;
-      }
+      await syncCardToGoogleCalendar(card.id);
+      successCount++;
     }
 
     toast.success(`🎉 Sincronizados ${successCount} cartões (com Cores das Colunas, Checklists e Etiquetas) no Google Agenda!`);
@@ -393,7 +375,7 @@ export const syncSelectedCardsToGoogleCalendar = async (cardIds: string[]) => {
     let successCount = 0;
 
     for (const card of cards) {
-      await upsertGoogleCalendarEvent(card.id, card.title, card.description, card.due_date!, card.priority);
+      await syncCardToGoogleCalendar(card.id);
       successCount++;
     }
 

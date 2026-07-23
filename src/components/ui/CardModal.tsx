@@ -159,7 +159,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
 
       if (data.due_date) {
         NotificationService.scheduleTaskReminder(card.id, data.title, data.due_date);
-        syncCardToGoogleCalendar(card.id, data.title, sanitizedDescription, data.due_date, data.priority);
+        syncCardToGoogleCalendar(card.id);
       } else {
         NotificationService.cancelTaskReminder(card.id);
         deleteGoogleCalendarEvent(card.id);
@@ -232,6 +232,9 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
         }));
         
         setChecklists(combined);
+        if (card.due_date) {
+          syncCardToGoogleCalendar(card.id);
+        }
       } else {
         setChecklists([]);
       }
