@@ -361,23 +361,9 @@ export const syncCardToGoogleCalendar = async (
       console.error('Google Calendar API Error:', res.status, errText);
       if (res.status === 401) {
         localStorage.removeItem('devban_gcal_token');
-        try {
-          const saved = localStorage.getItem('devban_integrations');
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (parsed.google_calendar) {
-              parsed.google_calendar.active = false;
-              localStorage.setItem('devban_integrations', JSON.stringify(parsed));
-            }
-          }
-        } catch (e) {
-          console.error(e);
-        }
-        toast.error('Sua conexão com o Google Agenda expirou. Reconecte na aba Integrações!');
-        // Force reload page to sync UI state
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
+        toast.error('Sua sessão com o Google Agenda expirou. Por favor, clique em "Configurar" na aba de Integrações para re-autorizar.', {
+          id: 'gcal-token-expired'
+        });
       }
     }
   } catch (err) {

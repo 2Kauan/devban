@@ -366,12 +366,22 @@ export default function Integrations() {
 
                     <div className="flex items-center gap-2">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                        app.isActive 
+                        app.id === 'google_calendar' && app.isActive && !localStorage.getItem('devban_gcal_token')
+                          ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                          : app.isActive 
                           ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
                           : 'bg-muted text-muted-foreground border border-border/40'
                       }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${app.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-muted-foreground'}`} />
-                        {app.isActive ? 'Ativo' : 'Inativo'}
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                          app.id === 'google_calendar' && app.isActive && !localStorage.getItem('devban_gcal_token')
+                            ? 'bg-amber-500 animate-pulse'
+                            : app.isActive 
+                            ? 'bg-emerald-500 animate-pulse' 
+                            : 'bg-muted-foreground'
+                        }`} />
+                        {app.id === 'google_calendar' && app.isActive && !localStorage.getItem('devban_gcal_token')
+                          ? 'Reconexão necessária'
+                          : app.isActive ? 'Ativo' : 'Inativo'}
                       </span>
                     </div>
                   </div>
@@ -407,16 +417,39 @@ export default function Integrations() {
                     Configurar
                   </button>
 
-                  <button
-                    onClick={() => toggleIntegration(app.id)}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm ${
-                      app.isActive
-                        ? 'bg-muted hover:bg-destructive/10 hover:text-destructive text-foreground border border-border'
-                        : 'bg-primary text-primary-foreground hover:bg-primary/90'
-                    }`}
-                  >
-                    {app.isActive ? 'Desconectar' : 'Conectar'}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {app.id === 'google_calendar' && app.isActive && !localStorage.getItem('devban_gcal_token') ? (
+                      <>
+                        <button
+                          onClick={() => toggleIntegration('google_calendar')}
+                          className="px-3 py-2 bg-destructive/10 text-destructive hover:bg-destructive/20 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                        >
+                          Desconectar
+                        </button>
+                        <button
+                          onClick={() => {
+                            // Re-trigger OAuth flow
+                            localStorage.setItem('devban_gcal_token_reauth', 'true');
+                            toggleIntegration('google_calendar');
+                          }}
+                          className="px-4 py-2 bg-amber-500 text-white hover:bg-amber-600 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm"
+                        >
+                          Reautorizar
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => toggleIntegration(app.id)}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm ${
+                          app.isActive
+                            ? 'bg-muted hover:bg-destructive/10 hover:text-destructive text-foreground border border-border'
+                            : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                        }`}
+                      >
+                        {app.isActive ? 'Desconectar' : 'Conectar'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             ))}
