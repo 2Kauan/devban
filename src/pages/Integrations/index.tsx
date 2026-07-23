@@ -67,10 +67,17 @@ export default function Integrations() {
 
   useEffect(() => {
     // Detect if user logged in / connected via Google provider
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.provider_token) {
+        localStorage.setItem('devban_gcal_token', session.provider_token);
+      }
+    });
+
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
+        const hasToken = !!localStorage.getItem('devban_gcal_token');
         const isGoogleConnected = user.identities?.some(id => id.provider === 'google') || user.app_metadata?.provider === 'google';
-        if (isGoogleConnected) {
+        if (isGoogleConnected || hasToken) {
           setIntegrationsState(prev => ({
             ...prev,
             google_calendar: { 

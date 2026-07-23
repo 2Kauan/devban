@@ -2,6 +2,24 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 /**
+ * Gets the Google OAuth Access Token from current session or localStorage cache.
+ */
+export const getGoogleToken = async (): Promise<string | null> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.provider_token) {
+      localStorage.setItem('devban_gcal_token', session.provider_token);
+      return session.provider_token;
+    }
+    const cachedToken = localStorage.getItem('devban_gcal_token');
+    if (cachedToken) return cachedToken;
+  } catch (err) {
+    console.error('Error fetching Google token:', err);
+  }
+  return null;
+};
+
+/**
  * Converts a Devban Card UUID into a valid Google Calendar Event ID.
  * Google Calendar requires lowercase base32hex (a-v, 0-9), length between 5 and 1024 chars.
  */
@@ -236,10 +254,12 @@ export const syncCardToGoogleCalendar = async (
   overrideDueDate?: string | null
 ) => {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.provider_token;
+    const token = await getGoogleToken();
 
-    if (!token) return;
+    if (!token) {
+      console.warn('Google Token not found. User needs to connect Google Calendar in Integrations.');
+      return;
+    }
 
     // Fetch up-to-date card from DB
     const { data: card } = await supabase
@@ -297,10 +317,15 @@ export const syncCardToGoogleCalendar = async (
     }
 
     if (res.ok) {
-      console.log('Google Calendar updated successfully for card:', cardId, 'New Date:', targetDueDate);
+      console.log('Google Calendar updated successfully for card:', cardId);
+      toast.success('📅 Sincronizado com o Google Agenda!');
     } else {
       const errText = await res.text();
       console.error('Google Calendar API Error:', res.status, errText);
+      if (res.status === 401) {
+        localStorage.removeItem('devban_gcal_token');
+        toast.error('Sua conexão com o Google Agenda expirou. Reconecte na aba Integrações!');
+      }
     }
   } catch (err) {
     console.error('Erro ao atualizar Google Calendar:', err);
@@ -312,8 +337,7 @@ export const syncCardToGoogleCalendar = async (
  */
 export const deleteGoogleCalendarEvent = async (cardId: string) => {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.provider_token;
+    const token = await getGoogleToken();
 
     if (!token) return;
 
@@ -330,15 +354,14 @@ export const deleteGoogleCalendarEvent = async (cardId: string) => {
 };
 
 /**
- * Fetches ALL cards with due dates and upserts every single one to Google Calendar (updating existing, creating missing).
+ * Fetches ALL cards with due dates and upserts every single one to Google Calendar.
  */
 export const syncAllCardsToGoogleCalendar = async () => {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.provider_token;
+    const token = await getGoogleToken();
 
     if (!token) {
-      toast.error('Conecte sua conta do Google para sincronizar os cartões!');
+      toast.error('Conecte sua conta do Google na aba Integrações para sincronizar os cartões!');
       return;
     }
 
@@ -362,7 +385,7 @@ export const syncAllCardsToGoogleCalendar = async () => {
       successCount++;
     }
 
-    toast.success(`🎉 Sincronizados ${successCount} cartões (com Cores das Colunas, Checklists e Etiquetas) no Google Agenda!`);
+    toast.success(`🎉 Sincronizados ${successCount} cartões no Google Agenda!`);
   } catch (err: any) {
     toast.error('Erro ao sincronizar cartões: ' + err.message);
   }
@@ -373,11 +396,10 @@ export const syncAllCardsToGoogleCalendar = async () => {
  */
 export const syncSelectedCardsToGoogleCalendar = async (cardIds: string[]) => {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.provider_token;
+    const token = await getGoogleToken();
 
     if (!token) {
-      toast.error('Conecte sua conta do Google para sincronizar os cartões!');
+      toast.error('Conecte sua conta do Google na aba Integrações para sincronizar os cartões!');
       return;
     }
 
