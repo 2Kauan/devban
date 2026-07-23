@@ -121,6 +121,14 @@ export function useProjectQuery(projectId: string | undefined) {
         if (colsRes.error) throw colsRes.error;
         let columns = colsRes.data || [];
 
+        try {
+          const localColSettings = JSON.parse(localStorage.getItem('devban_local_column_settings') || '{}');
+          columns = columns.map(c => ({
+            ...c,
+            sort_by_category: c.sort_by_category ?? localColSettings[c.id]?.sort_by_category ?? false
+          }));
+        } catch {}
+
         if (columns.length === 0) {
           const defaultCols = [
             { project_id: projectId, title: 'Ideias', position: 1000 },

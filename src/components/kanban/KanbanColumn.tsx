@@ -31,6 +31,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
   const [editColor, setEditColor] = useState(column.color || '');
   const [editIsCompleted, setEditIsCompleted] = useState(column.is_completed || false);
   const [editSortByPriority, setEditSortByPriority] = useState(column.sort_by_priority || false);
+  const [editSortByCategory, setEditSortByCategory] = useState(column.sort_by_category || false);
   const [isHovered, setIsHovered] = useState(false);
   const [showCompletedCards, setShowCompletedCards] = useState(false);
 
@@ -49,7 +50,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isEditing, editTitle, editColor, editIsCompleted, editSortByPriority, column, onUpdateColumn]);
+  }, [isEditing, editTitle, editColor, editIsCompleted, editSortByPriority, editSortByCategory, column, onUpdateColumn]);
 
   const COLUMN_COLORS = [
     { value: '', label: 'Padrão' },
@@ -86,8 +87,14 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
   const cardIds = useMemo(() => cards.map((c) => c.id), [cards]);
 
   const handleSaveEdit = () => {
-    if (editTitle.trim() && (editTitle !== column.title || editColor !== (column.color || '') || editIsCompleted !== (column.is_completed || false) || editSortByPriority !== (column.sort_by_priority || false)) && onUpdateColumn) {
-      onUpdateColumn(column.id, { title: editTitle.trim(), color: editColor || null, is_completed: editIsCompleted, sort_by_priority: editSortByPriority });
+    if (editTitle.trim() && (editTitle !== column.title || editColor !== (column.color || '') || editIsCompleted !== (column.is_completed || false) || editSortByPriority !== (column.sort_by_priority || false) || editSortByCategory !== (column.sort_by_category || false)) && onUpdateColumn) {
+      onUpdateColumn(column.id, { 
+        title: editTitle.trim(), 
+        color: editColor || null, 
+        is_completed: editIsCompleted, 
+        sort_by_priority: editSortByPriority,
+        sort_by_category: editSortByCategory
+      });
     }
     setIsEditing(false);
   };
@@ -144,6 +151,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
                     setEditColor(column.color || '');
                     setEditIsCompleted(column.is_completed || false);
                     setEditSortByPriority(column.sort_by_priority || false);
+                    setEditSortByCategory(column.sort_by_category || false);
                     setIsEditing(false);
                   }
                 }}
@@ -196,6 +204,18 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
                   />
                   Ordenar por prioridade
                 </label>
+                <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+                  <input 
+                    type="checkbox" 
+                    checked={editSortByCategory} 
+                    onChange={(e) => {
+                      setEditSortByCategory(e.target.checked);
+                      if (e.target.checked) setEditSortByPriority(false);
+                    }} 
+                    className="rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
+                  />
+                  Ordenar por etiqueta
+                </label>
               </div>
               <div className="flex justify-between items-center gap-2 mt-1">
                 {canEdit && onDeleteColumn && (
@@ -207,7 +227,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
                   </button>
                 )}
                 <div className="flex gap-2 ml-auto">
-                  <button onClick={() => { setEditTitle(column.title); setEditColor(column.color || ''); setEditIsCompleted(column.is_completed || false); setEditSortByPriority(column.sort_by_priority || false); setIsEditing(false); }} className="px-2 py-1 text-xs font-medium text-muted-foreground hover:text-foreground">Cancelar</button>
+                  <button onClick={() => { setEditTitle(column.title); setEditColor(column.color || ''); setEditIsCompleted(column.is_completed || false); setEditSortByPriority(column.sort_by_priority || false); setEditSortByCategory(column.sort_by_category || false); setIsEditing(false); }} className="px-2 py-1 text-xs font-medium text-muted-foreground hover:text-foreground">Cancelar</button>
                   <button onClick={handleSaveEdit} className="px-2 py-1 text-xs font-medium bg-foreground text-background rounded hover:bg-foreground/90">Salvar</button>
                 </div>
               </div>
@@ -250,6 +270,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
                       setEditColor(column.color || '');
                       setEditIsCompleted(column.is_completed || false);
                       setEditSortByPriority(column.sort_by_priority || false);
+                      setEditSortByCategory(column.sort_by_category || false);
                       setIsEditing(true);
                     }}
                     className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all shrink-0"

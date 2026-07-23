@@ -63,9 +63,18 @@ export function useSharedProjectQuery(token: string | undefined) {
         supabase.from('project_members').select('permission, job_title, profiles(*)').eq('project_id', projectData.id)
       ]);
 
+      let parsedColumns = colsData;
+      try {
+        const localColSettings = JSON.parse(localStorage.getItem('devban_local_column_settings') || '{}');
+        parsedColumns = colsData.map(c => ({
+          ...c,
+          sort_by_category: c.sort_by_category ?? localColSettings[c.id]?.sort_by_category ?? false
+        }));
+      } catch {}
+
       return {
         project: projectData,
-        columns: colsData.sort((a, b) => a.position - b.position),
+        columns: parsedColumns.sort((a, b) => a.position - b.position),
         cards: enrichedCards.sort((a, b) => a.position - b.position),
         projectCategories: categoriesResponse.data || [],
         projectMembers: (membersResponse.data || []) as unknown as ProjectMember[]

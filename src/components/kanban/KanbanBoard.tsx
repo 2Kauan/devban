@@ -25,7 +25,7 @@ import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { compareByPriority } from '@/utils/kanban';
+import { compareByPriority, compareByCategory } from '@/utils/kanban';
 
 const dropAnimationConfig: DropAnimation = {
   duration: 250,
@@ -301,6 +301,8 @@ export function KanbanBoard({
                 column={col}
                 cards={col.sort_by_priority
                   ? localCards.filter((c) => c.column_id === col.id).sort(compareByPriority)
+                  : col.sort_by_category
+                  ? localCards.filter((c) => c.column_id === col.id).sort(compareByCategory)
                   : localCards.filter((c) => c.column_id === col.id)
                 }
                 onCardClick={onCardClick}

@@ -265,7 +265,22 @@ export function useKanbanActions({
     setOptimisticColumns(columns.map(c => c.id === columnId ? { ...c, ...updates } : c));
     try {
       const { error } = await supabase.from('columns').update(updates).eq('id', columnId);
-      if (error) throw error;
+      if (error) {
+        // If sort_by_category does not exist in the database yet, update others and store locally
+        if (error.message && error.message.includes('sort_by_category')) {
+          const { sort_by_category, ...retryUpdates } = updates as any;
+          const { error: retryError } = await supabase.from('columns').update(retryUpdates).eq('id', columnId);
+          if (retryError) throw retryError;
+          
+          try {
+            const localColSettings = JSON.parse(localStorage.getItem('devban_local_column_settings') || '{}');
+            localColSettings[columnId] = { sort_by_category: !!sort_by_category };
+            localStorage.setItem('devban_local_column_settings', JSON.stringify(localColSettings));
+          } catch {}
+        } else {
+          throw error;
+        }
+      }
     } catch (error: any) {
       toast.error('Erro ao atualizar coluna');
       refetch();

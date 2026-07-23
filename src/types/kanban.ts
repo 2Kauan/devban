@@ -9,6 +9,7 @@ export interface KanbanColumnType {
   position: number;
   is_completed?: boolean;
   sort_by_priority?: boolean;
+  sort_by_category?: boolean;
 }
 
 export interface KanbanCardType {
