@@ -245,6 +245,38 @@ export const fetchCardFullDetails = async (cardId: string, overrideColumnId?: st
 };
 
 /**
+ * Helper to verify if Google Calendar integration is active and if the card's project matches the selected integration project.
+ */
+export const isCardEligibleForGoogleSync = (cardProjectId?: string | null): boolean => {
+  const saved = localStorage.getItem('devban_integrations');
+  if (!saved) return true;
+
+  try {
+    const parsed = JSON.parse(saved);
+    const gcal = parsed.google_calendar;
+    if (!gcal) return true;
+
+    // 1. Must be active
+    if (gcal.active === false) {
+      console.log('Google Calendar integration is disabled.');
+      return false;
+    }
+
+    // 2. Project ID filter: if set to a specific project ID (not 'all')
+    if (gcal.projectId && gcal.projectId !== 'all') {
+      if (cardProjectId && cardProjectId !== gcal.projectId) {
+        console.log(`Card project (${cardProjectId}) does not match configured Google Calendar project (${gcal.projectId}). Skipping sync.`);
+        return false;
+      }
+    }
+  } catch (e) {
+    console.error('Error parsing devban_integrations:', e);
+  }
+
+  return true;
+};
+
+/**
  * Pushes or updates a Google Calendar event in-place using a deterministic event ID (PUT/POST).
  * Supports overrideColumnId and overrideDueDate for real-time responsiveness.
  */
@@ -269,6 +301,11 @@ export const syncCardToGoogleCalendar = async (
       .single();
 
     if (!card) return;
+
+    // Verify project eligibility
+    if (!isCardEligibleForGoogleSync(card.project_id)) {
+      return;
+    }
 
     const targetDueDate = overrideDueDate !== undefined ? overrideDueDate : card.due_date;
 
@@ -378,9 +415,16 @@ export const syncAllCardsToGoogleCalendar = async () => {
       return;
     }
 
+    const eligibleCards = cards.filter(c => isCardEligibleForGoogleSync(c.project_id));
+
+    if (eligibleCards.length === 0) {
+      toast.info('Nenhum cartão elegível no projeto selecionado para a integração.');
+      return;
+    }
+
     let successCount = 0;
 
-    for (const card of cards) {
+    for (const card of eligibleCards) {
       await syncCardToGoogleCalendar(card.id);
       successCount++;
     }
