@@ -262,7 +262,7 @@ export function AIPreviewBoard({ board: initialBoard, projectId, onCancel }: AIP
                         }`}
                       >
                         <ListChecks size={13} />
-                        <span>{((task.subtasks?.length || 0) || (task.checklist?.length || 0))} itens sugeridos</span>
+                        <span>{((task.subtasks?.length || 0) + (task.checklist?.length || 0))} itens sugeridos</span>
                         {isExpanded ? <EyeOff size={10} className="ml-1 opacity-70" /> : <Eye size={10} className="ml-1 opacity-70" />}
                       </button>
                     </div>

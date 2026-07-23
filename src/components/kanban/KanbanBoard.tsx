@@ -300,10 +300,10 @@ export function KanbanBoard({
                 key={col.id}
                 column={col}
                 cards={col.sort_by_priority
-                  ? localCards.filter((c) => c.column_id === col.id && !c.parent_id).sort(compareByPriority)
+                  ? localCards.filter((c) => c.column_id === col.id).sort(compareByPriority)
                   : col.sort_by_category
-                  ? localCards.filter((c) => c.column_id === col.id && !c.parent_id).sort(compareByCategory)
-                  : localCards.filter((c) => c.column_id === col.id && !c.parent_id)
+                  ? localCards.filter((c) => c.column_id === col.id).sort(compareByCategory)
+                  : localCards.filter((c) => c.column_id === col.id)
                 }
                 onCardClick={onCardClick}
                 onAddCard={onAddCard}
