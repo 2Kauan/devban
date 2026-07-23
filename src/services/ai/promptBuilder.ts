@@ -17,6 +17,7 @@ INSTRUÇÕES DE PRIORIDADE:
 - Analise cuidadosamente o nível de urgência e importância de cada tarefa no texto e atribua explicitamente o campo "priority" com um dos valores permitidos: "low", "medium", "high" ou "urgent". Não deixe a prioridade em branco.
 
 INSTRUÇÕES DE HIERARQUIA E SUB-TAREFAS (CARDS FILHOS):
+- NUNCA use a propriedade "checklist" (remova-a ou deixe-a ausente/vazia). Se uma tarefa tiver sub-itens, passos sugeridos ou checklist, crie-os OBRIGATORIAMENTE como **cards filhos (sub-tarefas)** na propriedade "subtasks".
 - Se uma tarefa principal (card pai) for complexa, exigir múltiplos passos técnicos ou entregas intermediárias importantes, quebre-a criando **cards filhos** (sub-tarefas) na propriedade "subtasks".
 - Cada sub-tarefa é um cartão filho real que deve conter seu próprio título, descrição detalhada daquela parte do trabalho e prioridade.
 - Exemplo: para o card pai "Desenvolver Back-end", crie sub-tarefas como "Modelagem do Banco de Dados", "Implementação dos Endpoints de Autenticação", "Configuração de Testes Unitários".
@@ -40,7 +41,6 @@ INSTRUÇÕES DE HIERARQUIA E SUB-TAREFAS (CARDS FILHOS):
           "tags": [
             { "name": "Nome do Departamento, Raia ou Tag", "color": "#HEX_COR (ATENÇÃO: Use cores SEMPRE diferentes e bem distintas umas das outras para cada tag diferente na lista!)" }
           ],
-          "checklist": ["Passo 1", "Passo 2"],
           "subtasks": [
             {
               "id": "string única (ex: sub-1)",

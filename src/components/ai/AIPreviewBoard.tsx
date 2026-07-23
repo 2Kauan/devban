@@ -252,37 +252,19 @@ export function AIPreviewBoard({ board: initialBoard, projectId, onCancel }: AIP
 
                   {((task.checklist && task.checklist.length > 0) || (task.subtasks && task.subtasks.length > 0)) ? (
                     <div className="mt-3 flex flex-wrap items-center gap-2">
-                      {task.checklist && task.checklist.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => toggleExpandTask(task.id)}
-                          className={`flex items-center gap-1.5 text-[11px] font-medium border px-2 py-1 rounded-md transition-all cursor-pointer select-none ${
-                            isExpanded
-                              ? 'text-primary bg-primary/10 border-primary/20 shadow-sm font-semibold'
-                              : 'text-primary bg-primary/5 border-primary/10 hover:bg-primary/10'
-                          }`}
-                        >
-                          <ListChecks size={13} />
-                          <span>{task.checklist.length} itens sugeridos</span>
-                          {isExpanded ? <EyeOff size={10} className="ml-1 opacity-70" /> : <Eye size={10} className="ml-1 opacity-70" />}
-                        </button>
-                      )}
-                      
-                      {task.subtasks && task.subtasks.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => toggleExpandTask(task.id)}
-                          className={`flex items-center gap-1.5 text-[11px] font-medium border px-2 py-1 rounded-md transition-all cursor-pointer select-none ${
-                            isExpanded
-                              ? 'text-amber-600 bg-amber-500/15 border-amber-500/25 shadow-sm font-semibold'
-                              : 'text-amber-600 bg-amber-500/10 border-amber-500/20 hover:bg-amber-500/15'
-                          }`}
-                        >
-                          <ListTree size={13} />
-                          <span>{task.subtasks.length} sub-tarefas</span>
-                          {isExpanded ? <EyeOff size={10} className="ml-1 opacity-70" /> : <Eye size={10} className="ml-1 opacity-70" />}
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => toggleExpandTask(task.id)}
+                        className={`flex items-center gap-1.5 text-[11px] font-medium border px-2 py-1 rounded-md transition-all cursor-pointer select-none ${
+                          isExpanded
+                            ? 'text-primary bg-primary/10 border-primary/20 shadow-sm font-semibold'
+                            : 'text-primary bg-primary/5 border-primary/10 hover:bg-primary/10'
+                        }`}
+                      >
+                        <ListChecks size={13} />
+                        <span>{((task.subtasks?.length || 0) || (task.checklist?.length || 0))} itens sugeridos</span>
+                        {isExpanded ? <EyeOff size={10} className="ml-1 opacity-70" /> : <Eye size={10} className="ml-1 opacity-70" />}
+                      </button>
                     </div>
                   ) : null}
 
@@ -295,62 +277,25 @@ export function AIPreviewBoard({ board: initialBoard, projectId, onCancel }: AIP
                         exit={{ opacity: 0, height: 0 }}
                         className="mt-3 pt-3 border-t border-border/50 space-y-4 overflow-hidden"
                       >
-                        {/* Checklist Items Editor */}
-                        {task.checklist && task.checklist.length > 0 && (
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[11px] font-bold text-foreground flex items-center gap-1">
-                                <ListChecks size={12} className="text-primary" />
-                                Itens da Checklist
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => addChecklistItem(cIdx, tIdx)}
-                                className="text-[10px] font-bold text-primary hover:underline flex items-center gap-0.5 cursor-pointer"
-                              >
-                                <Plus size={10} /> Add
-                              </button>
-                            </div>
-
-                            <div className="space-y-1.5">
-                              {task.checklist.map((item, idx) => (
-                                <div key={idx} className="flex items-center gap-1.5">
-                                  <input
-                                    type="text"
-                                    value={item}
-                                    onChange={(e) => updateChecklistItem(cIdx, tIdx, idx, e.target.value)}
-                                    className="flex-1 bg-background border border-border/60 rounded px-2 py-1 text-xs text-foreground focus:outline-none focus:border-primary/50"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => removeChecklistItem(cIdx, tIdx, idx)}
-                                    className="p-1 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded transition-colors cursor-pointer shrink-0"
-                                  >
-                                    <Trash2 size={12} />
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
+                        {/* Subtasks (Cards Filhos) Editor */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold text-foreground flex items-center gap-1">
+                              <ListTree size={12} className="text-amber-500" />
+                              Sub-tarefas (Cards Filhos)
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => addSubtask(cIdx, tIdx)}
+                              className="text-[10px] font-bold text-amber-600 hover:underline flex items-center gap-0.5 cursor-pointer"
+                            >
+                              <Plus size={10} /> Add Card Filho
+                            </button>
                           </div>
-                        )}
 
-                        {/* Subtasks Editor */}
-                        {task.subtasks && task.subtasks.length > 0 && (
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[11px] font-bold text-foreground flex items-center gap-1">
-                                <ListTree size={12} className="text-amber-500" />
-                                Sub-tarefas
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => addSubtask(cIdx, tIdx)}
-                                className="text-[10px] font-bold text-amber-600 hover:underline flex items-center gap-0.5 cursor-pointer"
-                              >
-                                <Plus size={10} /> Add
-                              </button>
-                            </div>
-
+                          {(!task.subtasks || task.subtasks.length === 0) ? (
+                            <p className="text-[10px] text-muted-foreground italic">Nenhuma sub-tarefa sugerida.</p>
+                          ) : (
                             <div className="space-y-2">
                               {task.subtasks.map((sub, sIdx) => (
                                 <div key={sub.id || sIdx} className="bg-muted/20 border border-border/40 p-2.5 rounded-lg space-y-1.5 relative group/sub">
@@ -377,6 +322,45 @@ export function AIPreviewBoard({ board: initialBoard, projectId, onCancel }: AIP
                                     onChange={(e) => updateSubtaskField(cIdx, tIdx, sIdx, 'description', e.target.value)}
                                     className="w-full bg-background border border-border/60 rounded px-2 py-1 text-[11px] text-muted-foreground focus:outline-none focus:border-primary/50 resize-none custom-scrollbar"
                                   />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Checklist Items Editor */}
+                        {task.checklist && task.checklist.length > 0 && (
+                          <div className="space-y-2 pt-2 border-t border-border/30">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[11px] font-bold text-foreground flex items-center gap-1">
+                                <ListChecks size={12} className="text-primary" />
+                                Itens da Checklist (Legado)
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => addChecklistItem(cIdx, tIdx)}
+                                className="text-[10px] font-bold text-primary hover:underline flex items-center gap-0.5 cursor-pointer"
+                              >
+                                <Plus size={10} /> Add Item
+                              </button>
+                            </div>
+
+                            <div className="space-y-1.5">
+                              {task.checklist.map((item, idx) => (
+                                <div key={idx} className="flex items-center gap-1.5">
+                                  <input
+                                    type="text"
+                                    value={item}
+                                    onChange={(e) => updateChecklistItem(cIdx, tIdx, idx, e.target.value)}
+                                    className="flex-1 bg-background border border-border/60 rounded px-2 py-1 text-xs text-foreground focus:outline-none focus:border-primary/50"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => removeChecklistItem(cIdx, tIdx, idx)}
+                                    className="p-1 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded transition-colors cursor-pointer shrink-0"
+                                  >
+                                    <Trash2 size={12} />
+                                  </button>
                                 </div>
                               ))}
                             </div>
