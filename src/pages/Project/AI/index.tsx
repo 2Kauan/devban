@@ -7,7 +7,7 @@ import { AIPreviewBoard } from '@/components/ai/AIPreviewBoard';
 import { useAIProcessor } from '@/hooks/ai/useAIProcessor';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
-import { Lock } from 'lucide-react';
+import { Lock, Loader2 } from 'lucide-react';
 
 export default function ProjectAI() {
   const { project } = useOutletContext<{ project: Project | null }>();
@@ -16,7 +16,13 @@ export default function ProjectAI() {
   const { user } = useAuth();
   const isOwner = project?.owner_id === user?.id;
 
-  if (!project) return null;
+  if (!project) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-background p-6">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!isOwner) {
     return (

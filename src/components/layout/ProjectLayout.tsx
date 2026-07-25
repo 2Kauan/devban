@@ -175,18 +175,9 @@ export function ProjectLayout() {
         </div>
 
         <div className="flex-1 flex flex-col overflow-hidden relative min-h-0">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
-              className="flex-1 flex flex-col min-h-0"
-            >
-              <Outlet context={{ project }} />
-            </motion.div>
-          </AnimatePresence>
+          <div className="flex-1 flex flex-col min-h-0">
+            <Outlet context={{ project }} />
+          </div>
         </div>
       </main>
     </div>
