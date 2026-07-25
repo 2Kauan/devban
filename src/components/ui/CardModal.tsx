@@ -15,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { NotificationService } from '@/services/notifications/notificationService';
 import { syncCardToGoogleCalendar, deleteGoogleCalendarEvent } from '@/services/google/calendar';
 import { getGoogleCalendarWebUrl } from '@/integrations/google/GoogleHelpers';
+import { syncCardToGoogleTasks, deleteGoogleTask } from '@/services/google/tasks';
 import type { ProjectMember } from '@/hooks/useProjectQuery';
 
 interface CardModalProps {
@@ -163,9 +164,11 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
         const formattedDueDate = new Date(data.due_date).toISOString();
         NotificationService.scheduleTaskReminder(card.id, data.title, data.due_date);
         syncCardToGoogleCalendar(card.id, undefined, formattedDueDate);
+        syncCardToGoogleTasks(card.id);
       } else {
         NotificationService.cancelTaskReminder(card.id);
         deleteGoogleCalendarEvent(card.id);
+        deleteGoogleTask(card.id);
       }
 
       if (card.priority !== data.priority && onPriorityChange) {
@@ -368,6 +371,9 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
           
           const { error } = await supabase.from('cards').delete().eq('id', card.id);
           if (error) throw error;
+
+          deleteGoogleCalendarEvent(card.id);
+          deleteGoogleTask(card.id);
           
           toast.success('Cartão excluído!');
           setConfirmConfig(prev => ({ ...prev, isOpen: false }));

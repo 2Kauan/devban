@@ -96,7 +96,7 @@ export default function Integrations() {
     const current = integrationsState[id] || { active: false };
     const nextActive = !current.active;
 
-    const googleIds = ['google_calendar'];
+    const googleIds = ['google_calendar', 'google_tasks'];
     if (nextActive && googleIds.includes(id)) {
       setConnectingId(id);
       await new Promise(r => setTimeout(r, 600));
@@ -104,7 +104,7 @@ export default function Integrations() {
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            scopes: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly',
+            scopes: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/tasks',
             queryParams: {
               access_type: 'offline',
               prompt: 'consent select_account'
@@ -137,7 +137,7 @@ export default function Integrations() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          scopes: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly',
+          scopes: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/tasks',
           queryParams: {
             access_type: 'offline',
             prompt: 'consent select_account'
@@ -164,7 +164,7 @@ export default function Integrations() {
   const list: Integration[] = [
     {
       id: 'google_calendar',
-      name: 'Google Calendar',
+      name: 'Google Agenda',
       category: 'google',
       description: 'Sincronize prazos de tarefas do Devban na sua agenda.',
       iconBg: 'bg-blue-500/10 border-blue-500/20',
@@ -178,6 +178,23 @@ export default function Integrations() {
       statusText: integrationsState.google_calendar?.active ? 'Conectado' : 'Desconectado',
       configType: 'oauth',
       projectId: integrationsState.google_calendar?.projectId || 'all'
+    },
+    {
+      id: 'google_tasks',
+      name: 'Google Tarefas',
+      category: 'google',
+      description: 'Sincronize seus cards do Devban com a sua lista de tarefas do Google.',
+      iconBg: 'bg-blue-500/10 border-blue-500/20',
+      iconColor: 'text-blue-500',
+      brandSvg: (
+        <div className="w-full h-full overflow-hidden p-1">
+          <img src="/Google_Tasks_2021.svg.webp" alt="Google Tasks" className="w-full h-full object-contain" />
+        </div>
+      ),
+      isActive: !!integrationsState.google_tasks?.active,
+      statusText: integrationsState.google_tasks?.active ? 'Conectado' : 'Desconectado',
+      configType: 'oauth',
+      projectId: integrationsState.google_tasks?.projectId || 'all'
     }
   ];
 

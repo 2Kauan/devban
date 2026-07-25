@@ -5,6 +5,7 @@ import type { KanbanColumnType, KanbanCardType } from '@/types/kanban';
 import type { User } from '@supabase/supabase-js';
 import { queueMutation, isNetworkError } from '@/lib/offlineSync';
 import { syncCardToGoogleCalendar } from '@/services/google/calendar';
+import { syncCardToGoogleTasks } from '@/services/google/tasks';
 import { reorderCardsByPriority } from '@/utils/kanban';
 import { touchProject } from '@/utils/recentProjects';
 
@@ -120,7 +121,10 @@ export function useKanbanActions({
       }
       toast.success('Cartões salvos com sucesso!');
       changedCards.forEach(c => {
-        if (c.due_date) syncCardToGoogleCalendar(c.id);
+        if (c.due_date) {
+          syncCardToGoogleCalendar(c.id);
+          syncCardToGoogleTasks(c.id);
+        }
       });
     } catch (error: any) {
       if (isNetworkError(error)) {
@@ -152,6 +156,7 @@ export function useKanbanActions({
 
       // Sincroniza imediatamente a mudança de coluna e cor no Google Agenda!
       syncCardToGoogleCalendar(cardId, destColId);
+      syncCardToGoogleTasks(cardId);
 
       // Se moveu o cartão pai, move automaticamente todos os cartões filhos (sub-tarefas) para a mesma coluna!
       const subtasks = cards.filter(c => c.parent_id === cardId);
