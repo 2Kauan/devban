@@ -55,23 +55,40 @@ const callGoogleProxy = async (targetUrl: string, method: string = 'GET', body?:
  * Fetches all cards with due dates, optionally filtered by project_id.
  */
 export const fetchCardsWithDueDate = async (projectId?: string) => {
-  let query = supabase
-    .from('cards')
-    .select('id, title, due_date, is_completed, priority, project_id')
-    .not('due_date', 'is', null)
-    .order('due_date', { ascending: true });
+  try {
+    let cardQuery = supabase
+      .from('cards')
+      .select('id, title, due_date, is_completed, priority, project_id, column_id')
+      .not('due_date', 'is', null)
+      .order('due_date', { ascending: true });
 
-  if (projectId && projectId !== 'all') {
-    query = query.eq('project_id', projectId);
-  }
+    if (projectId && projectId !== 'all') {
+      const { data: cols } = await supabase
+        .from('columns')
+        .select('id')
+        .eq('project_id', projectId);
 
-  const { data: cards, error } = await query;
+      const colIds = (cols || []).map(c => c.id);
 
-  if (error || !cards) {
-    console.error('Error fetching cards with due date:', error);
+      if (colIds.length > 0) {
+        cardQuery = cardQuery.or(`project_id.eq.${projectId},column_id.in.(${colIds.join(',')})`);
+      } else {
+        cardQuery = cardQuery.eq('project_id', projectId);
+      }
+    }
+
+    const { data: cards, error } = await cardQuery;
+
+    if (error || !cards) {
+      console.error('Error fetching cards with due date:', error);
+      return [];
+    }
+
+    return cards.filter(c => c.due_date && typeof c.due_date === 'string' && c.due_date.trim() !== '');
+  } catch (err) {
+    console.error('Failed to fetch cards with due date:', err);
     return [];
   }
-  return cards;
 };
 
 /**
