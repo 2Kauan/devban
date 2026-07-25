@@ -131,6 +131,27 @@ export default function Integrations() {
     setConnectingId(null);
   };
 
+  const forceReauthorize = async () => {
+    setConnectingId('google_calendar');
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          scopes: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent select_account'
+          },
+          redirectTo: `${window.location.origin}/integrations`
+        }
+      });
+      if (error) throw error;
+    } catch (err: any) {
+      toast.error('Erro ao reautorizar: ' + err.message);
+      setConnectingId(null);
+    }
+  };
+
   const handleUpdateProjectBinding = (appId: string, projectId: string) => {
     setIntegrationsState(prev => ({
       ...prev,
@@ -300,6 +321,35 @@ export default function Integrations() {
                 <div className="space-y-1">
                   <h3 className="font-bold text-base text-foreground">Conta Google Vinculada</h3>
                   <p className="text-xs text-muted-foreground">{userEmail || integrationsState.google_calendar?.config?.email || 'Conta Google Conectada'}</p>
+                </div>
+
+                {/* Manual de Bypass de Tela de Segurança do Google */}
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 text-left space-y-2">
+                  <div className="text-xs font-bold text-amber-500 flex items-center gap-1.5">
+                    ⚠️ Passo a Passo de Liberação (Segurança Google)
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Como o aplicativo está em fase de homologação no Google, ao conectar você verá uma tela vermelha de aviso. Para liberar o acesso do Supabase/Devban:
+                  </p>
+                  <ol className="list-decimal list-inside text-[11px] text-muted-foreground space-y-1">
+                    <li>Na tela de aviso, clique no link <strong>"Configurações Avançadas"</strong> (ou "Advanced" / "Mostrar Avançado").</li>
+                    <li>Clique no link inferior escrito <strong>"Acessar irboqakduscfjtknhokg.supabase.co (não seguro)"</strong> (ou "Go to...").</li>
+                    <li>Conceda a permissão e continue normalmente.</li>
+                  </ol>
+                </div>
+
+                <div className="flex justify-center">
+                  <button
+                    onClick={forceReauthorize}
+                    disabled={connectingId === 'google_calendar'}
+                    className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                  >
+                    {connectingId === 'google_calendar' ? (
+                      <RefreshCw className="animate-spin" size={14} />
+                    ) : (
+                      <RefreshCw size={14} />
+                    )}
+                  </button>
                 </div>
 
                 <div className="p-4 bg-muted/30 border border-border rounded-2xl text-left space-y-3">
