@@ -208,8 +208,8 @@ export default function Projects() {
               </p>
             </div>
             <div className="flex items-center gap-4 w-full sm:w-auto">
-              <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 text-primary rounded-lg font-bold">
-                Projetos em Estoque: <span className="text-xl leading-none">{stock}</span>
+              <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 text-primary rounded-lg font-bold whitespace-nowrap">
+                Em Estoque: <span className="text-xl leading-none">{stock}</span>
               </div>
               <button 
                 onClick={() => document.dispatchEvent(new CustomEvent('open-create-project'))}
@@ -244,8 +244,8 @@ export default function Projects() {
             </button>
           </div>
           
-          <div className="sm:hidden mb-6 flex items-center justify-center gap-2 px-4 py-3 bg-primary/10 border border-primary/20 text-primary rounded-lg font-bold">
-            Projetos em Estoque: <span className="text-xl leading-none">{stock}</span>
+          <div className="sm:hidden mb-6 flex items-center justify-center gap-2 px-4 py-3 bg-primary/10 border border-primary/20 text-primary rounded-lg font-bold whitespace-nowrap">
+            Em Estoque: <span className="text-xl leading-none">{stock}</span>
           </div>
 
           {isLoading && projects.length === 0 ? (

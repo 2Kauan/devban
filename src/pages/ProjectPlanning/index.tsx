@@ -13,7 +13,7 @@ import { DayDrawer } from '@/components/planning/DayDrawer';
 import type { KanbanCardType } from '@/types/kanban';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { syncCardToGoogleCalendar, deleteGoogleCalendarEvent } from '@/services/googleCalendarService';
+import { syncCardToGoogleCalendar, deleteGoogleCalendarEvent } from '@/services/google/calendar';
 import { addDays, subDays } from 'date-fns';
 
 export default function ProjectPlanning() {

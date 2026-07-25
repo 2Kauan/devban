@@ -4,7 +4,7 @@ import { useEvent } from './useEvent';
 import type { KanbanColumnType, KanbanCardType } from '@/types/kanban';
 import type { User } from '@supabase/supabase-js';
 import { queueMutation, isNetworkError } from '@/lib/offlineSync';
-import { syncCardToGoogleCalendar } from '@/services/googleCalendarService';
+import { syncCardToGoogleCalendar } from '@/services/google/calendar';
 import { reorderCardsByPriority } from '@/utils/kanban';
 import { touchProject } from '@/utils/recentProjects';
 

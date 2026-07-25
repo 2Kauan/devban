@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/lib/supabase';
 import type { KanbanCardType } from '@/types/kanban';
-import { Clock, CheckSquare, Trash2, Tag, Loader2, ArrowRight, X, AlignLeft, Plus, Flag, ChevronDown, ArrowDownRight, ArrowUpRight, AlertCircle, Users, ListTree, CheckCircle2, Pencil, Calendar } from 'lucide-react';
+import { Clock, CheckSquare, Trash2, Tag, Loader2, ArrowRight, X, AlignLeft, Plus, Flag, ChevronDown, ArrowDownRight, ArrowUpRight, AlertCircle, Users, ListTree, CheckCircle2, Pencil, Calendar, FileText } from 'lucide-react';
 import { queueMutation, isNetworkError } from '@/lib/offlineSync';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,7 +13,9 @@ import { TagSelector } from '@/components/ui/TagSelector';
 import type { Category, Profile } from '@/types/database';
 import { useAuth } from '@/contexts/AuthContext';
 import { NotificationService } from '@/services/notifications/notificationService';
-import { syncCardToGoogleCalendar, getGoogleCalendarWebUrl, deleteGoogleCalendarEvent } from '@/services/googleCalendarService';
+import { syncCardToGoogleCalendar, deleteGoogleCalendarEvent } from '@/services/google/calendar';
+import { getGoogleCalendarWebUrl } from '@/integrations/google/GoogleHelpers';
+import { docsService, sheetsService, meetService, gmailService } from '@/services/google/workspace';
 import type { ProjectMember } from '@/hooks/useProjectQuery';
 
 interface CardModalProps {
@@ -70,6 +72,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const [isAssigneeOpen, setIsAssigneeOpen] = useState(false);
+  const [googleActionLoading, setGoogleActionLoading] = useState<string | null>(null);
   const [confirmConfig, setConfirmConfig] = useState<{
     isOpen: boolean;
     title: string;
@@ -466,6 +469,80 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
     }
   };
 
+  const handleCreateGoogleDoc = async () => {
+    if (!card) return;
+    setGoogleActionLoading('docs');
+    try {
+      const doc = await docsService.createDocument(card.title);
+      const docUrl = `https://docs.google.com/document/d/${doc.documentId}/edit`;
+      await supabase.from('cards').update({ external_link: docUrl }).eq('id', card.id);
+      setValue('external_link', docUrl, { shouldDirty: true });
+      toast.success('Documento criado no Google Docs!');
+      window.open(docUrl, '_blank');
+    } catch (error: any) {
+      toast.error('Erro ao criar documento: ' + error.message);
+    } finally {
+      setGoogleActionLoading(null);
+    }
+  };
+
+  const handleCreateGoogleSheet = async () => {
+    if (!card) return;
+    setGoogleActionLoading('sheets');
+    try {
+      const sheet = await sheetsService.createSpreadsheet(card.title);
+      const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheet.spreadsheetId}/edit`;
+      await supabase.from('cards').update({ external_link: sheetUrl }).eq('id', card.id);
+      setValue('external_link', sheetUrl, { shouldDirty: true });
+      toast.success('Planilha criada no Google Sheets!');
+      window.open(sheetUrl, '_blank');
+    } catch (error: any) {
+      toast.error('Erro ao criar planilha: ' + error.message);
+    } finally {
+      setGoogleActionLoading(null);
+    }
+  };
+
+  const handleCreateGoogleMeet = async () => {
+    if (!card) return;
+    setGoogleActionLoading('meet');
+    try {
+      const meet = await meetService.createMeeting(card.title);
+      const meetUrl = meet.meetingUri || `https://meet.google.com/new`;
+      await supabase.from('cards').update({ external_link: meetUrl }).eq('id', card.id);
+      setValue('external_link', meetUrl, { shouldDirty: true });
+      toast.success('Reunião criada no Google Meet!');
+      window.open(meetUrl, '_blank');
+    } catch (error: any) {
+      toast.error('Erro ao criar reunião: ' + error.message);
+    } finally {
+      setGoogleActionLoading(null);
+    }
+  };
+
+  const handleSendGmail = async () => {
+    if (!card) return;
+    setGoogleActionLoading('gmail');
+    try {
+      const assigneeEmails = card.assignees?.map(a => a.email).filter(Boolean) || [];
+      if (assigneeEmails.length === 0) {
+        toast.error('Nenhum destinatário encontrado. Adicione membros ao cartão.');
+        setGoogleActionLoading(null);
+        return;
+      }
+      await gmailService.sendEmail({
+        to: assigneeEmails.join(','),
+        subject: `[Devban] ${card.title}`,
+        body: `Tarefa: ${card.title}\nDescrição: ${card.description || 'Sem descrição'}\nPrioridade: ${card.priority}\nData: ${card.due_date || 'Sem prazo'}`
+      });
+      toast.success('Email enviado com sucesso!');
+    } catch (error: any) {
+      toast.error('Erro ao enviar email: ' + error.message);
+    } finally {
+      setGoogleActionLoading(null);
+    }
+  };
+
   const handleToggleTag = async (tag: Category) => {
     if (!card) {
       const isSelected = localTags.some(c => c.id === tag.id);
@@ -770,7 +847,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
                                         toast.error('Erro ao excluir item');
                                       }
                                     }}
-                                    className="opacity-0 group-hover:opacity-100 p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive hover:text-destructive-foreground rounded-md transition-all"
+                                    className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md transition-all flex-shrink-0"
                                   >
                                     <Trash2 size={14} />
                                   </button>
@@ -1005,6 +1082,80 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
                           Adicionar ao Google Agenda
                         </a>
                       )}
+                    </div>
+
+                    {/* Google Workspace Actions */}
+                    <div>
+                      <label className="flex items-center gap-2 text-xs font-semibold text-foreground mb-2">
+                        <div className="p-1 rounded-full bg-primary/10">
+                          <svg className="w-3 h-3 text-primary" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                          </svg>
+                        </div>
+                        GOOGLE WORKSPACE
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={handleCreateGoogleDoc}
+                          disabled={googleActionLoading === 'docs'}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 text-xs font-bold transition-all border border-blue-500/20 disabled:opacity-50"
+                        >
+                          {googleActionLoading === 'docs' ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <FileText size={14} />
+                          )}
+                          Criar Doc
+                        </button>
+                        <button
+                          onClick={handleCreateGoogleSheet}
+                          disabled={googleActionLoading === 'sheets'}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 text-xs font-bold transition-all border border-emerald-500/20 disabled:opacity-50"
+                        >
+                          {googleActionLoading === 'sheets' ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="3" y="3" width="18" height="18" rx="2"/>
+                              <path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>
+                            </svg>
+                          )}
+                          Criar Planilha
+                        </button>
+                        <button
+                          onClick={handleCreateGoogleMeet}
+                          disabled={googleActionLoading === 'meet'}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 text-xs font-bold transition-all border border-purple-500/20 disabled:opacity-50"
+                        >
+                          {googleActionLoading === 'meet' ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14v-4z"/>
+                              <rect x="3" y="6" width="12" height="12" rx="2"/>
+                            </svg>
+                          )}
+                          Criar Reunião
+                        </button>
+                        <button
+                          onClick={handleSendGmail}
+                          disabled={googleActionLoading === 'gmail'}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 text-xs font-bold transition-all border border-red-500/20 disabled:opacity-50"
+                        >
+                          {googleActionLoading === 'gmail' ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="2" y="4" width="20" height="16" rx="2"/>
+                              <path d="M22 7l-10 7L2 7"/>
+                            </svg>
+                          )}
+                          Enviar Email
+                        </button>
+                      </div>
                     </div>
                     
                     {/* Link Externo */}

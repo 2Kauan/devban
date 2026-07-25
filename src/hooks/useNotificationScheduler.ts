@@ -33,12 +33,11 @@ export function useNotificationScheduler() {
           columnsData?.filter(col => col.is_completed).map(col => col.id) || []
         );
 
-        // Fetch all cards with due dates
+        // Fetch all cards
         const { data: cardsData, error: cardsError } = await supabase
           .from('cards')
-          .select('id, title, due_date, column_id')
-          .in('project_id', projectIds)
-          .not('due_date', 'is', null);
+          .select('id, title, due_date, column_id, priority')
+          .in('project_id', projectIds);
 
         if (cardsError || !cardsData) return;
 
@@ -46,6 +45,19 @@ export function useNotificationScheduler() {
         const now = new Date();
 
         for (const card of activeCards) {
+          // 1. Urgent Priority Alerts (Every 30 mins)
+          if (card.priority === 'urgent') {
+            const lastAlertKey = `last_urgent_alert_${card.id}`;
+            const lastAlertStr = localStorage.getItem(lastAlertKey);
+            const lastAlert = lastAlertStr ? new Date(lastAlertStr) : null;
+            
+            if (!lastAlert || (now.getTime() - lastAlert.getTime() > 30 * 60 * 1000)) {
+              NotificationService.sendImmediateNotification('Devban - TAREFA URGENTE', `A tarefa "${card.title}" está marcada como urgente!`);
+              localStorage.setItem(lastAlertKey, now.toISOString());
+            }
+          }
+
+          // 2. Deadline Alerts
           if (!card.due_date) continue;
           const dueDate = new Date(card.due_date);
           const diffMs = dueDate.getTime() - now.getTime();

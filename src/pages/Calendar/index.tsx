@@ -17,7 +17,7 @@ import { CardModal } from '@/components/ui/CardModal';
 import type { KanbanCardType, KanbanColumnType } from '@/types/kanban';
 import type { Category, Project } from '@/types/database';
 import { toast } from 'sonner';
-import { syncCardToGoogleCalendar } from '@/services/googleCalendarService';
+import { syncCardToGoogleCalendar } from '@/services/google/calendar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FolderKanban } from 'lucide-react';
 
