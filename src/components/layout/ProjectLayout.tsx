@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
+import { motion, LayoutGroup } from 'framer-motion';
 import { supabase, createUniqueChannel } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
