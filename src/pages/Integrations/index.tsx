@@ -332,12 +332,12 @@ export default function Integrations() {
               </div>
 
               <div className="space-y-4 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-blue-500/10 text-blue-500 border border-blue-500/20 flex items-center justify-center mx-auto overflow-hidden">
-                  <img src="/google-calendar--v1.webp" alt="Google Calendar" className="w-full h-full object-cover" />
+                <div className="w-16 h-16 rounded-2xl bg-blue-500/10 text-blue-500 border border-blue-500/20 flex items-center justify-center mx-auto overflow-hidden p-2">
+                  {list.find(a => a.id === selectedModalApp)?.brandSvg}
                 </div>
                 <div className="space-y-1">
                   <h3 className="font-bold text-base text-foreground">Conta Google Vinculada</h3>
-                  <p className="text-xs text-muted-foreground">{userEmail || integrationsState.google_calendar?.config?.email || 'Conta Google Conectada'}</p>
+                  <p className="text-xs text-muted-foreground">{userEmail || integrationsState[selectedModalApp]?.config?.email || 'Conta Google Conectada'}</p>
                 </div>
 
                 {/* Manual de Bypass de Tela de Segurança do Google */}
