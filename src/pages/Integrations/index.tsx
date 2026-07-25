@@ -85,18 +85,17 @@ export default function Integrations() {
     localStorage.setItem('devban_integrations', JSON.stringify(integrationsState));
   }, [integrationsState]);
 
-  const currentAppProjectId = selectedModalApp ? integrationsState[selectedModalApp]?.projectId : 'all';
+  const currentAppProjectId = selectedModalApp ? (integrationsState[selectedModalApp]?.projectId || 'all') : 'all';
 
   useEffect(() => {
-    if (selectedModalApp && syncMode === 'selected') {
+    if (selectedModalApp) {
       setLoadingCards(true);
-      const isTasks = selectedModalApp === 'google_tasks';
-      fetchCardsWithDueDate(currentAppProjectId, isTasks).then(cards => {
+      fetchCardsWithDueDate(currentAppProjectId).then(cards => {
         setAvailableCards(cards);
         setLoadingCards(false);
       });
     }
-  }, [selectedModalApp, syncMode, currentAppProjectId]);
+  }, [selectedModalApp, currentAppProjectId]);
 
   const toggleIntegration = async (id: string) => {
     const current = integrationsState[id] || { active: false };

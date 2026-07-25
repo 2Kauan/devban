@@ -54,14 +54,12 @@ const callGoogleProxy = async (targetUrl: string, method: string = 'GET', body?:
 /**
  * Fetches all cards with due dates, optionally filtered by project_id.
  */
-export const fetchCardsWithDueDate = async (projectId?: string, includeCardsWithoutDueDate = false) => {
+export const fetchCardsWithDueDate = async (projectId?: string) => {
   let query = supabase
     .from('cards')
-    .select('id, title, due_date, is_completed, priority, project_id');
-
-  if (!includeCardsWithoutDueDate) {
-    query = query.not('due_date', 'is', null);
-  }
+    .select('id, title, due_date, is_completed, priority, project_id')
+    .not('due_date', 'is', null)
+    .order('due_date', { ascending: true });
 
   if (projectId && projectId !== 'all') {
     query = query.eq('project_id', projectId);
@@ -69,7 +67,10 @@ export const fetchCardsWithDueDate = async (projectId?: string, includeCardsWith
 
   const { data: cards, error } = await query;
 
-  if (error || !cards) return [];
+  if (error || !cards) {
+    console.error('Error fetching cards with due date:', error);
+    return [];
+  }
   return cards;
 };
 
