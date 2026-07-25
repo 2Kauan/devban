@@ -161,12 +161,17 @@ export const fetchCardFullDetails = async (cardId: string, overrideColumnId?: st
       const clIds = clData.map(c => c.id);
       const { data: itemsData } = await supabase
         .from('checklist_items')
-        .select('checklist_id, title, is_completed')
+        .select('checklist_id, text, checked')
         .in('checklist_id', clIds);
 
       checklists = clData.map(cl => ({
         title: cl.title,
-        items: (itemsData || []).filter(item => item.checklist_id === cl.id)
+        items: (itemsData || [])
+          .filter(item => item.checklist_id === cl.id)
+          .map(item => ({
+            title: item.text,
+            is_completed: item.checked
+          }))
       }));
     }
   } catch (e) {
