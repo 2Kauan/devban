@@ -1019,15 +1019,17 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
                             type="button"
                             onClick={async () => {
                               if (card?.id) {
+                                toast.info('Sincronizando com Google Tasks...');
                                 await syncCardToGoogleTasks(card.id, true);
+                                window.open('https://tasks.google.com', '_blank');
                               } else {
-                                toast.info('Salve o cartão primeiro para sincronizar com o Google Tarefas.');
+                                toast.info('Salve o cartão primeiro para sincronizar com o Google Tasks.');
                               }
                             }}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 text-xs font-bold transition-all border border-emerald-500/20 cursor-pointer"
                           >
                             <CheckSquare className="w-3.5 h-3.5" />
-                            Adicionar ao Google Tarefas
+                            Adicionar ao Google Tasks
                           </button>
                         </div>
                       )}

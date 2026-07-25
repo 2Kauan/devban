@@ -171,8 +171,8 @@ export default function Integrations() {
       iconBg: 'bg-blue-500/10 border-blue-500/20',
       iconColor: 'text-blue-500',
       brandSvg: (
-        <div className="w-full h-full overflow-hidden">
-          <img src="/google-calendar--v1.webp" alt="Google Calendar" className="w-full h-full object-cover" />
+        <div className="w-full h-full overflow-hidden p-0.5 flex items-center justify-center">
+          <img src="/google-calendar--v1.webp" alt="Google Calendar" className="w-full h-full object-contain" />
         </div>
       ),
       isActive: !!integrationsState.google_calendar?.active,
@@ -182,13 +182,13 @@ export default function Integrations() {
     },
     {
       id: 'google_tasks',
-      name: 'Google Tarefas',
+      name: 'Google Tasks',
       category: 'google',
       description: 'Sincronize seus cards do Devban com a sua lista de tarefas do Google.',
       iconBg: 'bg-blue-500/10 border-blue-500/20',
       iconColor: 'text-blue-500',
       brandSvg: (
-        <div className="w-full h-full overflow-hidden p-1">
+        <div className="w-full h-full overflow-hidden p-0.5 flex items-center justify-center">
           <img src="/Google_Tasks_2021.svg.webp" alt="Google Tasks" className="w-full h-full object-contain" />
         </div>
       ),
