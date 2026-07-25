@@ -164,7 +164,7 @@ export default function Integrations() {
   const list: Integration[] = [
     {
       id: 'google_calendar',
-      name: 'Google Agenda',
+      name: 'Google Calendar',
       category: 'google',
       description: 'Sincronize prazos de tarefas do Devban na sua agenda.',
       iconBg: 'bg-blue-500/10 border-blue-500/20',
