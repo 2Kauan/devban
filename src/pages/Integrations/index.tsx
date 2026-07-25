@@ -103,6 +103,10 @@ export default function Integrations() {
           provider: 'google',
           options: {
             scopes: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly',
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent select_account'
+            },
             redirectTo: `${window.location.origin}/integrations`
           }
         });
