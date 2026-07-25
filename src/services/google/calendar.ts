@@ -222,10 +222,14 @@ export const isCardEligibleForGoogleSync = (cardProjectId?: string | null): bool
   return true;
 };
 
+let lastGCalToastTime = 0;
+const GCAL_TOAST_THROTTLE_MS = 30 * 60 * 1000; // 30 minutes
+
 export const syncCardToGoogleCalendar = async (
   cardId: string,
   overrideColumnId?: string,
-  overrideDueDate?: string | null
+  overrideDueDate?: string | null,
+  forceShowToast = false
 ) => {
   try {
     const { data: card } = await supabase
@@ -276,7 +280,11 @@ export const syncCardToGoogleCalendar = async (
     }
 
     if (res.ok) {
-      toast.success('Sincronizado com o Google Agenda!');
+      const now = Date.now();
+      if (forceShowToast || now - lastGCalToastTime >= GCAL_TOAST_THROTTLE_MS) {
+        lastGCalToastTime = now;
+        toast.success('Sincronizado com o Google Agenda!');
+      }
     } else {
       console.error('Google Calendar API Error:', res.status, await res.text());
     }
