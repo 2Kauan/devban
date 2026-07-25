@@ -317,3 +317,26 @@ export const syncSelectedCardsToGoogleCalendar = async (cardIds: string[]) => {
     toast.error('Erro ao sincronizar cartões: ' + err.message);
   }
 };
+
+export const subscribeToGoogleCalendarWebhook = async () => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-calendar-subscribe`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (res.ok) {
+      console.log('Successfully subscribed to Google Calendar webhooks');
+    } else {
+      console.error('Failed to subscribe to Google Calendar webhooks:', await res.text());
+    }
+  } catch (err) {
+    console.error('Error in subscribeToGoogleCalendarWebhook:', err);
+  }
+};

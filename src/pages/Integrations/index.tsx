@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { syncAllCardsToGoogleCalendar, syncSelectedCardsToGoogleCalendar, fetchCardsWithDueDate } from '@/services/google/calendar';
+import { syncAllCardsToGoogleCalendar, syncSelectedCardsToGoogleCalendar, fetchCardsWithDueDate, subscribeToGoogleCalendarWebhook } from '@/services/google/calendar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopHeader } from '@/components/layout/TopHeader';
 import { useProjectsQuery } from '@/hooks/useProjectsQuery';
@@ -53,6 +53,7 @@ export default function Integrations() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.provider_token) {
         localStorage.setItem('devban_gcal_token', session.provider_token);
+        subscribeToGoogleCalendarWebhook();
       }
     });
 
