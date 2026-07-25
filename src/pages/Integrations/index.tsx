@@ -172,7 +172,7 @@ export default function Integrations() {
       id: 'google_calendar',
       name: 'Google Calendar',
       category: 'google',
-      description: 'Sincronize prazos de tarefas do Devban na sua agenda.',
+      description: 'Sincronize prazos e cartões do Devban no seu Google Calendar.',
       iconBg: 'bg-blue-500/10 border-blue-500/20',
       iconColor: 'text-blue-500',
       brandSvg: (
@@ -189,7 +189,7 @@ export default function Integrations() {
       id: 'google_tasks',
       name: 'Google Tasks',
       category: 'google',
-      description: 'Sincronize seus cards do Devban com a sua lista de tarefas do Google.',
+      description: 'Sincronize prazos e cartões do Devban no seu Google Tasks.',
       iconBg: 'bg-blue-500/10 border-blue-500/20',
       iconColor: 'text-blue-500',
       brandSvg: (
@@ -230,7 +230,7 @@ export default function Integrations() {
             </div>
           </div>
 
-          <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
             <AnimatePresence mode="popLayout">
               {list.map(app => (
                 <motion.div
@@ -240,64 +240,71 @@ export default function Integrations() {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.2 }}
-                  className={`relative bg-card border border-border rounded-2xl p-5 shadow-sm transition-all space-y-4 ${
+                  className={`relative bg-card border border-border rounded-2xl p-5 shadow-sm transition-all flex flex-col justify-between space-y-4 h-full ${
                     app.isComingSoon ? 'opacity-50 grayscale-[50%]' : 'hover:shadow-md'
                   }`}
                 >
-                  {app.isComingSoon && (
-                    <span className="absolute top-4 right-4 bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                      Em breve
-                    </span>
-                  )}
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden ${app.iconBg} ${app.iconColor}`}>
-                      {app.brandSvg}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-foreground">{app.name}</h3>
-                      <p className="text-xs text-muted-foreground">{app.isComingSoon ? 'Em breve' : app.isActive ? 'Ativo' : 'Desconectado'}</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{app.description}</p>
-                  {app.isActive && !app.isComingSoon && (
-                    <div className="flex items-center gap-1.5 text-xs text-primary font-bold">
-                      <FolderKanban size={14} />
-                      {integrationsState[app.id]?.projectId === 'all' 
-                        ? 'Todos os Projetos' 
-                        : projects.find(p => p.id === integrationsState[app.id]?.projectId)?.name || 'Projeto'}
-                    </div>
-                  )}
-                  <div className="flex gap-2">
-                    {app.isComingSoon ? (
-                      <button
-                        disabled
-                        className="w-full py-2 rounded-lg text-xs font-bold bg-muted/60 text-muted-foreground border border-border cursor-not-allowed"
-                      >
-                        Em Breve
-                      </button>
-                    ) : (
-                      <>
-                        <button
-                          onClick={() => toggleIntegration(app.id)}
-                          disabled={connectingId === app.id}
-                          className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${
-                            app.isActive 
-                              ? 'bg-destructive/10 text-destructive hover:bg-destructive/20' 
-                              : 'bg-primary text-primary-foreground hover:bg-primary/90'
-                          }`}
-                        >
-                          {connectingId === app.id ? <RefreshCw className="animate-spin mx-auto" size={16} /> : app.isActive ? 'Desativar' : 'Ativar'}
-                        </button>
-                        {app.isActive && (
-                          <button
-                            onClick={() => setSelectedModalApp(app.id)}
-                            className="px-3 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 transition-all cursor-pointer"
-                          >
-                            <Settings2 size={16} />
-                          </button>
-                        )}
-                      </>
+                  <div>
+                    {app.isComingSoon && (
+                      <span className="absolute top-4 right-4 bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                        Em breve
+                      </span>
                     )}
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shrink-0 ${app.iconBg} ${app.iconColor}`}>
+                        {app.brandSvg}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-foreground truncate">{app.name}</h3>
+                        <p className="text-xs text-muted-foreground">{app.isComingSoon ? 'Em breve' : app.isActive ? 'Ativo' : 'Desconectado'}</p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-3 min-h-[40px] leading-snug">{app.description}</p>
+                  </div>
+
+                  <div className="space-y-4 pt-2">
+                    <div className="min-h-[20px] flex items-center">
+                      {app.isActive && !app.isComingSoon && (
+                        <div className="flex items-center gap-1.5 text-xs text-primary font-bold">
+                          <FolderKanban size={14} />
+                          {integrationsState[app.id]?.projectId === 'all' 
+                            ? 'Todos os Projetos' 
+                            : projects.find(p => p.id === integrationsState[app.id]?.projectId)?.name || 'Projeto'}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      {app.isComingSoon ? (
+                        <button
+                          disabled
+                          className="w-full py-2 rounded-lg text-xs font-bold bg-muted/60 text-muted-foreground border border-border cursor-not-allowed"
+                        >
+                          Em Breve
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => toggleIntegration(app.id)}
+                            disabled={connectingId === app.id}
+                            className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${
+                              app.isActive 
+                                ? 'bg-destructive/10 text-destructive hover:bg-destructive/20' 
+                                : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                            }`}
+                          >
+                            {connectingId === app.id ? <RefreshCw className="animate-spin mx-auto" size={16} /> : app.isActive ? 'Desativar' : 'Ativar'}
+                          </button>
+                          {app.isActive && (
+                            <button
+                              onClick={() => setSelectedModalApp(app.id)}
+                              className="px-3 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 transition-all cursor-pointer"
+                            >
+                              <Settings2 size={16} />
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
                 </motion.div>
               ))}
