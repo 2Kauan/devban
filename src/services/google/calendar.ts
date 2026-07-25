@@ -54,12 +54,14 @@ const callGoogleProxy = async (targetUrl: string, method: string = 'GET', body?:
 /**
  * Fetches all cards with due dates, optionally filtered by project_id.
  */
-export const fetchCardsWithDueDate = async (projectId?: string) => {
+export const fetchCardsWithDueDate = async (projectId?: string, includeCardsWithoutDueDate = false) => {
   let query = supabase
     .from('cards')
-    .select('id, title, due_date, is_completed, priority, project_id')
-    .not('due_date', 'is', null)
-    .order('due_date', { ascending: true });
+    .select('id, title, due_date, is_completed, priority, project_id');
+
+  if (!includeCardsWithoutDueDate) {
+    query = query.not('due_date', 'is', null);
+  }
 
   if (projectId && projectId !== 'all') {
     query = query.eq('project_id', projectId);

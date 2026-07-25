@@ -81,17 +81,18 @@ export default function Integrations() {
     localStorage.setItem('devban_integrations', JSON.stringify(integrationsState));
   }, [integrationsState]);
 
-  const currentGCalProjectId = integrationsState.google_calendar?.projectId;
+  const currentAppProjectId = selectedModalApp ? integrationsState[selectedModalApp]?.projectId : 'all';
 
   useEffect(() => {
-    if (selectedModalApp === 'google_calendar' && syncMode === 'selected') {
+    if (selectedModalApp && syncMode === 'selected') {
       setLoadingCards(true);
-      fetchCardsWithDueDate(currentGCalProjectId).then(cards => {
+      const isTasks = selectedModalApp === 'google_tasks';
+      fetchCardsWithDueDate(currentAppProjectId, isTasks).then(cards => {
         setAvailableCards(cards);
         setLoadingCards(false);
       });
     }
-  }, [selectedModalApp, syncMode, currentGCalProjectId]);
+  }, [selectedModalApp, syncMode, currentAppProjectId]);
 
   const toggleIntegration = async (id: string) => {
     const current = integrationsState[id] || { active: false };
