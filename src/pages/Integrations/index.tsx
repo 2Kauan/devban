@@ -53,7 +53,8 @@ export default function Integrations() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.provider_token) {
         localStorage.setItem('devban_gcal_token', session.provider_token);
-        subscribeToGoogleCalendarWebhook();
+        const providerRefreshToken = (session as any).provider_refresh_token || undefined;
+        subscribeToGoogleCalendarWebhook(providerRefreshToken);
       }
     });
 

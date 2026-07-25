@@ -323,7 +323,7 @@ export const syncSelectedCardsToGoogleCalendar = async (cardIds: string[]) => {
   }
 };
 
-export const subscribeToGoogleCalendarWebhook = async () => {
+export const subscribeToGoogleCalendarWebhook = async (providerRefreshToken?: string) => {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
@@ -333,7 +333,8 @@ export const subscribeToGoogleCalendarWebhook = async () => {
       headers: {
         'Authorization': `Bearer ${session.access_token}`,
         'Content-Type': 'application/json',
-      }
+      },
+      body: JSON.stringify({ provider_refresh_token: providerRefreshToken })
     });
 
     if (res.ok) {
