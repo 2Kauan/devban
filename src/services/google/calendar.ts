@@ -346,3 +346,41 @@ export const subscribeToGoogleCalendarWebhook = async (providerRefreshToken?: st
     console.error('Error in subscribeToGoogleCalendarWebhook:', err);
   }
 };
+
+export const syncGoogleCalendarToDevban = async () => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const res = await callGoogleProxy('https://www.googleapis.com/calendar/v3/calendars/primary/events');
+    if (!res.ok) return;
+
+    const data = await res.json();
+    const items = data.items || [];
+
+    for (const item of items) {
+      const eventId = item.id || '';
+      let cardId: string | null = null;
+
+      if (eventId.startsWith('devban')) {
+        const cleanUuid = eventId.replace('devban', '');
+        if (cleanUuid.length === 32) {
+          cardId = `${cleanUuid.substring(0, 8)}-${cleanUuid.substring(8, 12)}-${cleanUuid.substring(12, 16)}-${cleanUuid.substring(16, 20)}-${cleanUuid.substring(20)}`;
+        }
+      }
+
+      if (cardId) {
+        if (item.status === 'cancelled') {
+          await supabase.from('cards').update({ due_date: null }).eq('id', cardId);
+        } else {
+          const dueDate = item.start?.dateTime || item.start?.date;
+          if (dueDate) {
+            await supabase.from('cards').update({ due_date: new Date(dueDate).toISOString() }).eq('id', cardId);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error syncing Google Calendar to Devban:', err);
+  }
+};

@@ -218,3 +218,51 @@ export const syncSelectedCardsToGoogleTasks = async (cardIds: string[]) => {
     toast.error('Erro ao sincronizar no Google Tarefas: ' + err.message);
   }
 };
+
+export const syncGoogleTasksToDevban = async () => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data: resources } = await supabase
+      .from('google_resources')
+      .select('*')
+      .eq('resource_type', 'task');
+
+    if (!resources || resources.length === 0) return;
+
+    const res = await callGoogleTasksApi('https://tasks.googleapis.com/v1/lists/@default/tasks?showCompleted=true&showHidden=true');
+    if (!res.ok) return;
+
+    const data = await res.json();
+    const googleTasks = data.items || [];
+
+    for (const resource of resources) {
+      const gTask = googleTasks.find((t: any) => t.id === resource.resource_id);
+      if (gTask) {
+        const updateData: any = {};
+
+        if (gTask.title) {
+          updateData.title = gTask.title;
+        }
+
+        if (gTask.due) {
+          updateData.due_date = new Date(gTask.due).toISOString();
+        }
+
+        if (gTask.status === 'completed') {
+          updateData.is_completed = true;
+        }
+
+        if (Object.keys(updateData).length > 0) {
+          await supabase
+            .from('cards')
+            .update(updateData)
+            .eq('id', resource.devban_entity_id);
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error syncing Google Tasks to Devban:', err);
+  }
+};

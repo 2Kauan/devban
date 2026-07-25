@@ -13,12 +13,19 @@ import { DayDrawer } from '@/components/planning/DayDrawer';
 import type { KanbanCardType } from '@/types/kanban';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { syncCardToGoogleCalendar, deleteGoogleCalendarEvent } from '@/services/google/calendar';
+import { syncCardToGoogleCalendar, deleteGoogleCalendarEvent, syncGoogleCalendarToDevban } from '@/services/google/calendar';
+import { syncGoogleTasksToDevban } from '@/services/google/tasks';
 import { addDays, subDays } from 'date-fns';
+import { useEffect } from 'react';
 
 export default function ProjectPlanning() {
   const { id } = useParams<{ id: string }>();
   const { data, isLoading, refetch, setOptimisticCards } = useProjectQuery(id);
+
+  useEffect(() => {
+    syncGoogleCalendarToDevban();
+    syncGoogleTasksToDevban();
+  }, []);
   const [highlightedCardId, setHighlightedCardId] = useState<string | null>(null);
   
   const [currentDate, setCurrentDate] = useState(new Date());
