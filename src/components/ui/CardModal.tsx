@@ -1005,15 +1005,31 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
                         }}
                       />
                       {watch('due_date') && (
-                        <a
-                          href={getGoogleCalendarWebUrl(watch('title') || 'Tarefa', watch('description'), watch('due_date'))}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 text-xs font-bold transition-all border border-blue-500/20"
-                        >
-                          <Calendar className="w-3.5 h-3.5" />
-                          Adicionar ao Google Agenda
-                        </a>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <a
+                            href={getGoogleCalendarWebUrl(watch('title') || 'Tarefa', watch('description'), watch('due_date'))}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 text-xs font-bold transition-all border border-blue-500/20"
+                          >
+                            <Calendar className="w-3.5 h-3.5" />
+                            Adicionar ao Google Agenda
+                          </a>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (card?.id) {
+                                await syncCardToGoogleTasks(card.id, true);
+                              } else {
+                                toast.info('Salve o cartão primeiro para sincronizar com o Google Tarefas.');
+                              }
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 text-xs font-bold transition-all border border-emerald-500/20 cursor-pointer"
+                          >
+                            <CheckSquare className="w-3.5 h-3.5" />
+                            Adicionar ao Google Tarefas
+                          </button>
+                        </div>
                       )}
                     </div>
 

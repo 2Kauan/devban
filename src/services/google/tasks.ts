@@ -41,17 +41,34 @@ const callGoogleTasksApi = async (targetUrl: string, method: string = 'GET', bod
   return response;
 };
 
-export const syncCardToGoogleTasks = async (cardId: string) => {
+export const isCardEligibleForGoogleTasksSync = (cardProjectId?: string | null): boolean => {
+  const saved = localStorage.getItem('devban_integrations');
+  if (!saved) return true;
+
+  try {
+    const parsed = JSON.parse(saved);
+    const gtasks = parsed.google_tasks;
+    if (!gtasks) return true;
+
+    if (gtasks.active === false) {
+      return false;
+    }
+
+    if (gtasks.projectId && gtasks.projectId !== 'all') {
+      if (cardProjectId && cardProjectId !== gtasks.projectId) {
+        return false;
+      }
+    }
+    return true;
+  } catch (e) {
+    return true;
+  }
+};
+
+export const syncCardToGoogleTasks = async (cardId: string, showToast = false) => {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
-
-    // Verify if Google Tasks integration is enabled in localStorage
-    const saved = localStorage.getItem('devban_integrations');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.google_tasks?.active === false) return;
-    }
 
     const { data: card } = await supabase
       .from('cards')
@@ -60,6 +77,8 @@ export const syncCardToGoogleTasks = async (cardId: string) => {
       .single();
 
     if (!card) return;
+
+    if (!isCardEligibleForGoogleTasksSync(card.project_id)) return;
 
     // Check if we already have a task mapped in google_resources
     const { data: mappedResource } = await supabase
@@ -82,6 +101,7 @@ export const syncCardToGoogleTasks = async (cardId: string) => {
       const res = await callGoogleTasksApi(updateUrl, 'PATCH', taskPayload);
       if (res.ok) {
         console.log('Google Task updated successfully');
+        if (showToast) toast.success('Tarefa atualizada no Google Tarefas!');
       } else {
         console.error('Error updating Google Task:', await res.text());
       }
@@ -123,7 +143,7 @@ export const syncCardToGoogleTasks = async (cardId: string) => {
             devban_entity_id: cardId
           });
         }
-        toast.success('Tarefa sincronizada no Google Tarefas!');
+        toast.success('🎉 Tarefa adicionada ao Google Tarefas!');
       } else {
         console.error('Error creating Google Task:', await res.text());
       }
@@ -156,5 +176,45 @@ export const deleteGoogleTask = async (cardId: string) => {
     }
   } catch (err) {
     console.error('Error deleting Google Task:', err);
+  }
+};
+
+export const syncAllCardsToGoogleTasks = async () => {
+  try {
+    toast.info('Sincronizando cartões com o Google Tarefas...');
+
+    const { data: cards, error } = await supabase
+      .from('cards')
+      .select('*');
+
+    if (error || !cards || cards.length === 0) return;
+
+    const eligibleCards = cards.filter(c => isCardEligibleForGoogleTasksSync(c.project_id));
+    for (const card of eligibleCards) {
+      await syncCardToGoogleTasks(card.id);
+    }
+    toast.success(`🎉 Sincronizados ${eligibleCards.length} cartão(ões) no Google Tarefas!`);
+  } catch (err: any) {
+    toast.error('Erro ao sincronizar no Google Tarefas: ' + err.message);
+  }
+};
+
+export const syncSelectedCardsToGoogleTasks = async (cardIds: string[]) => {
+  try {
+    toast.info(`Sincronizando ${cardIds.length} cartão(ões) com o Google Tarefas...`);
+
+    const { data: cards, error } = await supabase
+      .from('cards')
+      .select('*')
+      .in('id', cardIds);
+
+    if (error || !cards || cards.length === 0) return;
+
+    for (const card of cards) {
+      await syncCardToGoogleTasks(card.id);
+    }
+    toast.success(`🎉 Sincronizados ${cards.length} cartão(ões) selecionado(s) no Google Tarefas!`);
+  } catch (err: any) {
+    toast.error('Erro ao sincronizar no Google Tarefas: ' + err.message);
   }
 };

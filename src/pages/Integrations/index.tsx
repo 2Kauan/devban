@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { syncAllCardsToGoogleCalendar, syncSelectedCardsToGoogleCalendar, fetchCardsWithDueDate, subscribeToGoogleCalendarWebhook } from '@/services/google/calendar';
+import { syncAllCardsToGoogleTasks, syncSelectedCardsToGoogleTasks } from '@/services/google/tasks';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopHeader } from '@/components/layout/TopHeader';
 import { useProjectsQuery } from '@/hooks/useProjectsQuery';
@@ -456,10 +457,18 @@ export default function Integrations() {
 
                 <button
                   onClick={async () => {
-                    if (syncMode === 'all') {
-                      await syncAllCardsToGoogleCalendar();
+                    if (selectedModalApp === 'google_tasks') {
+                      if (syncMode === 'all') {
+                        await syncAllCardsToGoogleTasks();
+                      } else {
+                        await syncSelectedCardsToGoogleTasks(selectedCardIds);
+                      }
                     } else {
-                      await syncSelectedCardsToGoogleCalendar(selectedCardIds);
+                      if (syncMode === 'all') {
+                        await syncAllCardsToGoogleCalendar();
+                      } else {
+                        await syncSelectedCardsToGoogleCalendar(selectedCardIds);
+                      }
                     }
                     setSelectedModalApp(null);
                   }}
