@@ -27,30 +27,34 @@ interface Integration {
   statusText: string;
   configType: 'oauth' | 'ical' | 'webhook' | 'token';
   projectId: string;
+  isComingSoon?: boolean;
 }
 
 export default function Integrations() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { data: projects = [] } = useProjectsQuery();
   
-  // Persisted state in localStorage for demonstration and persistent settings
   const [integrationsState, setIntegrationsState] = useState<Record<string, { active: boolean; projectId?: string; config?: any }>>(() => {
     const saved = localStorage.getItem('devban_integrations');
-    return saved ? JSON.parse(saved) : {
-      google_calendar: { active: false, projectId: 'all', config: { email: '', syncMode: 'two-way' } }
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return {
+      google_calendar: { active: false, projectId: 'all' },
+      google_tasks: { active: false, projectId: 'all' }
     };
   });
 
   const [selectedModalApp, setSelectedModalApp] = useState<string | null>(null);
+  const [connectingId, setConnectingId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string>('');
+  
   const [syncMode, setSyncMode] = useState<'all' | 'selected'>('all');
   const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
   const [availableCards, setAvailableCards] = useState<Array<{ id: string; title: string; due_date: string; is_completed: boolean; priority: string | null }>>([]);
   const [loadingCards, setLoadingCards] = useState(false);
-  const [userEmail, setUserEmail] = useState<string>('');
-  const [connectingId, setConnectingId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Detect if user logged in / connected via Google provider
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.provider_token) {
         localStorage.setItem('devban_gcal_token', session.provider_token);
@@ -98,7 +102,7 @@ export default function Integrations() {
     const current = integrationsState[id] || { active: false };
     const nextActive = !current.active;
 
-    const googleIds = ['google_calendar', 'google_tasks'];
+    const googleIds = ['google_calendar'];
     if (nextActive && googleIds.includes(id)) {
       setConnectingId(id);
       await new Promise(r => setTimeout(r, 600));
@@ -106,7 +110,7 @@ export default function Integrations() {
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            scopes: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/tasks',
+            scopes: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly',
             queryParams: {
               access_type: 'offline',
               prompt: 'consent select_account'
@@ -139,7 +143,7 @@ export default function Integrations() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          scopes: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/tasks',
+          scopes: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly',
           queryParams: {
             access_type: 'offline',
             prompt: 'consent select_account'
@@ -193,10 +197,11 @@ export default function Integrations() {
           <img src="/Google_Tasks_2021.svg.webp" alt="Google Tasks" className="w-full h-full object-contain" />
         </div>
       ),
-      isActive: !!integrationsState.google_tasks?.active,
-      statusText: integrationsState.google_tasks?.active ? 'Conectado' : 'Desconectado',
+      isActive: false,
+      statusText: 'Em breve',
       configType: 'oauth',
-      projectId: integrationsState.google_tasks?.projectId || 'all'
+      projectId: 'all',
+      isComingSoon: true
     }
   ];
 
@@ -235,19 +240,26 @@ export default function Integrations() {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.2 }}
-                  className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all space-y-4"
+                  className={`relative bg-card border border-border rounded-2xl p-5 shadow-sm transition-all space-y-4 ${
+                    app.isComingSoon ? 'opacity-50 grayscale-[50%]' : 'hover:shadow-md'
+                  }`}
                 >
+                  {app.isComingSoon && (
+                    <span className="absolute top-4 right-4 bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                      Em breve
+                    </span>
+                  )}
                   <div className="flex items-center gap-4">
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden ${app.iconBg} ${app.iconColor}`}>
                       {app.brandSvg}
                     </div>
                     <div className="flex-1">
                       <h3 className="font-bold text-foreground">{app.name}</h3>
-                      <p className="text-xs text-muted-foreground">{app.isActive ? 'Ativo' : 'Desconectado'}</p>
+                      <p className="text-xs text-muted-foreground">{app.isComingSoon ? 'Em breve' : app.isActive ? 'Ativo' : 'Desconectado'}</p>
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground">{app.description}</p>
-                  {app.isActive && (
+                  {app.isActive && !app.isComingSoon && (
                     <div className="flex items-center gap-1.5 text-xs text-primary font-bold">
                       <FolderKanban size={14} />
                       {integrationsState[app.id]?.projectId === 'all' 
@@ -256,24 +268,35 @@ export default function Integrations() {
                     </div>
                   )}
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => toggleIntegration(app.id)}
-                      disabled={connectingId === app.id}
-                      className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${
-                        app.isActive 
-                          ? 'bg-destructive/10 text-destructive hover:bg-destructive/20' 
-                          : 'bg-primary text-primary-foreground hover:bg-primary/90'
-                      }`}
-                    >
-                      {connectingId === app.id ? <RefreshCw className="animate-spin mx-auto" size={16} /> : app.isActive ? 'Desativar' : 'Ativar'}
-                    </button>
-                    {app.isActive && (
+                    {app.isComingSoon ? (
                       <button
-                        onClick={() => setSelectedModalApp(app.id)}
-                        className="px-3 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 transition-all cursor-pointer"
+                        disabled
+                        className="w-full py-2 rounded-lg text-xs font-bold bg-muted/60 text-muted-foreground border border-border cursor-not-allowed"
                       >
-                        <Settings2 size={16} />
+                        Em Breve
                       </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => toggleIntegration(app.id)}
+                          disabled={connectingId === app.id}
+                          className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${
+                            app.isActive 
+                              ? 'bg-destructive/10 text-destructive hover:bg-destructive/20' 
+                              : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                          }`}
+                        >
+                          {connectingId === app.id ? <RefreshCw className="animate-spin mx-auto" size={16} /> : app.isActive ? 'Desativar' : 'Ativar'}
+                        </button>
+                        {app.isActive && (
+                          <button
+                            onClick={() => setSelectedModalApp(app.id)}
+                            className="px-3 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 transition-all cursor-pointer"
+                          >
+                            <Settings2 size={16} />
+                          </button>
+                        )}
+                      </>
                     )}
                   </div>
                 </motion.div>
