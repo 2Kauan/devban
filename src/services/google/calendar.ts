@@ -2,10 +2,32 @@ import { supabase } from '@/lib/supabase';
 import { getGCalEventId, mapColorToGoogleColorId, buildRichEventDescription } from '../../integrations/google/GoogleHelpers';
 import { toast } from 'sonner';
 
-/**
- * Helper to call Google API through our backend proxy
- */
 const callGoogleProxy = async (targetUrl: string, method: string = 'GET', body?: any) => {
+  const localToken = localStorage.getItem('devban_gcal_token');
+  
+  if (localToken) {
+    try {
+      const response = await fetch(targetUrl, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${localToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+
+      if (response.ok || response.status !== 401) {
+        return response;
+      }
+      
+      // Token is invalid/expired
+      localStorage.removeItem('devban_gcal_token');
+    } catch (e) {
+      console.error('Direct Google API call failed, trying proxy...', e);
+    }
+  }
+
+  // Fallback to Supabase Edge Function Proxy
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Unauthorized');
 
@@ -19,6 +41,12 @@ const callGoogleProxy = async (targetUrl: string, method: string = 'GET', body?:
     },
     body: body ? JSON.stringify(body) : undefined,
   });
+
+  if (!response.ok && (response.status === 401 || response.status === 404)) {
+    toast.error('Sua sessão com o Google Agenda expirou. Por favor, clique em "Configurar" na aba de Integrações e reautorize.', {
+      id: 'gcal-token-expired'
+    });
+  }
 
   return response;
 };
