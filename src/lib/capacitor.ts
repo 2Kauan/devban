@@ -94,3 +94,15 @@ export const updateWidgetTasks = async (tasks: any[]) => {
     }
   }
 };
+
+export const pinWidgetCard = async (card: { id: string; title: string; description?: string; priority?: string; projectId?: string }) => {
+  if (isNative) {
+    try {
+      await WidgetUpdatePlugin.pinCard({
+        card: JSON.stringify(card)
+      });
+    } catch (e) {
+      console.warn('Failed to programmatically pin card widget', e);
+    }
+  }
+};

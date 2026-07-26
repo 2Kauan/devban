@@ -2,12 +2,13 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/lib/supabase';
 import type { KanbanCardType } from '@/types/kanban';
-import { Clock, CheckSquare, Trash2, Tag, Loader2, ArrowRight, X, AlignLeft, Plus, Flag, ChevronDown, ArrowDownRight, ArrowUpRight, AlertCircle, Users, ListTree, CheckCircle2, Pencil, Calendar } from 'lucide-react';
+import { Clock, CheckSquare, Trash2, Tag, Loader2, ArrowRight, X, AlignLeft, Plus, Flag, ChevronDown, ArrowDownRight, ArrowUpRight, AlertCircle, Users, ListTree, CheckCircle2, Pencil, Calendar, Pin } from 'lucide-react';
 import { queueMutation, isNetworkError } from '@/lib/offlineSync';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { CardComments } from '@/components/kanban/CardComments';
+import { isNative, pinWidgetCard } from '@/lib/capacitor';
 
 import { TagSelector } from '@/components/ui/TagSelector';
 import type { Category, Profile } from '@/types/database';
@@ -1179,16 +1180,34 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
                     </span>
                   )}
                 </div>
-                {card && (
-                  <button 
-                    onClick={handleDelete}
-                    disabled={isLoading}
-                    className="flex items-center gap-2 text-sm text-destructive hover:bg-destructive/10 font-medium rounded-lg px-4 py-2 transition-all"
-                  >
-                    <Trash2 size={14} />
-                    Excluir
-                  </button>
-                )}
+                <div className="flex items-center gap-2">
+                  {card && isNative && (
+                    <button 
+                      onClick={() => pinWidgetCard({
+                        id: card.id,
+                        title: getValues('title') || card.title,
+                        description: (getValues('description') || card.description) ?? undefined,
+                        priority: (getValues('priority') || card.priority) ?? undefined,
+                        projectId: projectId
+                      })}
+                      disabled={isLoading}
+                      className="flex items-center gap-2 text-sm text-primary hover:bg-primary/10 font-medium rounded-lg px-4 py-2 transition-all"
+                    >
+                      <Pin size={14} />
+                      Fixar na Home
+                    </button>
+                  )}
+                  {card && (
+                    <button 
+                      onClick={handleDelete}
+                      disabled={isLoading}
+                      className="flex items-center gap-2 text-sm text-destructive hover:bg-destructive/10 font-medium rounded-lg px-4 py-2 transition-all"
+                    >
+                      <Trash2 size={14} />
+                      Excluir
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </motion.div>

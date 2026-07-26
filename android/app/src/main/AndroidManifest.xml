@@ -34,13 +34,25 @@
         <!-- Android Widget Provider -->
         <receiver
             android:name=".TasksWidgetProvider"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/tasks_widget_info" />
+        </receiver>
+
+        <!-- Pinned Card Widget Provider -->
+        <receiver
+            android:name=".PinnedCardWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/card_widget_info" />
         </receiver>
 
         <!-- Widget ListView RemoteViews Service -->
