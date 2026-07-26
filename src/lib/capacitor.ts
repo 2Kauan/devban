@@ -119,3 +119,14 @@ export const updateAvailableProjects = async (projects: any[]) => {
     }
   }
 };
+
+export const updateWidgetStats = async (completed: number, pending: number) => {
+  if (isNative) {
+    try {
+      await Preferences.set({ key: 'widget_stats_completed', value: String(completed) });
+      await Preferences.set({ key: 'widget_stats_pending', value: String(pending) });
+    } catch (e) {
+      console.warn('Failed to update native widget stats', e);
+    }
+  }
+};

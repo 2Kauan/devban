@@ -8,7 +8,7 @@ import { TopHeader } from '@/components/layout/TopHeader';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { useProjectsQuery } from '@/hooks/useProjectsQuery';
 import { useQueryClient } from '@tanstack/react-query';
-import { updateWidgetTasks, updateAvailableProjects } from '@/lib/capacitor';
+import { updateWidgetTasks, updateAvailableProjects, updateWidgetStats } from '@/lib/capacitor';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -70,17 +70,31 @@ export default function Dashboard() {
 
   // Sincroniza tarefas ativas com o Widget Android nativo
   React.useEffect(() => {
-    const activeCards = cards
-      .filter(c => !completedColumnIds.includes(c.column_id))
-      .map(c => ({
+    const mappedCards = cards.map(c => {
+      const isCompleted = completedColumnIds.includes(c.column_id);
+      const isOverdue = c.due_date && new Date(c.due_date) < new Date() && !isCompleted;
+      
+      let status = 'in_progress';
+      if (isCompleted) status = 'completed';
+      else if (isOverdue) status = 'overdue';
+
+      return {
         id: c.id,
         title: c.title,
         priority: c.priority || 'low',
-        projectId: c.project_id
-      }))
-      .slice(0, 15);
+        projectId: c.project_id,
+        status,
+        favorite: c.priority === 'high' // Considera prioridade alta como favorito para exibição
+      };
+    });
     
-    updateWidgetTasks(activeCards);
+    // Atualiza lista completa para filtragem nativa
+    updateWidgetTasks(mappedCards);
+
+    // Calcula estatísticas para o widget de produtividade
+    const completedCount = cards.filter(c => completedColumnIds.includes(c.column_id)).length;
+    const pendingCount = cards.length - completedCount;
+    updateWidgetStats(completedCount, pendingCount);
   }, [cards, completedColumnIds]);
 
   // Sincroniza lista de projetos disponíveis para a configuração dos widgets

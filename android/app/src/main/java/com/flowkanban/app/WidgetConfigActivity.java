@@ -18,9 +18,11 @@ import java.util.List;
 public class WidgetConfigActivity extends Activity {
 
     private int appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
+    private Spinner spinnerWidgetType;
     private Spinner spinnerProject;
     private Spinner spinnerMaxItems;
     private List<ProjectItem> projectsList = new ArrayList<>();
+    private List<WidgetTypeItem> widgetTypesList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,9 +49,29 @@ public class WidgetConfigActivity extends Activity {
 
         setContentView(R.layout.activity_widget_config);
 
+        spinnerWidgetType = findViewById(R.id.spinner_widget_type);
         spinnerProject = findViewById(R.id.spinner_project);
         spinnerMaxItems = findViewById(R.id.spinner_max_items);
         Button btnSave = findViewById(R.id.btn_save_config);
+
+        // Populate Widget Types
+        widgetTypesList.add(new WidgetTypeItem("list_all", "Dashboard: Todas as Tarefas"));
+        widgetTypesList.add(new WidgetTypeItem("list_overdue", "Lista: Tarefas Atrasadas"));
+        widgetTypesList.add(new WidgetTypeItem("list_progress", "Lista: Em Andamento"));
+        widgetTypesList.add(new WidgetTypeItem("list_completed", "Lista: Tarefas Concluídas"));
+        widgetTypesList.add(new WidgetTypeItem("list_favorites", "Lista: Tarefas Favoritas"));
+        widgetTypesList.add(new WidgetTypeItem("quick_actions", "Atalhos: Ações Rápidas"));
+        widgetTypesList.add(new WidgetTypeItem("productivity_summary", "Produtividade: Resumo Geral"));
+
+        List<String> typeNames = new ArrayList<>();
+        for (WidgetTypeItem t : widgetTypesList) {
+            typeNames.add(t.name);
+        }
+        ArrayAdapter<String> typeAdapter = new ArrayAdapter<>(
+            this, android.R.layout.simple_spinner_item, typeNames
+        );
+        typeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerWidgetType.setAdapter(typeAdapter);
 
         // Load projects and populate spinner
         loadAvailableProjects();
@@ -104,9 +126,12 @@ public class WidgetConfigActivity extends Activity {
     }
 
     private void saveWidgetConfig() {
+        int selectedTypeIndex = spinnerWidgetType.getSelectedItemPosition();
+        if (selectedTypeIndex < 0 || selectedTypeIndex >= widgetTypesList.size()) return;
+        WidgetTypeItem selectedType = widgetTypesList.get(selectedTypeIndex);
+
         int selectedProjIndex = spinnerProject.getSelectedItemPosition();
         if (selectedProjIndex < 0 || selectedProjIndex >= projectsList.size()) return;
-        
         ProjectItem selectedProj = projectsList.get(selectedProjIndex);
         
         int selectedMaxIndex = spinnerMaxItems.getSelectedItemPosition();
@@ -118,6 +143,7 @@ public class WidgetConfigActivity extends Activity {
 
         SharedPreferences prefs = getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
         prefs.edit()
+             .putString("widget_config_" + appWidgetId + "_type", selectedType.id)
              .putString("widget_config_" + appWidgetId + "_project", selectedProj.id)
              .putInt("widget_config_" + appWidgetId + "_max", maxItems)
              .apply();
@@ -137,6 +163,15 @@ public class WidgetConfigActivity extends Activity {
         String id;
         String name;
         ProjectItem(String id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+    }
+
+    static class WidgetTypeItem {
+        String id;
+        String name;
+        WidgetTypeItem(String id, String name) {
             this.id = id;
             this.name = name;
         }

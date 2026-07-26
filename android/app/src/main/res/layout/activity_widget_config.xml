@@ -27,11 +27,31 @@
         android:gravity="center"
         android:layout_marginBottom="32dp" />
 
+    <!-- Label Widget Type -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TIPO DE WIDGET"
+        android:textColor="#3B82F6"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Spinner for Widget Type -->
+    <Spinner
+        android:id="@+id/spinner_widget_type"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/widget_item_bg"
+        android:popupBackground="#18181B"
+        android:layout_marginBottom="20dp"
+        android:padding="10dp" />
+
     <!-- Label Project -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="PROJETO"
+        android:text="PROJETO DE ORIGEM"
         android:textColor="#3B82F6"
         android:textSize="12sp"
         android:textStyle="bold"

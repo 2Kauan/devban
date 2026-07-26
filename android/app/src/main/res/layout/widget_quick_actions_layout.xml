@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="8dp"
+    android:background="@android:color/transparent">
+
+    <!-- Card Background -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@drawable/widget_bg"
+        android:padding="12dp"
+        android:gravity="center">
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DevBan • Ações Rápidas"
+            android:textColor="#3B82F6"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Grid Row 1 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <!-- New Task -->
+            <TextView
+                android:id="@+id/btn_action_new_task"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="Nova Tarefa"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:background="@drawable/widget_item_bg"
+                android:layout_marginEnd="4dp" />
+
+            <!-- Search -->
+            <TextView
+                android:id="@+id/btn_action_search"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="Pesquisar"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:background="@drawable/widget_item_bg"
+                android:layout_marginStart="4dp" />
+
+        </LinearLayout>
+
+        <!-- Grid Row 2 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <!-- Calendar -->
+            <TextView
+                android:id="@+id/btn_action_calendar"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="Agenda"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:background="@drawable/widget_item_bg"
+                android:layout_marginEnd="4dp" />
+
+            <!-- Dashboard -->
+            <TextView
+                android:id="@+id/btn_action_dashboard"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="Dashboard"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:background="@drawable/widget_item_bg"
+                android:layout_marginStart="4dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</RelativeLayout>

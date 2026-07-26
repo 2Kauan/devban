@@ -1,5 +1,6 @@
 package com.flowkanban.app;
 
+import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -14,32 +15,63 @@ import java.util.List;
 public class TasksWidgetService extends RemoteViewsService {
     @Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
-        return new TasksWidgetFactory(this.getApplicationContext());
+        int appWidgetId = intent.getIntExtra(
+            AppWidgetManager.EXTRA_APPWIDGET_ID, 
+            AppWidgetManager.INVALID_APPWIDGET_ID
+        );
+        return new TasksWidgetFactory(this.getApplicationContext(), appWidgetId);
     }
 }
 
 class TasksWidgetFactory implements RemoteViewsService.RemoteViewsFactory {
     private Context context;
+    private int appWidgetId;
     private List<TaskItem> tasksList = new ArrayList<>();
 
-    public TasksWidgetFactory(Context context) {
+    public TasksWidgetFactory(Context context, int appWidgetId) {
         this.context = context;
+        this.appWidgetId = appWidgetId;
     }
 
     private void loadTasksFromPrefs() {
         tasksList.clear();
         SharedPreferences prefs = context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
+        
+        // Carrega configurações específicas deste Widget ID
+        String type = prefs.getString("widget_config_" + appWidgetId + "_type", "list_all");
+        String projectId = prefs.getString("widget_config_" + appWidgetId + "_project", "all");
+        int maxItems = prefs.getInt("widget_config_" + appWidgetId + "_max", 10);
+
         String tasksJson = prefs.getString("widget_tasks", "[]");
         try {
             JSONArray arr = new JSONArray(tasksJson);
+            int count = 0;
             for (int i = 0; i < arr.length(); i++) {
+                if (count >= maxItems) break;
+
                 JSONObject obj = arr.getJSONObject(i);
+                
+                // Filtro de Projeto
+                String cardProjId = obj.optString("projectId", "");
+                if (!"all".equals(projectId) && !projectId.equals(cardProjId)) {
+                    continue;
+                }
+
+                // Filtro de Tipo/Status
+                String status = obj.optString("status", "");
+                boolean isFavorite = obj.optBoolean("favorite", false);
+                if ("list_overdue".equals(type) && !"overdue".equals(status)) continue;
+                if ("list_progress".equals(type) && !"in_progress".equals(status)) continue;
+                if ("list_completed".equals(type) && !"completed".equals(status)) continue;
+                if ("list_favorites".equals(type) && !isFavorite) continue;
+
                 tasksList.add(new TaskItem(
                     obj.optString("id", ""),
                     obj.optString("title", "Sem título"),
                     obj.optString("priority", "low"),
-                    obj.optString("projectId", "")
+                    cardProjId
                 ));
+                count++;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -74,16 +106,11 @@ class TasksWidgetFactory implements RemoteViewsService.RemoteViewsFactory {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_item);
         views.setTextViewText(R.id.item_title, item.title);
 
-        // Priority dot color customization
-        int dotColor = 0xFF22C55E; // Green
-        if ("high".equalsIgnoreCase(item.priority)) {
-            dotColor = 0xFFEF4444; // Red
-        } else if ("medium".equalsIgnoreCase(item.priority)) {
-            dotColor = 0xFFF59E0B; // Yellow/Orange
-        }
-        // Apply dot color if we wanted to dynamically tint it, or let's keep it simple.
+        // Altera a cor do círculo de prioridade
+        int dotRes = R.drawable.priority_dot_low; // default green
+        // (Futuro: poderíamos ter dots diferentes se necessário, mas mantemos simples e rápido)
 
-        // FillInIntent to launch app on click
+        // FillInIntent para abrir o app na tela correta do card/projeto
         Intent fillInIntent = new Intent();
         String deepLink = "com.flowkanban.app://dashboard";
         if (item.projectId != null && !item.projectId.isEmpty()) {
