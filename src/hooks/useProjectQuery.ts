@@ -187,7 +187,8 @@ export function useProjectQuery(projectId: string | undefined) {
               ...card,
               categories: cardCategories,
               assignees: cardAssignees,
-              comments_count: commentsCounts[card.id] || 0
+              comments_count: commentsCounts[card.id] || 0,
+              is_completed: columns.find(col => col.id === card.column_id)?.is_completed || false
             };
           });
         }
@@ -244,11 +245,16 @@ export function useProjectQuery(projectId: string | undefined) {
                       newCards.push({
                         ...payload.new as KanbanCardType,
                         categories: [],
-                        assignees: []
+                        assignees: [],
+                        is_completed: old.columns.find(col => col.id === payload.new.column_id)?.is_completed || false
                       });
                   }
               } else if (payload.eventType === 'UPDATE') {
-                  newCards = newCards.map(c => c.id === payload.new.id ? { ...c, ...payload.new } : c);
+                  newCards = newCards.map(c => c.id === payload.new.id ? { 
+                    ...c, 
+                    ...payload.new,
+                    is_completed: old.columns.find(col => col.id === payload.new.column_id)?.is_completed || false
+                  } : c);
               } else if (payload.eventType === 'DELETE') {
 
                  newCards = newCards.filter(c => c.id !== payload.old.id);
