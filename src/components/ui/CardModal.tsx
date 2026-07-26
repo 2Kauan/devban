@@ -60,6 +60,7 @@ const toLocalDatetimeString = (dateObj: Date | string | null | undefined) => {
 };
 
 export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete, onCardSave, onPriorityChange, projectCategories = [], projectMembers = [], projectId, canEdit = true, allCards = [], columns = [], initialDate, initialColumnId }: CardModalProps) {
+  console.log("CardModal rendering, card prop:", card, "isOpen:", isOpen);
   const [isLoading, setIsLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
