@@ -679,8 +679,16 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
                       }}
                       type="text"
                       {...registerProps}
+                      onClick={() => {
+                        if (canEdit && !isEditingTitle) {
+                          setIsEditingTitle(true);
+                          requestAnimationFrame(() => {
+                            titleInputRef.current?.focus();
+                          });
+                        }
+                      }}
                       readOnly={!canEdit || !isEditingTitle}
-                      className="w-full text-2xl font-extrabold bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-lg px-3 py-1.5 -ml-3 text-foreground transition-all"
+                      className="w-full text-2xl font-extrabold bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-lg px-3 py-1.5 -ml-3 text-foreground transition-all cursor-pointer focus:cursor-text"
                     />
                   );
                 })()}

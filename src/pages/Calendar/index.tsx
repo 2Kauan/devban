@@ -194,6 +194,16 @@ export default function Calendar() {
         return;
       }
 
+      // Query existing cards in this project to get the next position
+      const { data: existingCards } = await supabase
+        .from('cards')
+        .select('position')
+        .eq('project_id', projectId);
+
+      const nextPosition = existingCards && existingCards.length > 0
+        ? Math.max(...existingCards.map(c => c.position || 0)) + 1
+        : 1;
+
       const { data: newCard, error } = await supabase
         .from('cards')
         .insert({
@@ -202,6 +212,7 @@ export default function Calendar() {
           title: 'Nova Tarefa',
           due_date: date.toISOString(),
           priority: 'medium',
+          position: nextPosition,
           created_by: user?.id
         })
         .select()
