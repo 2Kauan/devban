@@ -21,11 +21,13 @@ export function CardComments({ cardId, canEdit }: CardCommentsProps) {
     setNewComment('');
   };
 
+  const commentsOnly = (activities || []).filter(item => item.type === 'comment');
+
   return (
     <div className="mt-8 flex flex-col gap-5">
       <div className="flex items-center gap-2 mb-2">
         <MessageSquare className="w-5 h-5 text-foreground" />
-        <h3 className="text-lg font-bold text-foreground">Comentários e Atividade</h3>
+        <h3 className="text-lg font-bold text-foreground">Comentários</h3>
       </div>
 
       {canEdit && (
@@ -64,32 +66,12 @@ export function CardComments({ cardId, canEdit }: CardCommentsProps) {
 
         <div className="flex flex-col gap-6 z-10 relative">
           {isLoading ? (
-            <div className="text-sm text-muted-foreground ml-12">Carregando histórico...</div>
-          ) : activities.length === 0 ? (
-            <div className="text-sm text-muted-foreground ml-12">Nenhuma atividade registrada.</div>
+            <div className="text-sm text-muted-foreground ml-12">Carregando comentários...</div>
+          ) : commentsOnly.length === 0 ? (
+            <div className="text-sm text-muted-foreground ml-12">Nenhum comentário registrado.</div>
           ) : (
-            activities.map((item) => {
+            commentsOnly.map((item) => {
               const dateText = formatDistanceToNow(new Date(item.created_at), { addSuffix: true, locale: ptBR });
-              
-              if (item.type === 'activity') {
-                return (
-                  <div key={item.id} className="flex gap-4 relative items-start">
-                    <div className="w-8 h-8 rounded-full bg-background border-2 border-border flex items-center justify-center shrink-0 z-10 overflow-hidden mt-0.5">
-                      {item.user?.avatar_url ? (
-                        <img src={item.user.avatar_url} alt={item.user.name || ''} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-xs font-bold text-muted-foreground uppercase">{item.user?.name?.substring(0, 2) || 'S'}</span>
-                      )}
-                    </div>
-                    <div className="flex-1 pt-1.5">
-                      <p className="text-[14px] text-foreground leading-snug">
-                        <span className="font-bold text-foreground">{item.user?.name || 'Sistema'}</span>{' '}
-                        {item.content} <span className="text-muted-foreground text-[13px] whitespace-nowrap ml-1">- {dateText}</span>
-                      </p>
-                    </div>
-                  </div>
-                );
-              }
 
               // type === 'comment'
               return (

@@ -63,6 +63,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const accessToken = params.get('access_token');
           const refreshToken = params.get('refresh_token');
           
+          // Captura os tokens do provedor Google se existirem no redirecionamento do Deep Link
+          const providerToken = params.get('provider_token');
+          if (providerToken) {
+            localStorage.setItem('devban_gcal_token', providerToken);
+          }
+          const providerRefreshToken = params.get('provider_refresh_token');
+          if (providerRefreshToken) {
+            localStorage.setItem('devban_gcal_refresh_token', providerRefreshToken);
+          }
+          
           if (accessToken && refreshToken) {
             setIsLoading(true);
             const { error } = await supabase.auth.setSession({
