@@ -68,9 +68,9 @@ public class WidgetConfigActivity extends Activity {
             typeNames.add(t.name);
         }
         ArrayAdapter<String> typeAdapter = new ArrayAdapter<>(
-            this, android.R.layout.simple_spinner_item, typeNames
+            this, R.layout.spinner_item, typeNames
         );
-        typeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        typeAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
         spinnerWidgetType.setAdapter(typeAdapter);
 
         // Load projects and populate spinner
@@ -80,9 +80,9 @@ public class WidgetConfigActivity extends Activity {
             projectNames.add(p.name);
         }
         ArrayAdapter<String> projectAdapter = new ArrayAdapter<>(
-            this, android.R.layout.simple_spinner_item, projectNames
+            this, R.layout.spinner_item, projectNames
         );
-        projectAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        projectAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
         spinnerProject.setAdapter(projectAdapter);
 
         // Max items options
@@ -92,9 +92,9 @@ public class WidgetConfigActivity extends Activity {
         maxItemsOptions.add("15 tarefas");
         maxItemsOptions.add("20 tarefas");
         ArrayAdapter<String> maxItemsAdapter = new ArrayAdapter<>(
-            this, android.R.layout.simple_spinner_item, maxItemsOptions
+            this, R.layout.spinner_item, maxItemsOptions
         );
-        maxItemsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        maxItemsAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
         spinnerMaxItems.setAdapter(maxItemsAdapter);
 
         btnSave.setOnClickListener(new View.OnClickListener() {

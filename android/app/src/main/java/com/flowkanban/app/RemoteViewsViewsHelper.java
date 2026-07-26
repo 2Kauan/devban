@@ -69,8 +69,39 @@ public class RemoteViewsViewsHelper {
     }
 
     private static void setupProductivity(Context context, RemoteViews views, SharedPreferences prefs) {
-        int completed = prefs.getInt("widget_stats_completed", 0);
-        int pending = prefs.getInt("widget_stats_pending", 0);
+        int completed = 0;
+        int pending = 0;
+        try {
+            // Capacitor Preferences writes all values as strings
+            String compStr = null;
+            try {
+                compStr = prefs.getString("widget_stats_completed", "0");
+            } catch (ClassCastException e) {
+                // In case it was written as int
+                completed = prefs.getInt("widget_stats_completed", 0);
+            }
+            if (compStr != null) {
+                completed = Integer.parseInt(compStr);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            String pendStr = null;
+            try {
+                pendStr = prefs.getString("widget_stats_pending", "0");
+            } catch (ClassCastException e) {
+                // In case it was written as int
+                pending = prefs.getInt("widget_stats_pending", 0);
+            }
+            if (pendStr != null) {
+                pending = Integer.parseInt(pendStr);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         int total = completed + pending;
         int progress = total > 0 ? (completed * 100) / total : 0;
 
