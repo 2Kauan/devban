@@ -1,8 +1,9 @@
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { Browser } from '@capacitor/browser';
 import { Keyboard } from '@capacitor/keyboard';
 import { App } from '@capacitor/app';
+import { Preferences } from '@capacitor/preferences';
 
 // Helper for checking if we're on a native mobile app
 export const isNative = Capacitor.isNativePlatform();
@@ -75,5 +76,21 @@ export const initAppListeners = () => {
         window.history.back();
       }
     });
+  }
+};
+
+const WidgetUpdatePlugin = registerPlugin<any>('WidgetUpdatePlugin');
+
+export const updateWidgetTasks = async (tasks: any[]) => {
+  if (isNative) {
+    try {
+      await Preferences.set({
+        key: 'widget_tasks',
+        value: JSON.stringify(tasks)
+      });
+      await WidgetUpdatePlugin.updateWidget();
+    } catch (e) {
+      console.warn('Failed to update native widget tasks', e);
+    }
   }
 };

@@ -8,6 +8,7 @@ import { TopHeader } from '@/components/layout/TopHeader';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { useProjectsQuery } from '@/hooks/useProjectsQuery';
 import { useQueryClient } from '@tanstack/react-query';
+import { updateWidgetTasks } from '@/lib/capacitor';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -66,6 +67,21 @@ export default function Dashboard() {
   const oneWeekAgo = new Date();
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
   const completedThisWeek = completedCards.filter(c => new Date(c.updated_at || c.created_at) >= oneWeekAgo).length;
+
+  // Sincroniza tarefas ativas com o Widget Android nativo
+  React.useEffect(() => {
+    const activeCards = cards
+      .filter(c => !completedColumnIds.includes(c.column_id))
+      .map(c => ({
+        id: c.id,
+        title: c.title,
+        priority: c.priority || 'low',
+        projectId: c.project_id
+      }))
+      .slice(0, 15);
+    
+    updateWidgetTasks(activeCards);
+  }, [cards, completedColumnIds]);
 
   // --- Chart Data: Productivity (last 7 days) ---
   const productivityData = [...Array(7)].map((_, i) => {

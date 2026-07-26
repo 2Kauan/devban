@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp"
+    android:gravity="center_vertical"
+    android:background="@drawable/widget_item_bg">
+
+    <!-- Custom Checkbox (Circle Outline) -->
+    <View
+        android:id="@+id/item_checkbox"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:background="@drawable/widget_checkbox_outline"
+        android:layout_marginEnd="10dp" />
+
+    <!-- Task Title -->
+    <TextView
+        android:id="@+id/item_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Título da Tarefa"
+        android:textColor="#F4F4F5"
+        android:textSize="14sp"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+    <!-- Priority Indicator Dot -->
+    <View
+        android:id="@+id/item_priority_dot"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        android:background="@drawable/priority_dot_low"
+        android:layout_marginStart="8dp" />
+
+</LinearLayout>
