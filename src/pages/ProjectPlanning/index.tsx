@@ -17,9 +17,11 @@ import { syncCardToGoogleCalendar, deleteGoogleCalendarEvent, syncGoogleCalendar
 import { syncGoogleTasksToDevban } from '@/services/google/tasks';
 import { addDays, subDays } from 'date-fns';
 import { useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ProjectPlanning() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const { data, isLoading, refetch, setOptimisticCards } = useProjectQuery(id);
 
   useEffect(() => {
@@ -52,10 +54,44 @@ export default function ProjectPlanning() {
     setHighlightedCardId(null);
   };
 
-  const handleNewTask = (date?: Date) => {
-    setSelectedCard(null);
-    setInitialDate(date || new Date());
-    setIsModalOpen(true);
+  const handleNewTask = async (date?: Date) => {
+    if (!data || !data.columns || data.columns.length === 0) {
+      toast.error('Crie uma coluna no projeto primeiro.');
+      return;
+    }
+
+    try {
+      const targetDate = date || new Date();
+      const nextPosition = data.cards.length > 0 ? Math.max(...data.cards.map(c => c.position)) + 1 : 1;
+
+      const { data: newCard, error } = await supabase
+        .from('cards')
+        .insert({
+          project_id: id,
+          column_id: data.columns[0].id,
+          title: 'Nova Tarefa',
+          due_date: targetDate.toISOString(),
+          priority: 'medium',
+          position: nextPosition,
+          created_by: user?.id
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Sync to Google Calendar
+      syncCardToGoogleCalendar(newCard.id, undefined, newCard.due_date);
+
+      toast.success('Tarefa criada com sucesso!');
+      refetch();
+
+      setSelectedCard(newCard);
+      setInitialDate(undefined);
+      setIsModalOpen(true);
+    } catch (err: any) {
+      toast.error('Erro ao criar tarefa: ' + err.message);
+    }
   };
 
   const handleEventClick = (card: KanbanCardType) => {

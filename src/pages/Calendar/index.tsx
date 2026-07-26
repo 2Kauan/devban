@@ -180,27 +180,61 @@ export default function Calendar() {
     });
   };
 
+  const createCardAndOpenModal = async (projectId: string, date: Date) => {
+    try {
+      const { data: cols, error: colsError } = await supabase
+        .from('columns')
+        .select('id')
+        .eq('project_id', projectId)
+        .order('position', { ascending: true });
+
+      if (colsError) throw colsError;
+      if (!cols || cols.length === 0) {
+        toast.error('Este projeto não possui colunas. Crie uma coluna no projeto primeiro.');
+        return;
+      }
+
+      const { data: newCard, error } = await supabase
+        .from('cards')
+        .insert({
+          project_id: projectId,
+          column_id: cols[0].id,
+          title: 'Nova Tarefa',
+          due_date: date.toISOString(),
+          priority: 'medium',
+          created_by: user?.id
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      syncCardToGoogleCalendar(newCard.id, undefined, newCard.due_date);
+      toast.success('Tarefa criada com sucesso!');
+      refetch();
+
+      setSelectedProjectId(projectId);
+      setSelectedCard(newCard);
+      setInitialDate(undefined);
+      setIsModalOpen(true);
+    } catch (err: any) {
+      toast.error('Erro ao criar tarefa: ' + err.message);
+    }
+  };
+
   const handleNewTask = (date?: Date) => {
     const taskDate = date || new Date();
     if (data && data.projects.length === 1) {
-      // Only one project, skip picker
-      setSelectedProjectId(data.projects[0].id);
-      setSelectedCard(null);
-      setInitialDate(taskDate);
-      setIsModalOpen(true);
+      createCardAndOpenModal(data.projects[0].id, taskDate);
     } else {
-      // Multiple projects, show picker
       setPendingNewTaskDate(taskDate);
       setIsProjectPickerOpen(true);
     }
   };
 
   const handlePickProject = (projectId: string) => {
-    setSelectedProjectId(projectId);
     setIsProjectPickerOpen(false);
-    setSelectedCard(null);
-    setInitialDate(pendingNewTaskDate);
-    setIsModalOpen(true);
+    createCardAndOpenModal(projectId, pendingNewTaskDate || new Date());
   };
 
   const handleEventClick = (card: KanbanCardType) => {
