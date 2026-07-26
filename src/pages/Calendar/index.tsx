@@ -433,8 +433,12 @@ export default function Calendar() {
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                 className="fixed inset-0 flex items-center justify-center z-50 p-4"
+                onClick={() => setIsProjectPickerOpen(false)}
               >
-                <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+                <div 
+                  className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div className="p-5 border-b border-border/50">
                     <h3 className="text-lg font-semibold">Selecionar Projeto</h3>
                     <p className="text-sm text-muted-foreground mt-1">Em qual projeto deseja criar a tarefa?</p>
