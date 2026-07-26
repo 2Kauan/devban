@@ -106,3 +106,16 @@ export const pinWidgetCard = async (card: { id: string; title: string; descripti
     }
   }
 };
+
+export const updateAvailableProjects = async (projects: any[]) => {
+  if (isNative) {
+    try {
+      await Preferences.set({
+        key: 'available_projects',
+        value: JSON.stringify(projects.map(p => ({ id: p.id, name: p.name })))
+      });
+    } catch (e) {
+      console.warn('Failed to update available projects in SharedPreferences', e);
+    }
+  }
+};

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="#09090B"
+    android:gravity="center_horizontal">
+
+    <!-- Title -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Configurar Widget"
+        android:textColor="#FFFFFF"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Escolha as preferências para esta instância do widget."
+        android:textColor="#71717A"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:layout_marginBottom="32dp" />
+
+    <!-- Label Project -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="PROJETO"
+        android:textColor="#3B82F6"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Spinner for Project Selection -->
+    <Spinner
+        android:id="@+id/spinner_project"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/widget_item_bg"
+        android:popupBackground="#18181B"
+        android:layout_marginBottom="24dp"
+        android:padding="10dp" />
+
+    <!-- Max Items Label -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="QUANTIDADE MÁXIMA DE TAREFAS"
+        android:textColor="#3B82F6"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Spinner for Max Items -->
+    <Spinner
+        android:id="@+id/spinner_max_items"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/widget_item_bg"
+        android:popupBackground="#18181B"
+        android:layout_marginBottom="32dp"
+        android:padding="10dp" />
+
+    <!-- Spacer -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Save Button -->
+    <Button
+        android:id="@+id/btn_save_config"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="Salvar e Criar Widget"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#2563EB"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+</LinearLayout>
