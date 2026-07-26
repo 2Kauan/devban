@@ -14,6 +14,7 @@ import {
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { isNative } from '@/lib/capacitor';
 
 interface Integration {
   id: string;
@@ -106,6 +107,10 @@ export default function Integrations() {
       setConnectingId(id);
       await new Promise(r => setTimeout(r, 600));
       try {
+        const redirectTo = isNative
+          ? 'com.flowkanban.app://integrations'
+          : `${window.location.origin}/integrations`;
+
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
@@ -114,7 +119,7 @@ export default function Integrations() {
               access_type: 'offline',
               prompt: 'consent select_account'
             },
-            redirectTo: `${window.location.origin}/integrations`
+            redirectTo
           }
         });
         if (error) throw error;
@@ -139,6 +144,10 @@ export default function Integrations() {
   const forceReauthorize = async () => {
     setConnectingId('google_calendar');
     try {
+      const redirectTo = isNative
+        ? 'com.flowkanban.app://integrations'
+        : `${window.location.origin}/integrations`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -147,7 +156,7 @@ export default function Integrations() {
             access_type: 'offline',
             prompt: 'consent select_account'
           },
-          redirectTo: `${window.location.origin}/integrations`
+          redirectTo
         }
       });
       if (error) throw error;

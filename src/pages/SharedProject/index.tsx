@@ -5,6 +5,7 @@ import type { KanbanCardType } from '@/types/kanban';
 import { KanbanBoard } from '@/components/kanban/KanbanBoard';
 import { toast } from 'sonner';
 import { CardModal } from '@/components/ui/CardModal';
+import { isNative } from '@/lib/capacitor';
 import { SharedProjectHeader } from '@/components/project/SharedProjectHeader';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSharedProjectQuery } from '@/hooks/useSharedProjectQuery';
@@ -156,10 +157,14 @@ export default function SharedProject() {
 
   const handleGoogleLogin = async () => {
     try {
+      const redirectTo = isNative
+        ? `com.flowkanban.app://shared/${token}`
+        : `${window.location.origin}/shared/${token}`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/shared/${token}`
+          redirectTo
         }
       });
       if (error) throw error;
