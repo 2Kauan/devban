@@ -6,6 +6,9 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   bundledWebRuntime: false,
   plugins: {
+    CapacitorUpdater: {
+      autoUpdate: false,
+    },
     SplashScreen: {
       launchShowDuration: 2000,
       launchAutoHide: true,

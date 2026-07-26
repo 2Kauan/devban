@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Eye, EyeOff, MailCheck } from 'lucide-react';
 import { translateAuthError } from '@/utils/authErrors';
+import { isNative } from '@/lib/capacitor';
 
 const loginSchema = z.object({
   email: z.string().email('E-mail inválido'),
@@ -77,10 +78,14 @@ export default function Login() {
 
   const handleGoogleLogin = async () => {
     try {
+      const redirectTo = isNative
+        ? 'com.flowkanban.app://dashboard'
+        : `${window.location.origin}/projects`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/projects`
+          redirectTo
         }
       });
       if (error) throw error;

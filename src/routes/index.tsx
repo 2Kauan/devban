@@ -1,7 +1,8 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ProtectedRoute } from '@/components/shared/ProtectedRoute';
 import { PublicRoute } from '@/components/shared/PublicRoute';
+import { isNative } from '@/lib/capacitor';
 
 import Landing from '@/pages/Landing';
 import Login from '@/pages/Auth/Login';
@@ -37,7 +38,7 @@ export function AppRoutes() {
       <Routes>
         <Route element={<MainLayout />}>
           {/* Rotas Públicas Abertas */}
-          <Route path="/" element={<Landing />} />
+          <Route path="/" element={isNative ? <Navigate to="/dashboard" replace /> : <Landing />} />
           <Route path="/shared/:token" element={<SharedProject />} />
           <Route path="/preview" element={<Preview />} />
           <Route path="/reset-password" element={<ResetPassword />} />

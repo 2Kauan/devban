@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 import { translateAuthError } from '@/utils/authErrors';
+import { isNative } from '@/lib/capacitor';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres'),
@@ -60,10 +61,14 @@ export default function Register() {
 
   const handleGoogleLogin = async () => {
     try {
+      const redirectTo = isNative
+        ? 'com.flowkanban.app://dashboard'
+        : `${window.location.origin}/projects`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/projects`
+          redirectTo
         }
       });
       if (error) throw error;

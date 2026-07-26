@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import type { Profile } from '@/types/database';
+import { App } from '@capacitor/app';
+import { isNative } from '@/lib/capacitor';
 
 interface AuthContextType {
   session: Session | null;
@@ -51,7 +53,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    return () => subscription.unsubscribe();
+    let appUrlListener: any;
+    if (isNative) {
+      appUrlListener = App.addListener('appUrlOpen', async (data: any) => {
+        const parts = data.url.split('#');
+        if (parts.length > 1) {
+          const hash = parts[1];
+          const params = new URLSearchParams(hash);
+          const accessToken = params.get('access_token');
+          const refreshToken = params.get('refresh_token');
+          
+          if (accessToken && refreshToken) {
+            setIsLoading(true);
+            const { error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+            if (error) {
+              console.error('Error setting session from deep link:', error);
+              setIsLoading(false);
+            }
+          }
+        }
+      });
+    }
+
+    return () => {
+      subscription.unsubscribe();
+      if (appUrlListener) {
+        appUrlListener.then((listener: any) => listener.remove());
+      }
+    };
   }, []);
 
   const fetchProfile = async (userId: string) => {
