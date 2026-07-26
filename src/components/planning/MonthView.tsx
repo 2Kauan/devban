@@ -51,10 +51,6 @@ export function MonthView({ currentDate, cards, onEventClick, onDayClick, onEven
           const isCurrentMonth = isSameMonth(day, currentDate);
           const isToday = isSameDay(day, new Date());
           const dayEvents = getEventsForDay(cards, day);
-          
-          const maxVisible = 3;
-          const visibleEvents = dayEvents.slice(0, maxVisible);
-          const hiddenCount = dayEvents.length - maxVisible;
           const isHovered = hoveredDay === day.toISOString();
 
           return (
@@ -70,14 +66,14 @@ export function MonthView({ currentDate, cards, onEventClick, onDayClick, onEven
               onDrop={(e) => handleDrop(e, day)}
               onClick={() => onDayClick(day)}
               className={`
-                min-h-[80px] p-1 sm:p-2 border-r border-b border-border/40 transition-all duration-200 cursor-pointer overflow-hidden
+                min-h-[110px] p-1 sm:p-2 border-r border-b border-border/40 transition-all duration-200 cursor-pointer overflow-hidden flex flex-col
                 ${isCurrentMonth ? 'bg-background hover:bg-muted/10' : 'bg-muted/5 hover:bg-muted/20'}
                 ${i % 7 === 6 ? 'border-r-0' : ''}
                 ${isHovered ? 'scale-[1.05] border-primary z-10 shadow-lg bg-muted/20' : ''}
               `}
             >
               {/* Day Number */}
-              <div className="flex justify-between items-start mb-1 sm:mb-2">
+              <div className="flex justify-between items-start mb-1 shrink-0">
                 <span className={`
                   w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium
                   ${isToday ? 'bg-primary text-primary-foreground' : isCurrentMonth ? 'text-foreground' : 'text-muted-foreground/50'}
@@ -86,25 +82,40 @@ export function MonthView({ currentDate, cards, onEventClick, onDayClick, onEven
                 </span>
               </div>
 
-              {/* Events list */}
-              <div className="flex flex-col gap-1">
-                <AnimatePresence>
-                {visibleEvents.map(event => (
-                  <CalendarEvent 
-                    key={event.id} 
-                    event={event} 
-                    onClick={onEventClick} 
-                    isHighlighted={event.id === highlightedCardId}
-                  />
-                ))}
-
-                </AnimatePresence>
+              {/* Events list wrapper with Top/Bottom Blur */}
+              <div className="flex-1 min-h-0 relative">
+                {/* Top Fade */}
+                <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-b from-background to-transparent pointer-events-none z-10" />
                 
-                {hiddenCount > 0 && (
-                  <div className="text-xs text-muted-foreground hover:text-foreground font-medium pl-1 mt-1 transition-colors">
-                    +{hiddenCount} tarefas
-                  </div>
-                )}
+                {/* Scrollable list */}
+                <div 
+                  className="h-full overflow-y-auto custom-scrollbar flex flex-col gap-1 pr-0.5"
+                  onClick={(e) => {
+                    // Impede o clique na lista de tarefas de abrir o DayDrawer
+                    e.stopPropagation();
+                  }}
+                >
+                  <AnimatePresence>
+                    {dayEvents.map(event => (
+                      <div 
+                        key={event.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEventClick(event);
+                        }}
+                      >
+                        <CalendarEvent 
+                          event={event} 
+                          onClick={onEventClick} 
+                          isHighlighted={event.id === highlightedCardId}
+                        />
+                      </div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+
+                {/* Bottom Fade */}
+                <div className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-t from-background to-transparent pointer-events-none z-10" />
               </div>
             </div>
           );
