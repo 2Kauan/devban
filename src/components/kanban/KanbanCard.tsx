@@ -74,10 +74,20 @@ export const KanbanCardInner = forwardRef<HTMLDivElement, KanbanCardProps>(
     }, [card?.id]);
 
     useEffect(() => {
-      if (isExpanded) {
-        fetchChecklists();
-      }
-    }, [isExpanded, fetchChecklists]);
+      fetchChecklists();
+
+      const handleChecklistUpdate = (e: Event) => {
+        const customEvt = e as CustomEvent;
+        if (!customEvt.detail?.cardId || customEvt.detail.cardId === card?.id) {
+          fetchChecklists();
+        }
+      };
+
+      window.addEventListener('devban_checklist_updated', handleChecklistUpdate);
+      return () => {
+        window.removeEventListener('devban_checklist_updated', handleChecklistUpdate);
+      };
+    }, [card?.id, fetchChecklists]);
 
     const handleToggleItem = async (itemId: string, currentChecked: boolean, e: React.MouseEvent) => {
       e.preventDefault();

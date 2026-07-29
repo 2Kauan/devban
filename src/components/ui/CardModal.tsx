@@ -414,6 +414,10 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
       if (error) throw error;
       setChecklists([...checklists, { ...data, items: [] }]);
       setSaveStatus('saved');
+      if (card?.id) {
+        window.dispatchEvent(new CustomEvent('devban_checklist_updated', { detail: { cardId: card.id } }));
+      }
+      onUpdate();
     } catch (error: any) {
       setSaveStatus('idle');
       toast.error(getFriendlyErrorMessage(error, 'Não foi possível criar o checklist no momento.'));
@@ -449,6 +453,10 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
       ));
       setNewItemText('');
       setSaveStatus('saved');
+      if (card?.id) {
+        window.dispatchEvent(new CustomEvent('devban_checklist_updated', { detail: { cardId: card.id } }));
+      }
+      onUpdate();
     } catch (error: any) {
       setSaveStatus('idle');
       toast.error('Erro ao adicionar item');
@@ -470,6 +478,10 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
       
       if (error) throw error;
       setSaveStatus('saved');
+      if (card?.id) {
+        window.dispatchEvent(new CustomEvent('devban_checklist_updated', { detail: { cardId: card.id } }));
+      }
+      onUpdate();
     } catch (error: any) {
       setSaveStatus('idle');
       toast.error('Erro ao atualizar item');
@@ -787,6 +799,10 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
                                           ...c,
                                           items: c.items.filter(i => i.id !== item.id)
                                         })));
+                                        if (card?.id) {
+                                          window.dispatchEvent(new CustomEvent('devban_checklist_updated', { detail: { cardId: card.id } }));
+                                        }
+                                        onUpdate();
                                       } catch {
                                         toast.error('Erro ao excluir item');
                                       }
