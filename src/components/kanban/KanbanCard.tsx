@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useRef, memo, useCallback, useState } from 'reac
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { KanbanCardType, KanbanColumnType } from '@/types/kanban';
-import { Clock, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle, ChevronLeft, ChevronRight, ListTree, MessageSquare, ChevronDown, ChevronUp, CheckSquare, Square, Plus, Loader2, Calendar, CheckCircle2, User, Pencil, Trash2, Check, X } from 'lucide-react';
+import { Clock, ArrowDownRight, ArrowRight, ArrowUpRight, AlertCircle, ChevronLeft, ChevronRight, ListTree, MessageSquare, ChevronDown, ChevronUp, CheckSquare, Square, Plus, Loader2, Calendar, CheckCircle2, Pencil, Trash2, Check, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
