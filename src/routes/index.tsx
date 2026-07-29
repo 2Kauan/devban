@@ -31,6 +31,7 @@ import ProjectHealth from '@/pages/ProjectHealth';
 import ProjectAI from '@/pages/Project/AI';
 import ProjectCheckout from '@/pages/ProjectCheckout';
 import ResetPassword from '@/pages/Auth/ResetPassword';
+import ShareTarget from '@/pages/ShareTarget';
 
 export function AppRoutes() {
   return (
@@ -61,6 +62,7 @@ export function AppRoutes() {
             <Route path="/integrations" element={<Integrations />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/notifications" element={<Notifications />} />
+            <Route path="/share-target" element={<ShareTarget />} />
             
             <Route path="/project/:id/checkout" element={<ProjectCheckout />} />
             
