@@ -5,6 +5,7 @@ import type { Project } from '@/types/database';
 import { ArrowLeft, CheckCircle2, Shield, CreditCard, QrCode, Lock, Loader2, Sparkles, Copy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import { isValidCpfCnpj } from '@/utils/validation';
 
 export default function ProjectCheckout() {
@@ -166,7 +167,7 @@ export default function ProjectCheckout() {
       }
 
     } catch (error: any) {
-      toast.error('Falha ao processar pagamento: ' + error.message);
+      toast.error(getFriendlyErrorMessage(error, 'Não foi possível processar o pagamento no momento. Tente novamente.'));
     } finally {
       setIsProcessing(false);
     }
@@ -188,7 +189,7 @@ export default function ProjectCheckout() {
         navigate(`/project/${project?.id}/ai`);
       }, 2500);
     } catch (error: any) {
-      toast.error('Erro ao aprovar: ' + error.message);
+      toast.error(getFriendlyErrorMessage(error, 'Não foi possível confirmar o pagamento.'));
       setIsProcessing(false);
     }
   };

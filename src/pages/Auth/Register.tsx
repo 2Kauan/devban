@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 import { translateAuthError } from '@/utils/authErrors';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import { isNative } from '@/lib/capacitor';
 
 const registerSchema = z.object({
@@ -53,7 +54,7 @@ export default function Register() {
       toast.success('Conta criada! Verifique seu email para confirmar o cadastro antes de fazer login.');
       navigate('/login');
     } catch (error: any) {
-      toast.error('Ocorreu um erro ao criar a conta: ' + translateAuthError(error.message));
+      toast.error(translateAuthError(error?.message));
     } finally {
       setIsLoading(false);
     }
@@ -73,7 +74,7 @@ export default function Register() {
       });
       if (error) throw error;
     } catch (error: any) {
-      toast.error('Erro ao conectar com Google: ' + error.message);
+      toast.error(getFriendlyErrorMessage(error, 'Não foi possível conectar com o Google no momento.'));
     }
   };
 

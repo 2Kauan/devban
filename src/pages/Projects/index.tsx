@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Plus, MoreVertical, Folder, Star, Users, CheckCircle2, Trash2, FolderKanban } from 'lucide-react';
 import type { Project } from '@/types/database';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import { useFavorites } from '@/hooks/useFavorites';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DeleteProjectModal } from '@/components/ui/DeleteProjectModal';
@@ -178,7 +179,7 @@ export default function Projects() {
       
       toast.success(newStatus ? 'Projeto finalizado com sucesso!' : 'Projeto reaberto!');
     } catch (error: any) {
-      toast.error('Erro ao atualizar status do projeto: ' + error.message);
+      toast.error(getFriendlyErrorMessage(error, 'Não foi possível alterar o status do projeto.'));
     }
   };
 

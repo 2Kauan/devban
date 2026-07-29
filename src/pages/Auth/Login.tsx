@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Eye, EyeOff, MailCheck } from 'lucide-react';
 import { translateAuthError } from '@/utils/authErrors';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import { isNative } from '@/lib/capacitor';
 
 const loginSchema = z.object({
@@ -70,7 +71,7 @@ export default function Login() {
       toast.success('E-mail de recuperação enviado com sucesso!');
       setView('email-sent');
     } catch (error: any) {
-      toast.error('Erro ao enviar e-mail: ' + translateAuthError(error.message));
+      toast.error(translateAuthError(error.message));
     } finally {
       setIsLoading(false);
     }
@@ -90,7 +91,7 @@ export default function Login() {
       });
       if (error) throw error;
     } catch (error: any) {
-      toast.error('Erro ao conectar com Google: ' + error.message);
+      toast.error(getFriendlyErrorMessage(error, 'Não foi possível conectar com o Google no momento.'));
     }
   };
 

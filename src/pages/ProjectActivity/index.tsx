@@ -4,6 +4,7 @@ import { supabase, createUniqueChannel } from '@/lib/supabase';
 import type { Project } from '@/types/database';
 import { Activity, History, Clock } from 'lucide-react';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale/pt-BR';
@@ -73,7 +74,7 @@ export default function ProjectActivity() {
       
       setLogs(formattedData);
     } catch (error: any) {
-      toast.error('Erro ao carregar atividades: ' + error.message);
+      toast.error(getFriendlyErrorMessage(error, 'Não foi possível carregar o histórico de atividades no momento.'));
     } finally {
       setIsLoading(false);
     }

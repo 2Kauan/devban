@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import type { Project } from '@/types/database';
 import { Settings, Save, Trash2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import { useAuth } from '@/contexts/AuthContext';
 import { DeleteProjectModal } from '@/components/ui/DeleteProjectModal';
 
@@ -36,7 +37,7 @@ export default function ProjectSettings() {
       toast.success('Projeto atualizado com sucesso!');
       
     } catch (error: any) {
-      toast.error('Erro ao atualizar projeto: ' + error.message);
+      toast.error(getFriendlyErrorMessage(error, 'Não foi possível atualizar as configurações do projeto.'));
     } finally {
       setIsSaving(false);
     }

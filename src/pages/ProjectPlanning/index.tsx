@@ -13,6 +13,7 @@ import { DayDrawer } from '@/components/planning/DayDrawer';
 import type { KanbanCardType } from '@/types/kanban';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import { syncCardToGoogleCalendar, deleteGoogleCalendarEvent, syncGoogleCalendarToDevban } from '@/services/google/calendar';
 import { syncGoogleTasksToDevban } from '@/services/google/tasks';
 import { addDays, subDays } from 'date-fns';
@@ -90,7 +91,7 @@ export default function ProjectPlanning() {
       setInitialDate(undefined);
       setIsModalOpen(true);
     } catch (err: any) {
-      toast.error('Erro ao criar tarefa: ' + err.message);
+      toast.error(getFriendlyErrorMessage(err, 'Não foi possível criar a tarefa.'));
     }
   };
 
@@ -113,7 +114,7 @@ export default function ProjectPlanning() {
       syncCardToGoogleCalendar(cardId, undefined, newDate.toISOString());
       refetch();
     } catch (err: any) {
-      toast.error('Erro ao atualizar data: ' + err.message);
+      toast.error(getFriendlyErrorMessage(err, 'Não foi possível atualizar a data da tarefa.'));
     }
   };
 
@@ -133,7 +134,7 @@ export default function ProjectPlanning() {
       deleteGoogleCalendarEvent(cardId);
       refetch();
     } catch (err: any) {
-      toast.error('Erro ao remover data: ' + err.message);
+      toast.error(getFriendlyErrorMessage(err, 'Não foi possível remover a data da tarefa.'));
     }
   };
 

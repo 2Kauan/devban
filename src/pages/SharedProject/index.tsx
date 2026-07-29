@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import type { KanbanCardType } from '@/types/kanban';
 import { KanbanBoard } from '@/components/kanban/KanbanBoard';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import { CardModal } from '@/components/ui/CardModal';
 import { isNative } from '@/lib/capacitor';
 import { SharedProjectHeader } from '@/components/project/SharedProjectHeader';
@@ -107,7 +108,7 @@ export default function SharedProject() {
       if (error) throw error;
       toast.success('Solicitação de acesso enviada com sucesso! Aguarde a aprovação do dono.');
     } catch (error: any) {
-      toast.error('Erro ao solicitar acesso: ' + error.message);
+      toast.error(getFriendlyErrorMessage(error, 'Não foi possível enviar a solicitação de acesso no momento.'));
     } finally {
       setIsRequesting(false);
     }
@@ -149,7 +150,7 @@ export default function SharedProject() {
         refetch();
       }
     } catch (err: any) {
-      toast.error('Erro ao acessar: ' + err.message);
+      toast.error(getFriendlyErrorMessage(err, 'Não foi possível concluir a solicitação de acesso.'));
     } finally {
       setIsRequesting(false);
     }
@@ -169,7 +170,7 @@ export default function SharedProject() {
       });
       if (error) throw error;
     } catch (err: any) {
-      toast.error('Erro ao conectar com Google: ' + err.message);
+      toast.error(getFriendlyErrorMessage(err, 'Não foi possível conectar com o Google no momento.'));
     }
   };
 

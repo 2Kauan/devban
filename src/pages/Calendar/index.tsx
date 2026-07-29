@@ -17,6 +17,7 @@ import { CardModal } from '@/components/ui/CardModal';
 import type { KanbanCardType, KanbanColumnType } from '@/types/kanban';
 import type { Category, Project } from '@/types/database';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import { syncCardToGoogleCalendar } from '@/services/google/calendar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FolderKanban } from 'lucide-react';
@@ -229,7 +230,7 @@ export default function Calendar() {
       setInitialDate(undefined);
       setIsModalOpen(true);
     } catch (err: any) {
-      toast.error('Erro ao criar tarefa: ' + err.message);
+      toast.error(getFriendlyErrorMessage(err, 'Não foi possível criar a tarefa.'));
     }
   };
 
@@ -267,7 +268,7 @@ export default function Calendar() {
       syncCardToGoogleCalendar(cardId, undefined, newDate.toISOString());
       refetch();
     } catch (err: any) {
-      toast.error('Erro ao atualizar data: ' + err.message);
+      toast.error(getFriendlyErrorMessage(err, 'Não foi possível atualizar a data da tarefa.'));
     }
   };
 

@@ -23,9 +23,11 @@ interface KanbanColumnProps {
   onToggleSelect?: (cardId: string) => void;
   onSelectAll?: () => void;
   isBulkDragging?: boolean;
+  onCardMove?: (cardId: string, sourceColumnId: string, destColumnId: string) => void;
+  onCardsChange?: (cards: KanbanCardType[]) => void;
 }
 
-export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpdateColumn, onDeleteColumn, canEdit = true, onMoveCardMobile, isFirstColumn, isLastColumn, allCards = [], allColumns = [], selectedCardIds = [], onToggleSelect, onSelectAll, isBulkDragging }: KanbanColumnProps) => {
+export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpdateColumn, onDeleteColumn, canEdit = true, onMoveCardMobile, isFirstColumn, isLastColumn, allCards = [], allColumns = [], selectedCardIds = [], onToggleSelect, onSelectAll, isBulkDragging, onCardMove, onCardsChange }: KanbanColumnProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(column.title);
   const [editColor, setEditColor] = useState(column.color || '');
@@ -368,6 +370,10 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
                         isSelected={selectedCardIds?.includes(card.id)}
                         onToggleSelect={onToggleSelect}
                         isBulkDragging={isBulkDragging}
+                        allCards={allCards}
+                        allColumns={allColumns}
+                        onCardMove={onCardMove}
+                        onCardsChange={onCardsChange}
                       />
                     );
                   })}

@@ -5,6 +5,7 @@ import type { KanbanCardType } from '@/types/kanban';
 import { Clock, CheckSquare, Trash2, Tag, Loader2, ArrowRight, X, AlignLeft, Plus, Flag, ChevronDown, ArrowDownRight, ArrowUpRight, AlertCircle, Users, ListTree, CheckCircle2, Pencil, Calendar, Pin } from 'lucide-react';
 import { queueMutation, isNetworkError } from '@/lib/offlineSync';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { CardComments } from '@/components/kanban/CardComments';
@@ -389,7 +390,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
             onClose();
             onUpdate();
           } else {
-            toast.error('Erro ao excluir: ' + error.message);
+            toast.error(getFriendlyErrorMessage(error, 'Não foi possível excluir o cartão no momento.'));
           }
         } finally {
           setIsLoading(false);
@@ -415,7 +416,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
       setSaveStatus('saved');
     } catch (error: any) {
       setSaveStatus('idle');
-      toast.error('Erro ao criar checklist: ' + error?.message);
+      toast.error(getFriendlyErrorMessage(error, 'Não foi possível criar o checklist no momento.'));
     }
   };
 
@@ -987,7 +988,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
                         type="datetime-local"
                         {...register('due_date')}
                         readOnly={!canEdit}
-                        className={`w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all ${!canEdit ? 'pointer-events-none opacity-70' : 'cursor-pointer'}`}
+                        className={`w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all dark:[color-scheme:dark] ${!canEdit ? 'pointer-events-none opacity-70' : 'cursor-pointer'}`}
                         onChange={(e) => {
                           const selectedValue = e.target.value;
                           if (selectedValue) {

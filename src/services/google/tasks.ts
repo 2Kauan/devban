@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 
 const callGoogleTasksApi = async (targetUrl: string, method: string = 'GET', body?: any) => {
   const localToken = localStorage.getItem('devban_gcal_token');
@@ -195,7 +196,7 @@ export const syncAllCardsToGoogleTasks = async () => {
     }
     toast.success(`🎉 Sincronizados ${eligibleCards.length} cartão(ões) no Google Tarefas!`);
   } catch (err: any) {
-    toast.error('Erro ao sincronizar no Google Tarefas: ' + err.message);
+    toast.error(getFriendlyErrorMessage(err, 'Não foi possível sincronizar com o Google Tarefas no momento.'));
   }
 };
 
@@ -215,7 +216,7 @@ export const syncSelectedCardsToGoogleTasks = async (cardIds: string[]) => {
     }
     toast.success(`🎉 Sincronizados ${cards.length} cartão(ões) selecionado(s) no Google Tarefas!`);
   } catch (err: any) {
-    toast.error('Erro ao sincronizar no Google Tarefas: ' + err.message);
+    toast.error(getFriendlyErrorMessage(err, 'Não foi possível sincronizar com o Google Tarefas no momento.'));
   }
 };
 

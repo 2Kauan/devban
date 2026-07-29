@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { getGCalEventId, mapColorToGoogleColorId, buildRichEventDescription } from '../../integrations/google/GoogleHelpers';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 
 const callGoogleProxy = async (targetUrl: string, method: string = 'GET', body?: any) => {
   const localToken = localStorage.getItem('devban_gcal_token');
@@ -322,7 +323,7 @@ export const syncAllCardsToGoogleCalendar = async () => {
     }
     toast.success(`🎉 Sincronizados ${eligibleCards.length} cartões no Google Agenda!`);
   } catch (err: any) {
-    toast.error('Erro ao sincronizar cartões: ' + err.message);
+    toast.error(getFriendlyErrorMessage(err, 'Não foi possível sincronizar com o Google Agenda no momento.'));
   }
 };
 
@@ -343,7 +344,7 @@ export const syncSelectedCardsToGoogleCalendar = async (cardIds: string[]) => {
     }
     toast.success(`🎉 Sincronizados ${cards.length} cartão(ões) selecionado(s) no Google Agenda!`);
   } catch (err: any) {
-    toast.error('Erro ao sincronizar cartões: ' + err.message);
+    toast.error(getFriendlyErrorMessage(err, 'Não foi possível sincronizar com o Google Agenda no momento.'));
   }
 };
 

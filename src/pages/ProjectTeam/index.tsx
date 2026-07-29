@@ -5,6 +5,7 @@ import type { Project } from '@/types/database';
 import { ShareModal } from '@/components/ui/ShareModal';
 import { Users, UserPlus, Settings, Trash2, Save, Lightbulb, Rocket, Activity, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserProfileModal } from '@/components/ui/UserProfileModal';
@@ -106,7 +107,7 @@ export default function ProjectTeam() {
       setMembers(memberList);
 
     } catch (error: any) {
-      toast.error('Erro ao buscar membros: ' + error.message);
+      toast.error(getFriendlyErrorMessage(error, 'Não foi possível carregar os membros da equipe.'));
     } finally {
       setIsLoading(false);
     }
@@ -137,7 +138,7 @@ export default function ProjectTeam() {
           queryClient.invalidateQueries({ queryKey: ['project', project.id] });
           queryClient.invalidateQueries({ queryKey: ['projectMemberCounts'] });
         } catch (error: any) {
-          toast.error('Erro ao remover membro: ' + error.message);
+          toast.error(getFriendlyErrorMessage(error, 'Não foi possível remover este membro.'));
         } finally {
           setConfirmConfig(prev => ({ ...prev, isOpen: false }));
         }
@@ -176,7 +177,7 @@ export default function ProjectTeam() {
       setPendingChanges({});
       toast.success('Alterações salvas com sucesso!');
     } catch (error: any) {
-      toast.error('Erro ao salvar alterações: ' + error.message);
+      toast.error(getFriendlyErrorMessage(error, 'Não foi possível salvar as permissões dos membros.'));
     } finally {
       setIsSaving(false);
     }

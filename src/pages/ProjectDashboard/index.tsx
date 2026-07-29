@@ -9,6 +9,7 @@ import {
 } from 'recharts';
 import { Layers, CheckCircle2, Clock, AlertCircle, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ProjectDashboard() {
@@ -38,7 +39,7 @@ export default function ProjectDashboard() {
       setColumns(colRes.data || []);
       setCards(cardRes.data || []);
     } catch (error: any) {
-      toast.error('Erro ao carregar dados do dashboard: ' + error.message);
+      toast.error(getFriendlyErrorMessage(error, 'Não foi possível carregar os dados do painel no momento.'));
     } finally {
       setIsLoading(false);
     }

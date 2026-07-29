@@ -43,7 +43,7 @@ export default function ResetPassword() {
       });
 
       if (error) {
-        toast.error('Erro ao redefinir senha: ' + translateAuthError(error.message));
+        toast.error(translateAuthError(error.message));
         return;
       }
 
@@ -53,7 +53,7 @@ export default function ResetPassword() {
       toast.success('Senha atualizada com sucesso! Faça login com a nova senha.');
       navigate('/login');
     } catch (error: any) {
-      toast.error('Ocorreu um erro ao redefinir a senha: ' + translateAuthError(error.message));
+      toast.error(translateAuthError(error?.message));
     } finally {
       setIsLoading(false);
     }

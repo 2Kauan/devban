@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Save, User, Mail, Loader2, Camera, Bell, Sun, Moon, Monitor } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import { ImageCropModal } from '@/components/ui/ImageCropModal';
 import { NotificationService } from '@/services/notifications/notificationService';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -58,7 +59,7 @@ export default function Settings() {
       setTimeout(() => window.location.reload(), 1000);
       
     } catch (error: any) {
-      toast.error('Erro ao salvar: ' + error.message);
+      toast.error(getFriendlyErrorMessage(error, 'Não foi possível salvar as alterações do perfil.'));
     } finally {
       setIsSaving(false);
     }
@@ -113,7 +114,7 @@ export default function Settings() {
       setSelectedImageSrc(null);
       toast.success('Foto de perfil processada com sucesso!');
     } catch (e: any) {
-      toast.error('Erro ao enviar imagem: ' + e.message);
+      toast.error(getFriendlyErrorMessage(e, 'Não foi possível atualizar sua foto de perfil.'));
     } finally {
       setIsUploadingImage(false);
     }

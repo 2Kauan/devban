@@ -329,6 +329,8 @@ export function KanbanBoard({
                 onToggleSelect={handleToggleSelect}
                 onSelectAll={() => handleSelectAllColumnCards(col.id)}
                 isBulkDragging={!!(activeCard && selectedCardIds.includes(activeCard.id) && selectedCardIds.length > 1)}
+                onCardMove={onCardMove}
+                onCardsChange={onCardsChange}
               />
             ))}
           </SortableContext>

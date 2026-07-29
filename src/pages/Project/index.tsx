@@ -13,6 +13,7 @@ import { useKanbanActions } from '@/hooks/useKanbanActions';
 import { useProjectQuery } from '@/hooks/useProjectQuery';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import { Lock, Loader2, ShieldAlert } from 'lucide-react';
 
 export default function ProjectPage() {
@@ -123,7 +124,7 @@ export default function ProjectPage() {
         if (reqError) throw reqError;
         toast.success('Solicitação de acesso enviada! Aguarde a aprovação do dono.');
       } catch (err: any) {
-        toast.error(err.message || 'Erro ao solicitar acesso');
+        toast.error(getFriendlyErrorMessage(err, 'Não foi possível solicitar acesso a este projeto.'));
       } finally {
         setIsRequestingAccess(false);
       }

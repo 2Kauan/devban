@@ -1,3 +1,5 @@
+import { getFriendlyErrorMessage } from './errorMessages';
+
 /**
  * Traduz mensagens de erro comuns do Supabase Auth para português.
  */
@@ -39,6 +41,6 @@ export function translateAuthError(message: string): string {
     return 'A senha deve ter pelo menos 6 caracteres.';
   }
 
-  // Fallback para mensagens em inglês genéricas
-  return message;
+  // Fallback para mensagens em inglês genéricas ou códigos técnicos
+  return getFriendlyErrorMessage(message, 'Ocorreu um erro na autenticação. Verifique os dados e tente novamente.');
 }

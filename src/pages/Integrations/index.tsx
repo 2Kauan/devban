@@ -14,6 +14,7 @@ import {
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import { isNative } from '@/lib/capacitor';
 
 interface Integration {
@@ -124,7 +125,7 @@ export default function Integrations() {
         });
         if (error) throw error;
       } catch (err: any) {
-        toast.error('Erro ao conectar com Google: ' + err.message);
+        toast.error(getFriendlyErrorMessage(err, 'Não foi possível conectar com a conta do Google no momento.'));
         setConnectingId(null);
         return;
       }
@@ -161,7 +162,7 @@ export default function Integrations() {
       });
       if (error) throw error;
     } catch (err: any) {
-      toast.error('Erro ao reautorizar: ' + err.message);
+      toast.error(getFriendlyErrorMessage(err, 'Não foi possível reautorizar a conta do Google.'));
       setConnectingId(null);
     }
   };
