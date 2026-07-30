@@ -3,17 +3,16 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Project } from '@/types/database';
 import { sortProjectsByRecent } from '@/utils/recentProjects';
+import { isNetworkError } from '@/lib/offlineSync';
 
 const CACHE_KEY = 'devban_projects_cache_';
-const CACHE_TTL = 1000 * 60 * 5; // 5 min
 
 function getCachedProjects(userId: string): Project[] | null {
   try {
     const raw = localStorage.getItem(CACHE_KEY + userId);
     if (!raw) return null;
-    const { data, timestamp } = JSON.parse(raw);
-    if (Date.now() - timestamp > CACHE_TTL) return null;
-    return sortProjectsByRecent(data);
+    const { data } = JSON.parse(raw);
+    return sortProjectsByRecent(data || []);
   } catch {
     return null;
   }
@@ -33,17 +32,26 @@ export function useProjectsQuery() {
     queryFn: async () => {
       if (!user) return [];
 
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('owner_id', user.id)
-        .order('updated_at', { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('owner_id', user.id)
+          .order('updated_at', { ascending: false });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      const projects = sortProjectsByRecent(data || []);
-      setCachedProjects(user.id, projects);
-      return projects;
+        const projects = sortProjectsByRecent(data || []);
+        setCachedProjects(user.id, projects);
+        return projects;
+      } catch (err: any) {
+        if (isNetworkError(err) || !navigator.onLine) {
+          console.log('[ProjectsQuery] Modo Offline: Carregando lista de projetos do cache local...');
+          const cached = getCachedProjects(user.id);
+          if (cached) return cached;
+        }
+        throw err;
+      }
     },
     enabled: !!user,
     staleTime: 1000 * 30,

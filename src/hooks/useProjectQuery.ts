@@ -209,13 +209,13 @@ export function useProjectQuery(projectId: string | undefined) {
         return finalData;
 
       } catch (err: any) {
-        if (isNetworkError(err)) {
-           console.log('Sem internet, carregando dados do cache...');
+        if (isNetworkError(err) || !navigator.onLine) {
+           console.log('[ProjectQuery] Modo Offline: Carregando dados do quadro do cache local...');
            const cached = getCachedBoardData(projectId);
            if (cached && cached.fullData) {
               return cached.fullData;
            }
-           throw new Error('Você está offline e não há dados em cache para este projeto.');
+           throw new Error('Você está offline e não há dados salvos para este projeto.');
         }
         throw err;
       }
