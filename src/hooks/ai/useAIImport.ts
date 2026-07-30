@@ -150,7 +150,8 @@ export function useAIImport() {
                 title: sub.title,
                 description: sub.description || '',
                 position: baseSubtaskPosition,
-                priority: subPriority
+                priority: subPriority,
+                due_date: sub.due_date || null
               };
             });
             

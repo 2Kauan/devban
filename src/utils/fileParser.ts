@@ -14,6 +14,8 @@ export async function extractTextFromFiles(files: File[]): Promise<string> {
   for (const file of files) {
     if (file.type === 'application/pdf') {
       combinedText += await extractTextFromPDF(file);
+    } else if (file.type.startsWith('image/')) {
+      combinedText += `\n[Imagem Anexada: ${file.name} (${(file.size / 1024).toFixed(1)} KB) - O modelo de visão de IA analisará a estrutura visual, colunas e cartões contidos nesta imagem.]\n`;
     } else if (file.type.startsWith('text/') || file.name.endsWith('.md') || file.name.endsWith('.json') || file.name.endsWith('.csv')) {
       const text = await file.text();
       combinedText += `\n[Arquivo de Texto: ${file.name}]\n${text}\n`;

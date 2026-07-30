@@ -2,11 +2,75 @@ import type { AIKanbanBoard, AIGenerationMode } from '@/types/ai';
 import { buildKanbanPrompt } from './promptBuilder';
 
 const FALLBACK_MODELS = [
+  'google/gemini-2.0-flash-001',
   'openai/gpt-4o-mini',
+  'google/gemini-flash-1.5',
   'anthropic/claude-3-haiku',
-  'meta-llama/llama-3-8b-instruct',
-  'google/gemini-flash-1.5'
+  'meta-llama/llama-3.2-11b-vision-instruct'
 ];
+
+/**
+ * Redimensiona e comprime a imagem para no máximo 1200px para garantir envio leve (<200KB) e rápido para a visão da IA.
+ */
+const compressAndScaleImage = (file: File, maxDimension = 1200, quality = 0.85): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let width = img.width;
+      let height = img.height;
+
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+        return;
+      }
+
+      // Preenche fundo branco em caso de PNGs com transparência
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', quality);
+      resolve(dataUrl);
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    };
+
+    img.src = url;
+  });
+};
 
 /**
  * Service to communicate with the LLM API (via Edge Function eventually, using local env for now)
@@ -16,10 +80,10 @@ export const aiService = {
     _projectId: string, 
     mode: AIGenerationMode,
     text: string,
-    _files: File[]
+    files: File[] = []
   ): Promise<AIKanbanBoard> => {
     // O texto agora já chega concatenado com a extração de PDFs ou arquivos de texto
-    const promptText = text.trim() ? text : 'Gere um kanban padrão baseado nestes arquivos.';
+    const promptText = text.trim() ? text : 'Gere um kanban padrão baseado nestes arquivos e imagens fornecidos.';
     
     const prompt = buildKanbanPrompt(mode, promptText);
     const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
@@ -27,6 +91,29 @@ export const aiService = {
     if (!apiKey) {
       throw new Error('Chave da OpenRouter (VITE_OPENROUTER_API_KEY) não encontrada. Verifique seu arquivo .env.local.');
     }
+
+    // Processa e comprime imagens para envio multimodal (Base64) se houver
+    const imageFiles = files ? files.filter(f => f.type.startsWith('image/')) : [];
+    let imageContentItems: any[] = [];
+
+    if (imageFiles.length > 0) {
+      try {
+        const dataUrls = await Promise.all(imageFiles.map(file => compressAndScaleImage(file)));
+        imageContentItems = dataUrls.map(url => ({
+          type: 'image_url',
+          image_url: { url }
+        }));
+      } catch (err) {
+        console.warn('[DevBan AI] Erro ao comprimir e converter imagem para Data URL:', err);
+      }
+    }
+
+    const messageContent = imageContentItems.length > 0
+      ? [
+          { type: 'text', text: prompt },
+          ...imageContentItems
+        ]
+      : prompt;
 
     let lastError: Error | null = null;
 
@@ -47,10 +134,9 @@ export const aiService = {
             messages: [
               {
                 role: 'user',
-                content: prompt
+                content: messageContent
               }
-            ],
-            response_format: { type: 'json_object' } // Força o retorno em JSON em alguns provedores
+            ]
           })
         });
 
@@ -60,10 +146,17 @@ export const aiService = {
         }
 
         const data = await response.json();
-        const rawContent = data.choices[0].message.content;
+        const rawContent = data.choices[0]?.message?.content;
+
+        if (!rawContent) {
+          throw new Error('Retorno vazio da API de IA.');
+        }
 
         // Limpa formatação markdown caso a IA ignore a instrução
-        const cleanJsonString = rawContent.replace(/```json\n?/, '').replace(/```\n?$/, '').trim();
+        const cleanJsonString = rawContent
+          .replace(/```json\n?/gi, '')
+          .replace(/```\n?/g, '')
+          .trim();
         
         const parsedData = JSON.parse(cleanJsonString);
         
