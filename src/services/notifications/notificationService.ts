@@ -1,6 +1,5 @@
 import { LocalNotifications } from '@capacitor/local-notifications';
-
-import { subHours, isPast } from 'date-fns';
+import { subHours, subDays, subMinutes, isPast } from 'date-fns';
 
 export class NotificationService {
   /**
@@ -43,7 +42,9 @@ export class NotificationService {
             title,
             body,
             id: notificationId,
-            schedule: { at: new Date() }
+            schedule: { at: new Date() },
+            smallIcon: 'ic_stat_logo',
+            iconColor: '#AA3BFF'
           }
         ]
       });
@@ -54,7 +55,7 @@ export class NotificationService {
 
     if ('Notification' in window && Notification.permission === 'granted') {
       try {
-        new Notification(title, { body });
+        new Notification(title, { body, icon: '/logo-branca.png' });
         console.log(`[Notification] Notificação via Web API disparada: ${title}`);
       } catch (err) {
         console.warn('Falha ao disparar notificação via Web API:', err);
@@ -63,40 +64,79 @@ export class NotificationService {
   }
 
   /**
+   * Agenda múltiplos alertas de prazo de uma tarefa no AlarmManager do Android
+   * para dispararem AUTOMATICAMENTE no horário exato, mesmo com o aplicativo fechado.
+   */
+  static async scheduleAllTaskReminders(cardId: string, title: string, dueDateStr: string | null): Promise<void> {
+    if (!dueDateStr) return;
+
+    try {
+      const dueDate = new Date(dueDateStr);
+      if (isNaN(dueDate.getTime())) return;
+
+      // Alertas futuros que devem ser pré-agendados no sistema operacional:
+      const alerts = [
+        {
+          suffix: '_1d',
+          time: subDays(dueDate, 1),
+          title: 'DevBan - Prazo Amanhã',
+          body: `Falta 1 dia para o vencimento da tarefa "${title}".`
+        },
+        {
+          suffix: '_1h',
+          time: subHours(dueDate, 1),
+          title: 'DevBan - Prazo em 1 Hora',
+          body: `Você tem 1 hora para concluir a tarefa "${title}".`
+        },
+        {
+          suffix: '_5m',
+          time: subMinutes(dueDate, 5),
+          title: 'DevBan - Vencimento Próximo',
+          body: `Faltam 5 minutos para a tarefa "${title}" vencer!`
+        },
+        {
+          suffix: '_due',
+          time: dueDate,
+          title: 'DevBan - Tarefa Vencendo Agora',
+          body: `Chegou o horário de vencimento da tarefa "${title}"!`
+        }
+      ];
+
+      const notificationsToSchedule = [];
+
+      for (const alert of alerts) {
+        // Ignora se o horário do alerta já passou
+        if (isPast(alert.time)) continue;
+
+        const notificationId = this.generateNumericId(cardId + alert.suffix);
+
+        notificationsToSchedule.push({
+          id: notificationId,
+          title: alert.title,
+          body: alert.body,
+          schedule: { at: alert.time },
+          smallIcon: 'ic_stat_logo',
+          iconColor: '#AA3BFF',
+          extra: { cardId }
+        });
+      }
+
+      if (notificationsToSchedule.length > 0) {
+        await LocalNotifications.schedule({
+          notifications: notificationsToSchedule
+        });
+        console.log(`[Notification] ${notificationsToSchedule.length} alarme(s) pré-agendados em segundo plano para "${title}"`);
+      }
+    } catch (error) {
+      console.warn('Falha ao agendar lembretes em segundo plano:', error);
+    }
+  }
+
+  /**
    * Schedule a reminder for a task 1 hour before its due date.
    */
   static async scheduleTaskReminder(cardId: string, title: string, dueDate: string | null): Promise<void> {
-    try {
-      // Cancela qualquer alarme antigo para não apitar duplicado se a pessoa mudou a data
-      await this.cancelTaskReminder(cardId);
-
-      if (!dueDate) return;
-
-      const due = new Date(dueDate);
-      const reminderTime = subHours(due, 1); // Exatamente 1 hora antes
-
-      // Se a hora do alarme já passou, nem agenda
-      if (isPast(reminderTime)) return;
-
-      // O Capacitor exige que o ID da notificação seja um número. 
-      // Vamos gerar um hash numérico a partir do ID do cartão (UUID)
-      const notificationId = this.generateNumericId(cardId);
-
-      await LocalNotifications.schedule({
-        notifications: [
-          {
-            title: 'Tarefa Próxima do Vencimento',
-            body: `A tarefa "${title}" vence em 1 hora!`,
-            id: notificationId,
-            schedule: { at: reminderTime },
-            extra: { cardId }
-          }
-        ]
-      });
-      console.log(`[Notification] Alarme agendado para: ${reminderTime.toLocaleString()}`);
-    } catch (error) {
-      console.warn('Falha ao agendar notificação:', error);
-    }
+    return this.scheduleAllTaskReminders(cardId, title, dueDate);
   }
 
   /**
@@ -104,17 +144,15 @@ export class NotificationService {
    */
   static async cancelTaskReminder(cardId: string): Promise<void> {
     try {
-      const notificationId = this.generateNumericId(cardId);
+      const suffixes = ['_1d', '_1h', '_5m', '_due', ''];
+      const notificationsToCancel = suffixes.map(s => ({
+        id: this.generateNumericId(cardId + s)
+      }));
       
-      const pending = await LocalNotifications.getPending();
-      const exists = pending.notifications.some(n => n.id === notificationId);
-      
-      if (exists) {
-        await LocalNotifications.cancel({
-          notifications: [{ id: notificationId }]
-        });
-        console.log(`[Notification] Alarme cancelado para o card: ${cardId}`);
-      }
+      await LocalNotifications.cancel({
+        notifications: notificationsToCancel
+      });
+      console.log(`[Notification] Alarmes cancelados para o card: ${cardId}`);
     } catch (error) {
       console.warn('Falha ao cancelar notificação:', error);
     }

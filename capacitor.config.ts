@@ -24,6 +24,10 @@ const config: CapacitorConfig = {
       layoutName: "launch_screen",
       useDialog: true,
     },
+    LocalNotifications: {
+      smallIcon: "ic_stat_logo",
+      iconColor: "#AA3BFF"
+    },
     PushNotifications: {
       presentationOptions: ["badge", "sound", "alert"],
     },

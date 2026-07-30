@@ -45,7 +45,7 @@ export function useNotificationScheduler() {
         const now = new Date();
 
         for (const card of activeCards) {
-          // 1. Urgent Priority Alerts (Every 30 mins)
+          // 1. Urgent Priority Alerts (Every 30 mins if app open)
           if (card.priority === 'urgent') {
             const lastAlertKey = `last_urgent_alert_${card.id}`;
             const lastAlertStr = localStorage.getItem(lastAlertKey);
@@ -57,36 +57,9 @@ export function useNotificationScheduler() {
             }
           }
 
-          // 2. Deadline Alerts
-          if (!card.due_date) continue;
-          const dueDate = new Date(card.due_date);
-          const diffMs = dueDate.getTime() - now.getTime();
-          const diffMins = diffMs / 60000;
-
-          let thresholdKey = '';
-          let message = '';
-
-          if (diffMins > 0 && diffMins <= 1.5) {
-            thresholdKey = '1m';
-            message = `Falta 1 minuto para concluir a tarefa "${card.title}"!`;
-          } else if (diffMins > 4 && diffMins <= 6) {
-            thresholdKey = '5m';
-            message = `Faltam 5 minutos para concluir a tarefa "${card.title}"!`;
-          } else if (diffMins > 55 && diffMins <= 65) {
-            thresholdKey = '1h';
-            message = `Você tem 1 hora para fazer a tarefa "${card.title}". Prazo final: ${dueDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`;
-          } else if (diffMins > 1430 && diffMins <= 1450) {
-            thresholdKey = '1d';
-            message = `Falta 1 dia para o vencimento da tarefa "${card.title}". Prazo final: ${dueDate.toLocaleDateString()} às ${dueDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`;
-          }
-
-          if (thresholdKey && message) {
-            const sentRecordKey = `sent_${card.id}_${thresholdKey}`;
-            const alreadySent = localStorage.getItem(sentRecordKey);
-            if (!alreadySent) {
-              NotificationService.sendImmediateNotification('Devban - Prazo de Entrega', message);
-              localStorage.setItem(sentRecordKey, 'true');
-            }
+          // 2. Pre-agendar alertas no AlarmManager do Android para dispararem AUTOMATICAMENTE em segundo plano
+          if (card.due_date) {
+            await NotificationService.scheduleAllTaskReminders(card.id, card.title, card.due_date);
           }
         }
       } catch (err) {
@@ -94,9 +67,9 @@ export function useNotificationScheduler() {
       }
     };
 
-    // Run immediately on load, and then every 30 seconds
+    // Run immediately on load, and then every 60 seconds
     checkDeadlines();
-    const interval = setInterval(checkDeadlines, 30000);
+    const interval = setInterval(checkDeadlines, 60000);
 
     return () => clearInterval(interval);
   }, [user]);
