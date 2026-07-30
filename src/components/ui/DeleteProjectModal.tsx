@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, AlertTriangle, Lightbulb, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { isNetworkError, queueMutation, removeProjectFromCache } from '@/lib/offlineSync';
 
 interface DeleteProjectModalProps {
   isOpen: boolean;
@@ -31,10 +32,19 @@ export function DeleteProjectModal({ isOpen, onClose, projectName, projectId, is
 
       const { error } = await supabase.from('projects').delete().eq('id', projectId);
       if (error) throw error;
+      removeProjectFromCache(projectId);
       toast.success('Projeto excluído com sucesso!');
       onSuccess();
       onClose();
     } catch (error: any) {
+      if (isNetworkError(error) || !navigator.onLine) {
+        queueMutation('projects', 'delete', null, { id: projectId });
+        removeProjectFromCache(projectId);
+        toast.success('Modo Offline: Projeto excluído do dispositivo.');
+        onSuccess();
+        onClose();
+        return;
+      }
       toast.error('Erro ao excluir projeto: ' + error.message);
     } finally {
       setIsLoading(false);

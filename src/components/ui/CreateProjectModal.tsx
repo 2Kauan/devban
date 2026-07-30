@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { touchProject } from '@/utils/recentProjects';
 import { useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
+import { isNetworkError, addProjectToCache, queueMutation, cacheBoardData } from '@/lib/offlineSync';
 
 const projectSchema = z.object({
   name: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres'),
@@ -264,6 +265,50 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
         onClose();
       }
     } catch (error: any) {
+      if (isNetworkError(error) || !navigator.onLine) {
+        const offlineId = crypto.randomUUID();
+        const offlineProject = {
+          id: offlineId,
+          owner_id: user?.id || 'offline_user',
+          name: data.name,
+          description: data.description || '',
+          is_free: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_completed: false,
+          share_enabled: false,
+        };
+
+        const defaultCols = [
+          { id: crypto.randomUUID(), project_id: offlineId, title: 'Ideias', position: 1000, color: '#94a3b8' },
+          { id: crypto.randomUUID(), project_id: offlineId, title: 'A Fazer', position: 2000, color: '#3b82f6' },
+          { id: crypto.randomUUID(), project_id: offlineId, title: 'Fazendo', position: 3000, color: '#eab308' },
+          { id: crypto.randomUUID(), project_id: offlineId, title: 'Revisão', position: 4000, color: '#a855f7' },
+          { id: crypto.randomUUID(), project_id: offlineId, title: 'Concluído', position: 5000, color: '#22c55e', is_completed: true },
+        ];
+
+        queueMutation('projects', 'insert', offlineProject);
+        queueMutation('columns', 'insert', defaultCols);
+        addProjectToCache(offlineProject);
+        cacheBoardData(offlineId, defaultCols, [], {
+          project: offlineProject,
+          columns: defaultCols,
+          cards: [],
+          projectCategories: [],
+          userPermission: 'owner',
+          pendingRequestsCount: 0,
+          projectMembers: []
+        });
+
+        queryClient.setQueryData(['projects', user?.id], (old: any) => [offlineProject, ...(old || [])]);
+        queryClient.invalidateQueries({ queryKey: ['projects'] });
+
+        toast.success('Modo Offline: Projeto criado localmente e salvo no celular!');
+        reset();
+        onSuccess();
+        onClose();
+        return;
+      }
       toast.error('Erro ao processar criação: ' + error.message);
     } finally {
       setIsLoading(false);

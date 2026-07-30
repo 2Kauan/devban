@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 
 const SYNC_QUEUE_KEY = 'devban_sync_queue';
 const CACHE_PREFIX = 'devban_board_cache_';
+const PROJECTS_CACHE_KEY = 'devban_cached_projects_list';
 
 type SyncAction = 'upsert' | 'insert' | 'delete' | 'update';
 
@@ -14,6 +15,43 @@ interface SyncItem {
   match?: Record<string, any>; // Used for where/eq clauses on update/delete
   timestamp: number;
 }
+
+// ============================================
+// PROJECTS LIST CACHE
+// ============================================
+export const saveProjectsToCache = (projects: any[]) => {
+  try {
+    localStorage.setItem(PROJECTS_CACHE_KEY, JSON.stringify(projects));
+  } catch (e) {
+    console.error('Falha ao salvar lista de projetos no cache:', e);
+  }
+};
+
+export const getProjectsFromCache = (): any[] => {
+  try {
+    const raw = localStorage.getItem(PROJECTS_CACHE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+};
+
+export const addProjectToCache = (newProject: any): any[] => {
+  const current = getProjectsFromCache();
+  const exists = current.some(p => p.id === newProject.id);
+  const updated = exists
+    ? current.map(p => p.id === newProject.id ? { ...p, ...newProject } : p)
+    : [newProject, ...current];
+  saveProjectsToCache(updated);
+  return updated;
+};
+
+export const removeProjectFromCache = (projectId: string): any[] => {
+  const current = getProjectsFromCache();
+  const updated = current.filter(p => p.id !== projectId);
+  saveProjectsToCache(updated);
+  return updated;
+};
 
 // ============================================
 // BOARD DATA CACHE
@@ -72,8 +110,8 @@ export const queueMutation = (table: string, action: SyncAction, payload: any, m
 export const isNetworkError = (error: any): boolean => {
   if (!navigator.onLine) return true;
   if (!error) return false;
-  const msg = error.message?.toLowerCase() || '';
-  return msg.includes('fetch') || msg.includes('network') || msg.includes('failed to fetch');
+  const msg = (error.message || error.details || JSON.stringify(error)).toLowerCase();
+  return msg.includes('fetch') || msg.includes('network') || msg.includes('failed to fetch') || msg.includes('typeerror') || error.status === 0;
 };
 
 let isSyncing = false;
