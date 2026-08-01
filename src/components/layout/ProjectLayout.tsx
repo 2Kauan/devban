@@ -35,7 +35,7 @@ export function ProjectLayout() {
     if (user && id) {
       touchProject(id, queryClient);
     }
-  }, [user, id]);
+  }, [user, id, queryClient]);
 
   useEffect(() => {
     if (!project?.id || !user) return;

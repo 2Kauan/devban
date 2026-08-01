@@ -85,7 +85,7 @@ export function Sidebar({ onProjectCreated, isOpen, onClose, isProjectView = fal
   // Fecha a sidebar ao mudar de rota
   useEffect(() => {
     onClose();
-  }, [location.pathname]);
+  }, [location.pathname, onClose]);
 
   // Listen for global custom event to open Create Project Modal
   useEffect(() => {

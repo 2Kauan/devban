@@ -458,6 +458,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
       }
       onUpdate();
     } catch (error: any) {
+      console.error('[CardModal] Erro ao adicionar item:', error);
       setSaveStatus('idle');
       toast.error('Erro ao adicionar item');
     }
@@ -483,6 +484,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
       }
       onUpdate();
     } catch (error: any) {
+      console.error('[CardModal] Erro ao atualizar item:', error);
       setSaveStatus('idle');
       toast.error('Erro ao atualizar item');
       fetchChecklists();
@@ -520,7 +522,8 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
       }
       onUpdate();
       setSaveStatus('saved');
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[CardModal] Erro ao atualizar etiqueta:', error);
       setSaveStatus('idle');
       toast.error('Erro ao atualizar etiqueta');
     }

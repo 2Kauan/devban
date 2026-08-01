@@ -8,13 +8,12 @@ import { useProjectQuery } from '@/hooks/useProjectQuery';
 export default function ProjectHealth() {
   const { project } = useOutletContext<{ project: Project }>();
   const { data } = useProjectQuery(project.id);
-
-  const cards = data?.cards || [];
-  const columns = data?.columns || [];
-  const projectMembers = data?.projectMembers || [];
-
   // Memoized Metrics Calculations
   const metrics = useMemo(() => {
+    const cards = data?.cards;
+    const columns = data?.columns;
+    const projectMembers = data?.projectMembers || [];
+
     if (!cards || !columns || columns.length === 0) return null;
     
     let completedColIds = columns.filter(c => c.is_completed).map(c => c.id);
@@ -106,7 +105,7 @@ export default function ProjectHealth() {
       evaluationText,
       radarColor,
     };
-  }, [cards, columns, projectMembers]);
+  }, [data?.cards, data?.columns, data?.projectMembers]);
 
   return (
     <div className="p-8 max-w-3xl mx-auto h-full overflow-y-auto">

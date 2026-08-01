@@ -384,7 +384,7 @@ export function useKanbanActions({
     if (changedCards.length === 0) return;
 
     const updates = changedCards.map(c => {
-      const { assignees, categories, comments_count, is_completed, ...dbCard } = c as any;
+      const { assignees: _assignees, categories: _categories, comments_count: _comments_count, is_completed: _is_completed, ...dbCard } = c as Record<string, any>;
       return dbCard;
     });
 

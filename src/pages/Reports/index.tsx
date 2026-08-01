@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopHeader } from '@/components/layout/TopHeader';
 import { supabase } from '@/lib/supabase';
@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import type { Profile } from '@/types/database';
+import { toast } from 'sonner';
 
 interface ReportStats {
   totalProjects: number;
@@ -40,26 +41,21 @@ export default function Reports() {
   const [detailedMembers, setDetailedMembers] = useState<Profile[]>([]);
   const [activeModal, setActiveModal] = useState<ModalType>(null);
 
-  useEffect(() => {
-    if (user) {
-      fetchReports();
-    }
-  }, [user]);
-
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
+    if (!user) return;
     try {
       setIsLoading(true);
       // Fetch projects user owns
       const { data: ownedData } = await supabase
         .from('projects')
         .select('id, name')
-        .eq('owner_id', user?.id);
+        .eq('user_id', user.id);
 
       // Fetch projects user is member of
       const { data: memberData } = await supabase
         .from('project_members')
         .select('projects(id, name)')
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
 
       const ownedProjects = ownedData || [];
       const memberProjects = (memberData || []).map(p => p.projects).filter(Boolean) as any[];
@@ -70,106 +66,76 @@ export default function Reports() {
       memberProjects.forEach(p => allProjectsMap.set(p.id, p));
 
       const projects = Array.from(allProjectsMap.values());
+
+      if (projects.length === 0) {
+        setIsLoading(false);
+        return;
+      }
+
       const projectIds = projects.map(p => p.id);
 
-      if (projectIds.length > 0) {
-        // Fetch Columns to find the last column (highest order) for each project
-        const { data: columnsData } = await supabase
-          .from('columns')
-          .select('id, project_id, order')
-          .in('project_id', projectIds);
+      // Fetch cards
+      const { data: cardsData } = await supabase
+        .from('cards')
+        .select('*')
+        .in('project_id', projectIds);
 
-        const columns = columnsData || [];
-        
-        // Map project_id to its last column's id
-        const lastColumnMap = new Map<string, string>();
-        projects.forEach(p => {
-          const projectColumns = columns.filter(c => c.project_id === p.id);
-          if (projectColumns.length > 0) {
-            const lastCol = projectColumns.reduce((prev, current) => (prev.order > current.order) ? prev : current);
-            lastColumnMap.set(p.id, lastCol.id);
-          }
-        });
+      const cards = cardsData || [];
+      const completedCardsCount = cards.filter(c => c.is_completed).length;
 
-        // Fetch Cards
-        const { data: cardsData } = await supabase
-          .from('cards')
-          .select('id, project_id, column_id')
-          .in('project_id', projectIds);
-          
-        const cards = cardsData || [];
-        
-        let completedCardsCount = 0;
-        cards.forEach(card => {
-          const lastColId = lastColumnMap.get(card.project_id);
-          if (lastColId && card.column_id === lastColId) {
-            completedCardsCount++;
-          }
-        });
-        
-        // Fetch Activities
-        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-        const { count: activitiesCount, data: recentLogs } = await supabase
-          .from('card_activity_logs')
-          .select('*, profiles(name, avatar_url, email), cards(title)', { count: 'exact' })
-          .in('project_id', projectIds)
-          .gte('created_at', thirtyDaysAgo)
-          .order('created_at', { ascending: false })
-          .limit(50);
-          
-        setDetailedActivities(recentLogs || []);
-          
-        // Fetch Members (deduplicate unique user_ids)
-        const { data: membersData } = await supabase
-          .from('project_members')
-          .select('user_id')
-          .in('project_id', projectIds);
-          
-        const memberIds = new Set((membersData || []).map(m => m.user_id));
-        // Also add the owners of these projects to the unique member count
-        const { data: ownersData } = await supabase
-          .from('projects')
-          .select('owner_id')
-          .in('id', projectIds);
-        
-        (ownersData || []).forEach(o => {
-          if (o.owner_id) memberIds.add(o.owner_id);
-        });
+      // Fetch members
+      const { data: membersData } = await supabase
+        .from('project_members')
+        .select('user_id, profiles(*)')
+        .in('project_id', projectIds);
 
-        // Fetch Detailed profiles for members
-        if (memberIds.size > 0) {
-          const { data: profilesData } = await supabase
-            .from('profiles')
-            .select('*')
-            .in('id', Array.from(memberIds));
-          setDetailedMembers(profilesData || []);
-        } else {
-          setDetailedMembers([]);
+      const memberMap = new Map();
+      (membersData || []).forEach((m: any) => {
+        if (m.profiles) {
+          memberMap.set(m.profiles.id, m.profiles);
         }
+      });
+      const memberProfiles = Array.from(memberMap.values());
+      setDetailedMembers(memberProfiles);
 
-        // Project Breakdown
-        const pStats = projects.map(p => ({
-          id: p.id,
-          name: p.name,
-          cardCount: cards.filter(c => c.project_id === p.id).length
-        })).sort((a, b) => b.cardCount - a.cardCount);
+      // Fetch recent activities
+      const { data: activityData } = await supabase
+        .from('card_activity_logs')
+        .select('*, profiles(name, avatar_url), cards(title)')
+        .in('project_id', projectIds)
+        .order('created_at', { ascending: false })
+        .limit(50);
 
-        setProjectsStats(pStats);
+      setDetailedActivities(activityData || []);
 
-        setStats({
-          totalProjects: projects.length,
-          totalCards: cards.length,
-          cardsCompleted: completedCardsCount,
-          activeMembers: memberIds.size,
-          recentActivities: activitiesCount || 0
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching reports:', error);
+      const pStats: ProjectStat[] = projects.map(p => ({
+        id: p.id,
+        name: p.name,
+        cardCount: cards.filter(c => c.project_id === p.id).length
+      })).sort((a, b) => b.cardCount - a.cardCount);
+
+      setProjectsStats(pStats);
+
+      setStats({
+        totalProjects: projects.length,
+        totalCards: cards.length,
+        cardsCompleted: completedCardsCount,
+        activeMembers: memberMap.size,
+        recentActivities: (activityData || []).length
+      });
+    } catch (error: any) {
+      console.error('[Reports] Erro ao carregar relatórios:', error);
+      toast.error('Não foi possível carregar os relatórios no momento.');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchReports();
+    }
+  }, [user, fetchReports]);
 
   const statCards: { title: string; value: number; icon: any; color: string; bg: string; modalId: ModalType }[] = [
     { title: 'Projetos Ativos', value: stats.totalProjects, icon: Layers, color: 'text-blue-500', bg: 'bg-blue-500/10', modalId: 'projects' },

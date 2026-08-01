@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { supabase, createUniqueChannel } from '@/lib/supabase';
 import type { Project } from '@/types/database';
@@ -29,28 +29,8 @@ export default function ProjectActivity() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    if (project?.id) {
-      fetchActivity();
-      
-      const subscription = createUniqueChannel(`activity_${project.id}`)
-        .on('postgres_changes', { 
-          event: '*', 
-          schema: 'public', 
-          table: 'card_activity_logs',
-          filter: `project_id=eq.${project.id}`
-        }, () => {
-          fetchActivity();
-        })
-        .subscribe();
-        
-      return () => {
-        supabase.removeChannel(subscription);
-      };
-    }
-  }, [project?.id]);
-
-  const fetchActivity = async () => {
+  const fetchActivity = useCallback(async () => {
+    if (!project?.id) return;
     setIsLoading(true);
     try {
       const { data, error } = await supabase
@@ -74,11 +54,33 @@ export default function ProjectActivity() {
       
       setLogs(formattedData);
     } catch (error: any) {
+      console.error('[ProjectActivity] Erro ao carregar histórico:', error);
       toast.error(getFriendlyErrorMessage(error, 'Não foi possível carregar o histórico de atividades no momento.'));
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [project?.id]);
+
+  useEffect(() => {
+    if (project?.id) {
+      fetchActivity();
+      
+      const subscription = createUniqueChannel(`activity_${project.id}`)
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'card_activity_logs',
+          filter: `project_id=eq.${project.id}`
+        }, () => {
+          fetchActivity();
+        })
+        .subscribe();
+        
+      return () => {
+        supabase.removeChannel(subscription);
+      };
+    }
+  }, [project?.id, fetchActivity]);
 
   const getActionText = (log: ActivityLog) => {
     // Se o cartão foi excluído e está nulo, pegamos o nome salvo em old_value

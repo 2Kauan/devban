@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -28,13 +28,7 @@ export function AccessRequestsModal({ isOpen, onClose, projectId }: AccessReques
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<{ [key: string]: string }>({});
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchRequests();
-    }
-  }, [isOpen, projectId]);
-
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
@@ -67,11 +61,18 @@ export function AccessRequestsModal({ isOpen, onClose, projectId }: AccessReques
       setSelectedRole(rolesInit);
       
     } catch (error: any) {
+      console.error('[AccessRequestsModal] Erro ao carregar solicitações:', error);
       toast.error('Erro ao carregar solicitações');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchRequests();
+    }
+  }, [isOpen, fetchRequests]);
 
   const handleAction = async (requestId: string, userId: string, action: 'approved' | 'rejected') => {
     setProcessingId(requestId);

@@ -50,6 +50,7 @@ export default function Notifications() {
       if (error) throw error;
       setNotifications(data || []);
     } catch (error: any) {
+      console.error('[Notifications] Erro ao buscar notificações:', error);
       toast.error('Erro ao buscar notificações');
     } finally {
       setIsLoading(false);
@@ -67,7 +68,8 @@ export default function Notifications() {
       setNotifications(prev =>
         prev.map(n => (n.id === id ? { ...n, is_read: true } : n))
       );
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[Notifications] Erro ao marcar como lida:', error);
       toast.error('Erro ao marcar como lida');
     }
   };
@@ -83,7 +85,8 @@ export default function Notifications() {
       if (error) throw error;
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
       toast.success('Todas as notificações marcadas como lidas');
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[Notifications] Erro ao marcar todas como lidas:', error);
       toast.error('Erro ao marcar como lidas');
     }
   };
@@ -93,7 +96,8 @@ export default function Notifications() {
       const { error } = await supabase.from('notifications').delete().eq('id', id);
       if (error) throw error;
       setNotifications(prev => prev.filter(n => n.id !== id));
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[Notifications] Erro ao excluir notificação:', error);
       toast.error('Erro ao excluir notificação');
     }
   };

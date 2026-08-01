@@ -32,7 +32,8 @@ export default function ProjectCheckout() {
 
         if (error) throw error;
         setProject(data);
-      } catch (error) {
+      } catch (error: any) {
+        console.error('[ProjectCheckout] Erro ao carregar projeto:', error);
         toast.error('Erro ao carregar projeto');
         navigate('/projects');
       } finally {
@@ -40,7 +41,7 @@ export default function ProjectCheckout() {
       }
     }
     fetchProject();
-  }, [id]);
+  }, [id, navigate]);
 
   const [paymentRecordId, setPaymentRecordId] = useState<string | null>(null);
 

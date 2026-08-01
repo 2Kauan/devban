@@ -39,7 +39,7 @@ export default function Integrations() {
   const [integrationsState, setIntegrationsState] = useState<Record<string, { active: boolean; projectId?: string; config?: any }>>(() => {
     const saved = localStorage.getItem('devban_integrations');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try { return JSON.parse(saved); } catch (_e) {}
     }
     return {
       google_calendar: { active: false, projectId: 'all' },

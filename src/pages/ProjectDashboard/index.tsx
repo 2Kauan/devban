@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import type { Project } from '@/types/database';
@@ -8,8 +8,6 @@ import {
   AreaChart, Area, PieChart, Pie, Cell
 } from 'recharts';
 import { Layers, CheckCircle2, Clock, AlertCircle, X } from 'lucide-react';
-import { toast } from 'sonner';
-import { getFriendlyErrorMessage } from '@/utils/errorMessages';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ProjectDashboard() {
@@ -19,13 +17,8 @@ export default function ProjectDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMetric, setSelectedMetric] = useState<'total' | 'completed' | 'inProgress' | 'overdue' | null>(null);
 
-  useEffect(() => {
-    if (project?.id) {
-      fetchData();
-    }
-  }, [project?.id]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
+    if (!project?.id) return;
     setIsLoading(true);
     try {
       const [colRes, cardRes] = await Promise.all([
@@ -39,11 +32,17 @@ export default function ProjectDashboard() {
       setColumns(colRes.data || []);
       setCards(cardRes.data || []);
     } catch (error: any) {
-      toast.error(getFriendlyErrorMessage(error, 'Não foi possível carregar os dados do painel no momento.'));
+      console.error('[ProjectDashboard] Erro ao carregar dados:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [project?.id]);
+
+  useEffect(() => {
+    if (project?.id) {
+      fetchData();
+    }
+  }, [project?.id, fetchData]);
 
   if (isLoading) {
     return (

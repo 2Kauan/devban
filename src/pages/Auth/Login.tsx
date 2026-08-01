@@ -48,7 +48,8 @@ export default function Login() {
 
       toast.success('Login realizado com sucesso!');
       navigate('/projects');
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[Login] Erro durante o login:', error);
       toast.error('Ocorreu um erro ao fazer login');
     } finally {
       setIsLoading(false);

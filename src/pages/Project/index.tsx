@@ -50,7 +50,7 @@ export default function ProjectPage() {
         setIsCardModalOpen(true);
       }
     }
-  }, [cards.length]);
+  }, [cards, isCardModalOpen, activeCard]);
   
   const { openPrompt, openConfirm, KanbanModals } = useKanbanModals();
   

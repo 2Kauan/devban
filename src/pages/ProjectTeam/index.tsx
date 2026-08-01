@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import type { Project } from '@/types/database';
@@ -53,13 +53,8 @@ export default function ProjectTeam() {
     onConfirm: () => {}
   });
 
-  useEffect(() => {
-    if (project?.id) {
-      fetchMembers();
-    }
-  }, [project?.id]);
-
-  const fetchMembers = async () => {
+  const fetchMembers = useCallback(async () => {
+    if (!project?.id) return;
     setIsLoading(true);
     try {
       const { data, error } = await supabase
@@ -107,11 +102,18 @@ export default function ProjectTeam() {
       setMembers(memberList);
 
     } catch (error: any) {
+      console.error('[ProjectTeam] Erro ao carregar membros:', error);
       toast.error(getFriendlyErrorMessage(error, 'Não foi possível carregar os membros da equipe.'));
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [project?.id, project?.owner_id, project?.created_at]);
+
+  useEffect(() => {
+    if (project?.id) {
+      fetchMembers();
+    }
+  }, [project?.id, fetchMembers]);
 
   const handleRemoveMember = (userId: string) => {
     if (userId === project.owner_id) {

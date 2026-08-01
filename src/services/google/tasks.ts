@@ -61,7 +61,7 @@ export const isCardEligibleForGoogleTasksSync = (cardProjectId?: string | null):
       }
     }
     return true;
-  } catch (e) {
+  } catch (_e) {
     return true;
   }
 };

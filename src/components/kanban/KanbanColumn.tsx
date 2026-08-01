@@ -1,4 +1,4 @@
-import { useState, useMemo, memo, useRef, useEffect } from 'react';
+import { useState, useMemo, memo, useRef, useEffect, useCallback } from 'react';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { KanbanColumnType, KanbanCardType } from '@/types/kanban';
@@ -39,6 +39,19 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
 
   const editPanelRef = useRef<HTMLDivElement>(null);
 
+  const handleSaveEdit = useCallback(() => {
+    if (editTitle.trim() && (editTitle !== column.title || editColor !== (column.color || '') || editIsCompleted !== (column.is_completed || false) || editSortByPriority !== (column.sort_by_priority || false) || editSortByCategory !== (column.sort_by_category || false)) && onUpdateColumn) {
+      onUpdateColumn(column.id, { 
+        title: editTitle.trim(), 
+        color: editColor || null, 
+        is_completed: editIsCompleted, 
+        sort_by_priority: editSortByPriority,
+        sort_by_category: editSortByCategory
+      });
+    }
+    setIsEditing(false);
+  }, [editTitle, editColor, editIsCompleted, editSortByPriority, editSortByCategory, column, onUpdateColumn]);
+
   useEffect(() => {
     if (!isEditing) return;
 
@@ -52,7 +65,7 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isEditing, editTitle, editColor, editIsCompleted, editSortByPriority, editSortByCategory, column, onUpdateColumn]);
+  }, [isEditing, handleSaveEdit]);
 
   const COLUMN_COLORS = [
     { value: '', label: 'Padrão' },
@@ -87,19 +100,6 @@ export const KanbanColumnInner = ({ column, cards, onCardClick, onAddCard, onUpd
   };
 
   const cardIds = useMemo(() => cards.map((c) => c.id), [cards]);
-
-  const handleSaveEdit = () => {
-    if (editTitle.trim() && (editTitle !== column.title || editColor !== (column.color || '') || editIsCompleted !== (column.is_completed || false) || editSortByPriority !== (column.sort_by_priority || false) || editSortByCategory !== (column.sort_by_category || false)) && onUpdateColumn) {
-      onUpdateColumn(column.id, { 
-        title: editTitle.trim(), 
-        color: editColor || null, 
-        is_completed: editIsCompleted, 
-        sort_by_priority: editSortByPriority,
-        sort_by_category: editSortByCategory
-      });
-    }
-    setIsEditing(false);
-  };
 
   if (isDragging) {
     return (
