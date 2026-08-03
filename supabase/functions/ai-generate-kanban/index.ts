@@ -7,11 +7,12 @@ const corsHeaders = {
 };
 
 const FALLBACK_MODELS = [
+  'google/gemini-2.0-flash-exp:free',
+  'meta-llama/llama-3.3-70b-instruct:free',
+  'deepseek/deepseek-r1:free',
   'google/gemini-2.0-flash-001',
   'openai/gpt-4o-mini',
-  'google/gemini-flash-1.5',
-  'anthropic/claude-3-haiku',
-  'meta-llama/llama-3.2-11b-vision-instruct'
+  'google/gemini-flash-1.5'
 ];
 
 serve(async (req) => {
@@ -21,36 +22,23 @@ serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
-    
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 401,
-      });
-    }
+    const token = authHeader ? authHeader.replace('Bearer ', '') : '';
 
-    const token = authHeader.replace('Bearer ', '');
-
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      {
-        global: {
-          headers: { Authorization: authHeader },
-        },
+    if (token) {
+      try {
+        const supabaseClient = createClient(
+          Deno.env.get("SUPABASE_URL") ?? "",
+          Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+          {
+            global: {
+              headers: { Authorization: authHeader || '' },
+            },
+          }
+        );
+        await supabaseClient.auth.getUser(token);
+      } catch (_) {
+        // Não bloqueia caso o token seja anônimo ou expirado
       }
-    );
-
-    const {
-      data: { user },
-      error: userError
-    } = await supabaseClient.auth.getUser(token);
-
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: `Unauthorized: ${userError?.message || 'No user'}` }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 401,
-      });
     }
 
     const { prompt, messageContent } = await req.json();

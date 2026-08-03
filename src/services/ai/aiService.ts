@@ -151,7 +151,54 @@ export const aiService = {
       console.error('[DevBan AI] Erro no fetch direto da Edge Function:', fetchErr);
     }
 
-    throw new Error(`Falha na IA (${detailMsg || 'Não foi possível conectar à Edge Function. Verifique se a função foi implantada e se a chave OPENROUTER_API_KEY foi cadastrada no Supabase'}).`);
+    // 3. Fallback Tier 3: Chamada direta via API do OpenRouter com modelos gratuitos
+    const clientModels = [
+      'google/gemini-2.0-flash-exp:free',
+      'meta-llama/llama-3.3-70b-instruct:free',
+      'deepseek/deepseek-r1:free'
+    ];
+
+    for (const model of clientModels) {
+      try {
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://devban.app',
+            'X-Title': 'DevBan AI'
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: [
+              {
+                role: 'user',
+                content: typeof messageContent === 'string' ? messageContent : prompt
+              }
+            ]
+          })
+        });
+
+        if (!response.ok) continue;
+
+        const data = await response.json();
+        const rawContent = data.choices?.[0]?.message?.content;
+        if (!rawContent) continue;
+
+        const cleanJsonString = rawContent
+          .replace(/```json\n?/gi, '')
+          .replace(/```\n?/g, '')
+          .trim();
+
+        const parsedData = JSON.parse(cleanJsonString);
+        if (parsedData.columns && Array.isArray(parsedData.columns)) {
+          return parsedData as AIKanbanBoard;
+        }
+      } catch (clientErr) {
+        console.warn(`[DevBan AI] Fallback modelo cliente ${model} falhou:`, clientErr);
+      }
+    }
+
+    throw new Error(`Falha na IA (${detailMsg || 'Não foi possível conectar ao serviço de IA. Verifique sua conexão e tente novamente.'}).`);
   }
 };
 
