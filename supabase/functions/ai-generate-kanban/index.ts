@@ -76,6 +76,8 @@ serve(async (req) => {
             },
             body: JSON.stringify({
               model: model,
+              temperature: 0.1,
+              max_tokens: 4096,
               messages: [
                 {
                   role: 'user',
@@ -128,6 +130,7 @@ serve(async (req) => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            generationConfig: { temperature: 0.1, maxOutputTokens: 4096 },
             contents: [{ parts: [{ text: typeof finalContent === 'string' ? finalContent : JSON.stringify(finalContent) }] }]
           })
         });
@@ -162,6 +165,8 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             model: 'gpt-4o-mini',
+            temperature: 0.1,
+            max_tokens: 4096,
             messages: [{ role: 'user', content: typeof finalContent === 'string' ? finalContent : JSON.stringify(finalContent) }]
           })
         });
