@@ -7,12 +7,12 @@ const corsHeaders = {
 };
 
 const FALLBACK_MODELS = [
-  'google/gemini-2.0-flash-exp:free',
-  'meta-llama/llama-3.3-70b-instruct:free',
-  'deepseek/deepseek-r1:free',
   'google/gemini-2.0-flash-001',
   'openai/gpt-4o-mini',
-  'google/gemini-flash-1.5'
+  'google/gemini-flash-1.5',
+  'anthropic/claude-3-haiku',
+  'meta-llama/llama-3.3-70b-instruct',
+  'deepseek/deepseek-r1'
 ];
 
 serve(async (req) => {
@@ -37,15 +37,20 @@ serve(async (req) => {
         );
         await supabaseClient.auth.getUser(token);
       } catch (_) {
-        // Não bloqueia caso o token seja anônimo ou expirado
+        // Não bloqueia requisições
       }
     }
 
     const { prompt, messageContent } = await req.json();
 
-    const apiKey = Deno.env.get("OPENROUTER_API_KEY");
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: "Chave da OpenRouter (OPENROUTER_API_KEY) não configurada no servidor." }), {
+    const openrouterKey = Deno.env.get("OPENROUTER_API_KEY");
+    const geminiKey = Deno.env.get("GEMINI_API_KEY");
+    const openaiKey = Deno.env.get("OPENAI_API_KEY");
+
+    if (!openrouterKey && !geminiKey && !openaiKey) {
+      return new Response(JSON.stringify({ 
+        error: "Nenhuma chave de IA foi configurada no Supabase. Por favor, execute no terminal: npx supabase secrets set OPENROUTER_API_KEY=sua_chave (ou GEMINI_API_KEY=sua_chave)" 
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
       });
@@ -54,61 +59,130 @@ serve(async (req) => {
     const finalContent = messageContent || prompt;
     let lastError: Error | null = null;
 
-    for (const model of FALLBACK_MODELS) {
-      try {
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'HTTP-Referer': 'https://devban.app',
-            'X-Title': 'DevBan',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: model,
-            messages: [
-              {
-                role: 'user',
-                content: finalContent
-              }
-            ]
-          })
-        });
+    // 1. Tenta OpenRouter com fallback sequencial entre GPT, Gemini, Claude, Llama e Deepseek
+    if (openrouterKey) {
+      for (const model of FALLBACK_MODELS) {
+        try {
+          const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openrouterKey}`,
+              'HTTP-Referer': 'https://devban.app',
+              'X-Title': 'DevBan',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              model: model,
+              messages: [
+                {
+                  role: 'user',
+                  content: finalContent
+                }
+              ]
+            })
+          });
 
-        if (!response.ok) {
-          const errorData = await response.text();
-          throw new Error(`Erro na API OpenRouter (${response.status}): ${errorData}`);
+          if (!response.ok) {
+            const errorData = await response.text();
+            throw new Error(`Modelo ${model} falhou (${response.status}): ${errorData}`);
+          }
+
+          const data = await response.json();
+          const rawContent = data.choices[0]?.message?.content;
+
+          if (!rawContent) {
+            throw new Error(`Retorno vazio da API para modelo ${model}.`);
+          }
+
+          const cleanJsonString = rawContent
+            .replace(/```json\n?/gi, '')
+            .replace(/```\n?/g, '')
+            .trim();
+          
+          const parsedData = JSON.parse(cleanJsonString);
+
+          if (!parsedData.columns || !Array.isArray(parsedData.columns)) {
+            throw new Error(`JSON retornado pelo modelo ${model} é inválido.`);
+          }
+
+          return new Response(JSON.stringify(parsedData), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          });
+
+        } catch (error: any) {
+          console.warn(`[Edge Function AI] Modelo ${model} falhou, tentando o próximo...`, error?.message);
+          lastError = error;
         }
-
-        const data = await response.json();
-        const rawContent = data.choices[0]?.message?.content;
-
-        if (!rawContent) {
-          throw new Error('Retorno vazio da API de IA.');
-        }
-
-        const cleanJsonString = rawContent
-          .replace(/```json\n?/gi, '')
-          .replace(/```\n?/g, '')
-          .trim();
-        
-        const parsedData = JSON.parse(cleanJsonString);
-
-        if (!parsedData.columns || !Array.isArray(parsedData.columns)) {
-          throw new Error('A estrutura JSON retornada pela IA é inválida ou não contém colunas.');
-        }
-
-        return new Response(JSON.stringify(parsedData), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
-
-      } catch (error: any) {
-        lastError = error;
       }
     }
 
-    return new Response(JSON.stringify({ error: `Todos os modelos falharam no fallback: ${lastError?.message}` }), {
+    // 2. Fallback direto para Google Gemini API (caso GEMINI_API_KEY esteja cadastrado)
+    if (geminiKey) {
+      try {
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`;
+        const response = await fetch(geminiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: typeof finalContent === 'string' ? finalContent : JSON.stringify(finalContent) }] }]
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const rawContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (rawContent) {
+            const cleanJsonString = rawContent.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
+            const parsedData = JSON.parse(cleanJsonString);
+            if (parsedData.columns && Array.isArray(parsedData.columns)) {
+              return new Response(JSON.stringify(parsedData), {
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+                status: 200,
+              });
+            }
+          }
+        }
+      } catch (err: any) {
+        lastError = err;
+      }
+    }
+
+    // 3. Fallback direto para OpenAI API (caso OPENAI_API_KEY esteja cadastrado)
+    if (openaiKey) {
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openaiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [{ role: 'user', content: typeof finalContent === 'string' ? finalContent : JSON.stringify(finalContent) }]
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const rawContent = data.choices?.[0]?.message?.content;
+          if (rawContent) {
+            const cleanJsonString = rawContent.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
+            const parsedData = JSON.parse(cleanJsonString);
+            if (parsedData.columns && Array.isArray(parsedData.columns)) {
+              return new Response(JSON.stringify(parsedData), {
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+                status: 200,
+              });
+            }
+          }
+        }
+      } catch (err: any) {
+        lastError = err;
+      }
+    }
+
+    return new Response(JSON.stringify({ error: `Todos os modelos de IA falharam: ${lastError?.message}` }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 502,
     });
