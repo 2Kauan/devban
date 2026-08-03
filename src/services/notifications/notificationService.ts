@@ -3,6 +3,27 @@ import { subHours, subDays, subMinutes, isPast } from 'date-fns';
 
 export class NotificationService {
   /**
+   * Garante a criação do canal de notificações de alta importância no Android
+   */
+  static async initChannels(): Promise<void> {
+    try {
+      await LocalNotifications.createChannel({
+        id: 'devban_notifications',
+        name: 'Alertas e Prazos do DevBan',
+        description: 'Notificações de alta importância, lembretes de tarefas e prazos',
+        importance: 5, // IMPORTANCE_HIGH (banner popup, som, vibração e exibição em segundo plano)
+        visibility: 1, // VISIBILITY_PUBLIC (visível na tela de bloqueio)
+        vibration: true,
+        lights: true,
+        lightColor: '#863BFF'
+      });
+      console.log('[Notification] Canal "devban_notifications" configurado com sucesso.');
+    } catch (err) {
+      console.warn('Falha ao registrar canal de notificações:', err);
+    }
+  }
+
+  /**
    * Request permissions for local notifications.
    * Returns true if granted.
    */
@@ -14,6 +35,9 @@ export class NotificationService {
       // Pede permissão pro SO ou Navegador pelo Capacitor
       const status = await LocalNotifications.requestPermissions();
       capacitorGranted = status.display === 'granted';
+      if (capacitorGranted) {
+        await this.initChannels();
+      }
     } catch (error) {
       console.warn('Falha ao pedir permissão de notificações no Capacitor:', error);
     }
@@ -35,6 +59,7 @@ export class NotificationService {
    */
   static async sendImmediateNotification(title: string, body: string): Promise<void> {
     try {
+      await this.initChannels();
       const notificationId = Math.floor(Math.random() * 1000000);
       await LocalNotifications.schedule({
         notifications: [
@@ -43,8 +68,9 @@ export class NotificationService {
             body,
             id: notificationId,
             schedule: { at: new Date() },
+            channelId: 'devban_notifications',
             smallIcon: 'ic_stat_logo',
-            iconColor: '#AA3BFF'
+            iconColor: '#863BFF'
           }
         ]
       });
@@ -55,7 +81,7 @@ export class NotificationService {
 
     if ('Notification' in window && Notification.permission === 'granted') {
       try {
-        new Notification(title, { body, icon: '/logo-branca.png' });
+        new Notification(title, { body, icon: '/logo-branca-cropped.png' });
         console.log(`[Notification] Notificação via Web API disparada: ${title}`);
       } catch (err) {
         console.warn('Falha ao disparar notificação via Web API:', err);
@@ -71,6 +97,7 @@ export class NotificationService {
     if (!dueDateStr) return;
 
     try {
+      await this.initChannels();
       const dueDate = new Date(dueDateStr);
       if (isNaN(dueDate.getTime())) return;
 
@@ -114,9 +141,10 @@ export class NotificationService {
           id: notificationId,
           title: alert.title,
           body: alert.body,
-          schedule: { at: alert.time },
+          schedule: { at: alert.time, allowWhileIdle: true },
+          channelId: 'devban_notifications',
           smallIcon: 'ic_stat_logo',
-          iconColor: '#AA3BFF',
+          iconColor: '#863BFF',
           extra: { cardId }
         });
       }

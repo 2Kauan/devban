@@ -2,25 +2,66 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Título Primário & SEO -->
+    <title>DevBan - Gestão Inteligente de Projetos e Kanban Online</title>
+    <meta name="title" content="DevBan - Gestão Inteligente de Projetos e Kanban Online" />
+    <meta name="description" content="DevBan é a plataforma Kanban premium projetada para desenvolvedores e equipes. Organize tarefas, acompanhe prazos, receba notificações em segundo plano e aumente sua produtividade." />
+    <meta name="keywords" content="kanban, gestão de tarefas, desenvolvimento de software, gerenciamento de projetos, devban, fluxo de trabalho, quadros kanban, produtividade, notificações" />
+    <meta name="author" content="DevBan Team" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://devban.app" />
+
+    <!-- Ícones e PWA Manifest -->
     <link rel="icon" type="image/png" href="/logo-branca-cropped.png" />
     <link rel="apple-touch-icon" href="/logo-branca.png" />
     <link rel="manifest" href="/manifest.json" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#000000" />
-    
-    <!-- Open Graph / WhatsApp / Facebook -->
+    <meta name="theme-color" content="#863BFF" />
+    <meta name="application-name" content="DevBan" />
+    <meta name="apple-mobile-web-app-title" content="DevBan" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- Open Graph / Facebook / WhatsApp -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="DevBan" />
-    <meta property="og:description" content="O quadro Kanban premium focado na velocidade e clareza do seu fluxo de trabalho." />
+    <meta property="og:site_name" content="DevBan" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:url" content="https://devban.app" />
+    <meta property="og:title" content="DevBan - Gestão Inteligente de Projetos e Kanban Online" />
+    <meta property="og:description" content="O quadro Kanban premium focado na velocidade, automação de notificações e clareza do seu fluxo de trabalho." />
     <meta property="og:image" content="/DevBan.jpeg" />
+    <meta property="og:image:alt" content="Interface do DevBan - Quadro Kanban Inteligente" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="DevBan" />
-    <meta name="twitter:description" content="O quadro Kanban premium focado na velocidade e clareza do seu fluxo de trabalho." />
+    <meta name="twitter:url" content="https://devban.app" />
+    <meta name="twitter:title" content="DevBan - Gestão Inteligente de Projetos e Kanban Online" />
+    <meta name="twitter:description" content="O quadro Kanban premium focado na velocidade, automação de notificações e clareza do seu fluxo de trabalho." />
     <meta name="twitter:image" content="/DevBan.jpeg" />
 
-    <title>DevBan</title>
+    <!-- Dados Estruturados (Schema.org JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "DevBan",
+      "operatingSystem": "Android, iOS, Web",
+      "applicationCategory": "BusinessApplication",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "BRL"
+      },
+      "description": "Plataforma avançada de gestão de projetos e tarefas Kanban para desenvolvedores com notificações automáticas em tempo real e segundo plano.",
+      "featureList": [
+        "Quadro Kanban dinâmico e responsivo",
+        "Notificações automáticas de prazos e tarefas em segundo plano",
+        "Widgets nativos para Android",
+        "Sincronização em tempo real e modo offline"
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
