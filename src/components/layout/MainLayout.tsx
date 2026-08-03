@@ -4,6 +4,7 @@ import { CommandPalette } from './CommandPalette';
 import { useEffect } from 'react';
 import { App } from '@capacitor/app';
 import { isNative } from '@/lib/capacitor';
+import { NotificationService } from '@/services/notifications/notificationService';
 
 export function MainLayout() {
   const location = useLocation();
@@ -12,6 +13,11 @@ export function MainLayout() {
   const hasPublicHeader = location.pathname === '/preview';
 
   useEffect(() => {
+    // Escuta cliques em notificações locais do aplicativo móvel
+    NotificationService.listenForNotificationClicks((path: string) => {
+      navigate(path);
+    });
+
     if (isNative) {
       const handler = App.addListener('appUrlOpen', (data: any) => {
         try {

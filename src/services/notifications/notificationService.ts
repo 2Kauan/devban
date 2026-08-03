@@ -57,7 +57,10 @@ export class NotificationService {
   /**
    * Envia uma notificação imediata usando Capacitor ou Web Notification API
    */
-  static async sendImmediateNotification(title: string, body: string): Promise<void> {
+  /**
+   * Envia uma notificação imediata usando Capacitor ou Web Notification API
+   */
+  static async sendImmediateNotification(title: string, body: string, cardId?: string, projectId?: string): Promise<void> {
     try {
       await this.initChannels();
       const notificationId = Math.floor(Math.random() * 1000000);
@@ -70,7 +73,8 @@ export class NotificationService {
             schedule: { at: new Date() },
             channelId: 'devban_notifications',
             smallIcon: 'ic_stat_logo',
-            iconColor: '#863BFF'
+            iconColor: '#863BFF',
+            extra: { cardId, projectId }
           }
         ]
       });
@@ -81,7 +85,13 @@ export class NotificationService {
 
     if ('Notification' in window && Notification.permission === 'granted') {
       try {
-        new Notification(title, { body, icon: '/logo-branca-cropped.png' });
+        const n = new Notification(title, { body, icon: '/logo-branca-cropped.png' });
+        n.onclick = () => {
+          window.focus();
+          if (projectId) {
+            window.location.href = cardId ? `/project/${projectId}?card=${cardId}` : `/project/${projectId}`;
+          }
+        };
         console.log(`[Notification] Notificação via Web API disparada: ${title}`);
       } catch (err) {
         console.warn('Falha ao disparar notificação via Web API:', err);
@@ -93,7 +103,7 @@ export class NotificationService {
    * Agenda múltiplos alertas de prazo de uma tarefa no AlarmManager do Android
    * para dispararem AUTOMATICAMENTE no horário exato, mesmo com o aplicativo fechado.
    */
-  static async scheduleAllTaskReminders(cardId: string, title: string, dueDateStr: string | null): Promise<void> {
+  static async scheduleAllTaskReminders(cardId: string, title: string, dueDateStr: string | null, projectId?: string): Promise<void> {
     if (!dueDateStr) return;
 
     try {
@@ -145,7 +155,7 @@ export class NotificationService {
           channelId: 'devban_notifications',
           smallIcon: 'ic_stat_logo',
           iconColor: '#863BFF',
-          extra: { cardId }
+          extra: { cardId, projectId }
         });
       }
 
@@ -163,8 +173,8 @@ export class NotificationService {
   /**
    * Schedule a reminder for a task 1 hour before its due date.
    */
-  static async scheduleTaskReminder(cardId: string, title: string, dueDate: string | null): Promise<void> {
-    return this.scheduleAllTaskReminders(cardId, title, dueDate);
+  static async scheduleTaskReminder(cardId: string, title: string, dueDate: string | null, projectId?: string): Promise<void> {
+    return this.scheduleAllTaskReminders(cardId, title, dueDate, projectId);
   }
 
   /**
@@ -183,6 +193,25 @@ export class NotificationService {
       console.log(`[Notification] Alarmes cancelados para o card: ${cardId}`);
     } catch (error) {
       console.warn('Falha ao cancelar notificação:', error);
+    }
+  }
+
+  /**
+   * Registra o ouvinte para quando o usuário tocar na notificação no aplicativo móvel
+   */
+  static listenForNotificationClicks(onNavigate: (path: string) => void) {
+    try {
+      LocalNotifications.addListener('localNotificationActionPerformed', async (notificationAction) => {
+        const extra = notificationAction.notification?.extra;
+        console.log('[Notification] Toque na notificação detectado:', extra);
+        if (extra?.projectId && extra?.cardId) {
+          onNavigate(`/project/${extra.projectId}?card=${extra.cardId}`);
+        } else if (extra?.projectId) {
+          onNavigate(`/project/${extra.projectId}`);
+        }
+      });
+    } catch (err) {
+      console.warn('Falha ao registrar ouvinte de toques em notificações:', err);
     }
   }
 

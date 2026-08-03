@@ -165,7 +165,7 @@ export function CardModal({ card, isOpen, onClose, onUpdate, onOptimisticDelete,
 
       if (data.due_date) {
         const formattedDueDate = new Date(data.due_date).toISOString();
-        NotificationService.scheduleTaskReminder(card.id, data.title, data.due_date);
+        NotificationService.scheduleTaskReminder(card.id, data.title, data.due_date, card.project_id);
         syncCardToGoogleCalendar(card.id, undefined, formattedDueDate);
         syncCardToGoogleTasks(card.id);
       } else {

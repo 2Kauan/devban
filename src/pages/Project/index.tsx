@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import type { KanbanCardType } from '@/types/kanban';
 import { KanbanBoard } from '@/components/kanban/KanbanBoard';
 import { CardModal } from '@/components/ui/CardModal';
@@ -18,6 +18,7 @@ import { Lock, Loader2, ShieldAlert } from 'lucide-react';
 
 export default function ProjectPage() {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const { user } = useAuth();
   
   // Use React Query for caching, realtime and performance
@@ -41,16 +42,16 @@ export default function ProjectPage() {
   
   // Auto-open card from URL
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
+    const searchParams = new URLSearchParams(location.search);
     const cardIdParam = searchParams.get('card');
-    if (cardIdParam && cards.length > 0 && !isCardModalOpen && !activeCard) {
+    if (cardIdParam && cards.length > 0) {
       const cardToOpen = cards.find((c: any) => c.id === cardIdParam);
-      if (cardToOpen) {
+      if (cardToOpen && activeCard?.id !== cardToOpen.id) {
         setActiveCard(cardToOpen);
         setIsCardModalOpen(true);
       }
     }
-  }, [cards, isCardModalOpen, activeCard]);
+  }, [cards, location.search, activeCard?.id]);
   
   const { openPrompt, openConfirm, KanbanModals } = useKanbanModals();
   
