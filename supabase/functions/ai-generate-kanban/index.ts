@@ -43,7 +43,10 @@ serve(async (req) => {
 
     const { prompt, messageContent } = await req.json();
 
-    const openrouterKey = Deno.env.get("OPENROUTER_API_KEY");
+    let openrouterKey = Deno.env.get("OPENROUTER_API_KEY");
+    if (openrouterKey) {
+      openrouterKey = openrouterKey.replace(/^(sk-or-v1-)+/, 'sk-or-v1-').trim();
+    }
     const geminiKey = Deno.env.get("GEMINI_API_KEY");
     const openaiKey = Deno.env.get("OPENAI_API_KEY");
 
