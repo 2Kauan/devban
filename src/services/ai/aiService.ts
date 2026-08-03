@@ -99,19 +99,59 @@ export const aiService = {
         ]
       : prompt;
 
-    const { data, error } = await supabase.functions.invoke('ai-generate-kanban', {
-      body: { prompt, messageContent }
-    });
+    let detailMsg = '';
 
-    if (error || !data) {
-      throw new Error(`Falha na IA (${error?.message || 'Retorno vazio do servidor'}).`);
+    // 1. Tenta invocar via SDK do Supabase
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-generate-kanban', {
+        body: { prompt, messageContent }
+      });
+
+      if (!error && data && data.columns && Array.isArray(data.columns)) {
+        return data as AIKanbanBoard;
+      }
+
+      if (error && (error as any).context) {
+        try {
+          const errBody = await (error as any).context.json();
+          if (errBody?.error) detailMsg = errBody.error;
+        } catch (_) {}
+      }
+      if (!detailMsg && error?.message) detailMsg = error.message;
+      if (data?.error) detailMsg = data.error;
+    } catch (err: any) {
+      console.warn('[DevBan AI] Tentativa via SDK falhou, tentando fetch direto:', err);
     }
 
-    if (!data.columns || !Array.isArray(data.columns)) {
-      throw new Error('A estrutura JSON retornada pela IA é inválida ou não contém colunas.');
+    // 2. Fallback via fetch direto para a Edge Function (melhor compatibilidade com APK móvel)
+    try {
+      const session = (await supabase.auth.getSession()).data.session;
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+      const token = session?.access_token || anonKey;
+      const edgeUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-generate-kanban`;
+
+      const response = await fetch(edgeUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': anonKey,
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ prompt, messageContent })
+      });
+
+      const json = await response.json();
+      if (response.ok && json?.columns && Array.isArray(json.columns)) {
+        return json as AIKanbanBoard;
+      }
+      if (json?.error) {
+        detailMsg = json.error;
+      }
+    } catch (fetchErr: any) {
+      console.error('[DevBan AI] Erro no fetch direto da Edge Function:', fetchErr);
     }
 
-    return data as AIKanbanBoard;
+    throw new Error(`Falha na IA (${detailMsg || 'Não foi possível conectar à Edge Function. Verifique se a função foi implantada e se a chave OPENROUTER_API_KEY foi cadastrada no Supabase'}).`);
   }
 };
 
