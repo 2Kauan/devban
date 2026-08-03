@@ -82,10 +82,11 @@ export function Sidebar({ onProjectCreated, isOpen, onClose, isProjectView = fal
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Fecha a sidebar ao mudar de rota
+  // Fecha a sidebar apenas ao mudar de rota
   useEffect(() => {
     onClose();
-  }, [location.pathname, onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   // Listen for global custom event to open Create Project Modal
   useEffect(() => {
@@ -115,7 +116,7 @@ export function Sidebar({ onProjectCreated, isOpen, onClose, isProjectView = fal
         
         {/* Workspace Switcher / Brand Header */}
         <div className="h-32 px-4 flex items-center justify-between border-b border-transparent hover:border-border/40 transition-colors shrink-0">
-          <Link to="/dashboard" className="flex items-center gap-2 group outline-none rounded-md px-1 py-2 hover:bg-muted/50 transition-colors w-full">
+          <Link to="/projects" className="flex items-center gap-2 group outline-none rounded-md px-1 py-2 hover:bg-muted/50 transition-colors w-full">
             <img src="/logo-devban.webp" alt="DevBan" className="h-30 w-full object-contain object-left dark:hidden" />
             <img src="/logo-branca2.png" alt="DevBan" className="h-30 w-full object-contain object-left hidden dark:block" />
           </Link>

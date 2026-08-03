@@ -63,7 +63,7 @@ export default function Register() {
   const handleGoogleLogin = async () => {
     try {
       const redirectTo = isNative
-        ? 'com.flowkanban.app://dashboard'
+        ? 'com.flowkanban.app://projects'
         : `${window.location.origin}/projects`;
 
       const { error } = await supabase.auth.signInWithOAuth({

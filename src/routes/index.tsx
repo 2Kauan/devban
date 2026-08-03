@@ -7,6 +7,8 @@ import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { isNative } from '@/lib/capacitor';
 import { Loader2 } from 'lucide-react';
 
+import { useAuth } from '@/contexts/AuthContext';
+
 // Lazy loading das páginas para Code Splitting e otimização de Bundle Size (<400KB)
 const Landing = lazy(() => import('@/pages/Landing'));
 const Login = lazy(() => import('@/pages/Auth/Login'));
@@ -47,6 +49,15 @@ function PageLoadingFallback() {
   );
 }
 
+function RootRoute() {
+  const { user, isLoading } = useAuth();
+  if (isLoading) return null;
+  if (isNative || user) {
+    return <Navigate to="/projects" replace />;
+  }
+  return <Landing />;
+}
+
 export function AppRoutes() {
   return (
     <BrowserRouter>
@@ -54,7 +65,7 @@ export function AppRoutes() {
         <Routes>
           <Route element={<MainLayout />}>
             {/* Rotas Públicas Abertas */}
-            <Route path="/" element={isNative ? <Navigate to="/dashboard" replace /> : <Landing />} />
+            <Route path="/" element={<RootRoute />} />
             <Route path="/shared/:token" element={<SharedProject />} />
             <Route path="/preview" element={<Preview />} />
             <Route path="/reset-password" element={<ResetPassword />} />
