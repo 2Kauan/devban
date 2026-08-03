@@ -1,9 +1,18 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
-    android:viewportWidth="48"
-    android:viewportHeight="46">
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Coluna 1 (Esquerda) -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M25.946,44.938c-0.664,0.845 -2.021,0.375 -2.021,-0.698V33.937a2.26,2.26 0 0,0 -2.262,-2.262H10.287c-0.92,0 -1.456,-1.04 -0.92,-1.788l7.48,-10.471c1.07,-1.497 0,-3.578 -1.842,-3.578H1.237c-0.92,0 -1.456,-1.04 -0.92,-1.788L10.013,0.474c0.214,-0.297 0.556,-0.474 0.92,-0.474h28.894c0.92,0 1.456,1.04 0.92,1.788l-7.48,10.471c-1.07,1.498 0,3.579 1.842,3.579h11.377c0.943,0 1.473,1.088 0.89,1.83L25.947,44.94z"/>
+        android:pathData="M3,4 C2.45,4 2,4.45 2,5 L2,19 C2,19.55 2.45,20 3,20 L7,20 C7.55,20 8,19.55 8,19 L8,5 C8,4.45 7.55,4 7,4 L3,4 Z M3.5,6.5 L6.5,6.5 L6.5,9.5 L3.5,9.5 L3.5,6.5 Z M3.5,11 L6.5,11 L6.5,14 L3.5,14 L3.5,11 Z"/>
+    <!-- Coluna 2 (Centro - Destaque Kanban DevBan) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M10,2 C9.45,2 9,2.45 9,3 L9,21 C9,21.55 9.45,22 10,22 L14,22 C14.55,22 15,21.55 15,21 L15,3 C15,2.45 14.55,2 14,2 L10,2 Z M10.5,4.5 L13.5,4.5 L13.5,8 L10.5,8 L10.5,4.5 Z M10.5,9.5 L13.5,9.5 L13.5,13 L10.5,13 L10.5,9.5 Z M10.5,14.5 L13.5,14.5 L13.5,18 L10.5,18 L10.5,14.5 Z"/>
+    <!-- Coluna 3 (Direita) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M17,5 C16.45,5 16,5.45 16,6 L16,18 C16,18.55 16.45,19 17,19 L21,19 C21.55,19 22,18.55 22,18 L22,6 C22,5.45 21.55,5 21,5 L17,5 Z M17.5,7.5 L20.5,7.5 L20.5,10.5 L17.5,10.5 L17.5,7.5 Z M17.5,12 L20.5,12 L20.5,15 L17.5,15 L17.5,12 Z"/>
 </vector>
