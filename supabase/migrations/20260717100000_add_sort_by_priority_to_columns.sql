@@ -1,0 +1,1 @@
+ALTER TABLE columns ADD COLUMN sort_by_priority BOOLEAN DEFAULT FALSE;
