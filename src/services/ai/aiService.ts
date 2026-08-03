@@ -151,54 +151,63 @@ export const aiService = {
       console.error('[DevBan AI] Erro no fetch direto da Edge Function:', fetchErr);
     }
 
-    // 3. Fallback Tier 3: Chamada direta via API do OpenRouter com modelos gratuitos
-    const clientModels = [
-      'google/gemini-2.0-flash-exp:free',
-      'meta-llama/llama-3.3-70b-instruct:free',
-      'deepseek/deepseek-r1:free'
-    ];
+    // 3. Fallback Tier 3: Chamada direta via API do OpenRouter caso haja chave configurada no cliente/localStorage
+    const openrouterKey = import.meta.env.VITE_OPENROUTER_API_KEY || localStorage.getItem('devban_ai_key');
+    if (openrouterKey) {
+      const clientModels = [
+        'google/gemini-2.0-flash-001',
+        'openai/gpt-4o-mini',
+        'google/gemini-flash-1.5',
+        'meta-llama/llama-3.3-70b-instruct:free'
+      ];
 
-    for (const model of clientModels) {
-      try {
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://devban.app',
-            'X-Title': 'DevBan AI'
-          },
-          body: JSON.stringify({
-            model: model,
-            messages: [
-              {
-                role: 'user',
-                content: typeof messageContent === 'string' ? messageContent : prompt
-              }
-            ]
-          })
-        });
+      for (const model of clientModels) {
+        try {
+          const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openrouterKey}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': 'https://devban.app',
+              'X-Title': 'DevBan AI'
+            },
+            body: JSON.stringify({
+              model: model,
+              messages: [
+                {
+                  role: 'user',
+                  content: messageContent
+                }
+              ]
+            })
+          });
 
-        if (!response.ok) continue;
+          if (!response.ok) continue;
 
-        const data = await response.json();
-        const rawContent = data.choices?.[0]?.message?.content;
-        if (!rawContent) continue;
+          const data = await response.json();
+          const rawContent = data.choices?.[0]?.message?.content;
+          if (!rawContent) continue;
 
-        const cleanJsonString = rawContent
-          .replace(/```json\n?/gi, '')
-          .replace(/```\n?/g, '')
-          .trim();
+          const cleanJsonString = rawContent
+            .replace(/```json\n?/gi, '')
+            .replace(/```\n?/g, '')
+            .trim();
 
-        const parsedData = JSON.parse(cleanJsonString);
-        if (parsedData.columns && Array.isArray(parsedData.columns)) {
-          return parsedData as AIKanbanBoard;
+          const parsedData = JSON.parse(cleanJsonString);
+          if (parsedData.columns && Array.isArray(parsedData.columns)) {
+            return parsedData as AIKanbanBoard;
+          }
+        } catch (clientErr) {
+          console.warn(`[DevBan AI] Fallback modelo cliente ${model} falhou:`, clientErr);
         }
-      } catch (clientErr) {
-        console.warn(`[DevBan AI] Fallback modelo cliente ${model} falhou:`, clientErr);
       }
     }
 
-    throw new Error(`Falha na IA (${detailMsg || 'Não foi possível conectar ao serviço de IA. Verifique sua conexão e tente novamente.'}).`);
+    const finalErrMsg = detailMsg && detailMsg !== 'Failed to fetch'
+      ? detailMsg
+      : 'A Edge Function "ai-generate-kanban" não está publicada no Supabase Cloud ou a chave OPENROUTER_API_KEY precisa ser cadastrada no Supabase (npx supabase secrets set OPENROUTER_API_KEY=sua_chave).';
+
+    throw new Error(finalErrMsg);
   }
 };
 
