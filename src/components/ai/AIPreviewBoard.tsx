@@ -13,8 +13,7 @@ import {
   ListTree,
   Trash2,
   Plus,
-  Eye,
-  EyeOff
+  Eye
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -250,23 +249,26 @@ export function AIPreviewBoard({ board: initialBoard, projectId, onCancel }: AIP
                     </div>
                   </div>
 
-                  {((task.checklist && task.checklist.length > 0) || (task.subtasks && task.subtasks.length > 0)) ? (
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => toggleExpandTask(task.id)}
-                        className={`flex items-center gap-1.5 text-[11px] font-medium border px-2 py-1 rounded-md transition-all cursor-pointer select-none ${
-                          isExpanded
-                            ? 'text-primary bg-primary/10 border-primary/20 shadow-sm font-semibold'
-                            : 'text-primary bg-primary/5 border-primary/10 hover:bg-primary/10'
-                        }`}
-                      >
-                        <ListChecks size={13} />
-                        <span>{((task.subtasks?.length || 0) + (task.checklist?.length || 0))} itens sugeridos</span>
-                        {isExpanded ? <EyeOff size={10} className="ml-1 opacity-70" /> : <Eye size={10} className="ml-1 opacity-70" />}
-                      </button>
-                    </div>
-                  ) : null}
+                  {/* Botão Saiba Mais Permanente */}
+                  <div className="mt-3">
+                    <button
+                      type="button"
+                      onClick={() => toggleExpandTask(task.id)}
+                      className={`w-full flex items-center justify-between text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all cursor-pointer select-none ${
+                        isExpanded
+                          ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                          : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20'
+                      }`}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <Eye size={13} className={isExpanded ? 'text-primary-foreground' : 'text-primary'} />
+                        <span>Saiba mais</span>
+                      </span>
+                      <span className="text-[10px] bg-background/20 px-2 py-0.5 rounded font-medium">
+                        {(task.subtasks?.length || 0)} sub-cards • {(task.checklist?.length || 0)} checklist
+                      </span>
+                    </button>
+                  </div>
 
                   {/* Expanded checklist & subtasks editor */}
                   <AnimatePresence>

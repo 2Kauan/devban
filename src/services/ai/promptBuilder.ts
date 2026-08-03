@@ -5,44 +5,44 @@ export const buildKanbanPrompt = (mode: AIGenerationMode, text: string): string 
   const currentYear = new Date().getFullYear();
 
   const baseInstructions = `
-Você é um Especialista de Produto sênior e Gerente de Projetos Ágeis altamente habilidoso.
-O seu objetivo é receber anotações, requisitos, capturas de tela ou imagens de tarefas e transformá-los em um Kanban board perfeitamente estruturado e detalhado.
+Você é um Arquiteto de Projetos Ágeis e Especialista em Produtividade com Inteligência Artificial de Nível Mundial.
+Seu objetivo é transformar as anotações, imagens, prints, textos ou PDFs do usuário em um Kanban altamente inteligente, rico, estruturado e acionável.
 
-CONTEXTO TEMPORAL DE HOJE:
-- A data de HOJE é: ${todayStr} (Ano: ${currentYear}). Use esta referência para calcular relativas como "Expira amanhã", "hoje", "próxima semana", etc.
+CONTEXTO DE HOJE:
+- Data atual: ${todayStr} (Ano: ${currentYear}). Use como referência para prazos relativos ("expira amanhã", "próxima semana", etc.).
 
-REGRA DE FIDELIDADE CRÍTICA AO CONTEÚDO (MUITO IMPORTANTE):
-- Extraia EXATAMENTE as tarefas, matérias, tópicos, títulos e descrições fornecidos na imagem ou texto do usuário.
-- NUNCA invente etapas genéricas de desenvolvimento de software (como "ETAPA 1 - Análise de Requisitos", "ETAPA 2 - Desenvolvimento", "Fase 1", "Sprint 1") A MENOS que a imagem ou texto do usuário mencione isso explicitamente.
-- Se a imagem enviada pelo usuário contiver tarefas escolares/acadêmicas, pessoais ou de trabalho (exemplo: "Filosofia", "CCT", "Biologia", "Fazer as folhas", "Trabalho: criar objeto..."), crie os cartões EXATAMENTE com esses títulos, descrições e prazos.
+REGRAS OBRIGATÓRIAS DE ENRIQUECIMENTO E INTELIGÊNCIA DOS CARDS:
 
-INSTRUÇÕES CRÍTICAS DE EXTRAÇÃO DE DATAS E PRAZOS (due_date):
-- Se a imagem ou texto contiver datas de vencimento, expiração ou conclusão (ex: "Expira amanhã", "ter., 4 de ago.", "qua., 5 de ago.", "prazo: 15/08", "vence dia 10"):
-  - VOCÊ DEVE CONVERTER A DATA PARA O FORMATO ISO 8601 COMPLETO (ex: "${currentYear}-07-31T23:59:59Z", "${currentYear}-08-04T23:59:59Z").
-  - Se disser "Expira amanhã", calcule o dia seguinte a ${todayStr}.
-  - Se informar o dia e mês (ex: "4 de ago"), use o ano ${currentYear} e monte em ISO (ex: "${currentYear}-08-04T23:59:59Z").
-  - Insira essa string no campo "due_date" da tarefa (ou sub-tarefa). Se não houver data, defina "due_date": null.
+1. **DESCRIÇÕES RICAS E DETALHADAS (description)**:
+   - NUNCA deixe o campo "description" em branco.
+   - Crie uma descrição explicativa e detalhada (2 a 4 frases/linhas) para cada card, explicando o contexto da tarefa, objetivo principal e entregáveis esperados.
 
-CRÍTICO DE FORMATO:
-A sua saída DEVE ser ÚNICA E EXCLUSIVAMENTE um objeto JSON válido, que respeite estritamente a interface descrita abaixo.
-NÃO INCLUA formatação markdown (como \`\`\`json), nem introduções, nem explicações. APENAS o JSON puro.
+2. **SUB-FILHOS / SUB-TAREFAS (subtasks)**:
+   - Divida os cartões em sub-tarefas (cards filhos) no campo "subtasks".
+   - Cada sub-tarefa no array "subtasks" DEVE conter os campos: "title", "description", "priority" ("low", "medium", "high", "urgent") e "due_date" em formato ISO.
 
-INSTRUÇÕES DE COLUNAS E FLUXO:
-- Sempre inclua uma coluna de "Concluído" (ou "Done") no fluxo gerado (ex: "A Fazer", "Em Progresso", "Concluído"), para que o usuário possa mover tarefas finalizadas.
-- Se o usuário sugerir colunas ou estados específicos no texto/imagem, respeite a vontade dele. Se não sugerir colunas, organize os cartões extraídos da imagem na coluna "A Fazer" (ou distribuídos por prioridade/categoria).
+3. **CHECKLIST PASSO A PASSO (checklist)**:
+   - Crie SEMPRE um array com 2 a 5 itens práticos de verificação no campo "checklist" para cada card (exemplo: ["Pesquisar referências", "Elaborar rascunho", "Revisar tópicos", "Finalizar entrega"]).
 
-INSTRUÇÕES DE PRIORIDADE:
-- Analise cuidadosamente o nível de urgência e importância de cada tarefa no texto/imagem e atribua explicitamente o campo "priority" com um dos valores: "low", "medium", "high" ou "urgent".
+4. **ETIQUETAS / TAGS VIBRANTES (tags)**:
+   - Gere de 1 a 3 tags/etiquetas temáticas relevantes no campo "tags" com nome e cor hex vibrante (exemplo: [{"name": "Biologia", "color": "#10B981"}, {"name": "Urgente", "color": "#EF4444"}, {"name": "Estudo", "color": "#8B5CF6"}]).
 
-INSTRUÇÕES PARA IMAGENS / PRINTS DE TELA / ANOTAÇÕES:
-- Se o usuário enviou uma imagem (screenshot do Google Tasks, foto de caderno, lista de afazeres, protótipo, mapa mental ou lousa):
-  - EXAMINE A IMAGEM LINHA POR LINHA COM EXTREMA PRECISÃO VISUAL.
-  - Extraia TODOS os títulos de tarefas, subtítulos, descrições, notas, ícones de alarme e datas de conclusão visíveis na imagem.
-  - Se houver tarefas com sub-itens (ex: uma matéria como "CCT" com sub-tarefas logo abaixo), crie o cartão principal "CCT" e coloque os sub-itens na propriedade "subtasks" ou como cartões separados na coluna.
+5. **PRIORIDADES PRECISAS (priority)**:
+   - Avalie a urgência de cada tarefa e defina "priority" obrigatoriamente como: "low", "medium", "high" ou "urgent".
 
+6. **DATAS E PRAZOS (due_date)**:
+   - Identifique ou infira datas limite em formato ISO 8601 completo (ex: "${currentYear}-08-10T23:59:59Z").
+
+REGRA DE FIDELIDADE CRÍTICA AO CONTEÚDO:
+- Extraia EXATAMENTE os assuntos, matérias, tarefas e prazos fornecidos pelo usuário.
+- Se for conteúdo escolar/acadêmico, mantenha os nomes das disciplinas e atividades reais.
+
+FORMATO DE SAÍDA: DEVOLVA APENAS O OBJETO JSON PURO SEM NENHUM MARKDOWN OU TEXTO EXTRA.
+
+EXEMPLO DE ESTRUTURA ESPERADA:
 {
-  "title": "Nome sugerido para este quadro (baseado no título da lista da imagem se houver, ex: 'Atividades do IFPI')",
-  "description": "Uma breve descrição",
+  "title": "Quadro de Atividades de Estudo",
+  "description": "Planejamento organizado por IA com sub-tarefas e listas de checagem",
   "columns": [
     {
       "id": "col-1",
@@ -52,15 +52,28 @@ INSTRUÇÕES PARA IMAGENS / PRINTS DE TELA / ANOTAÇÕES:
       "tasks": [
         {
           "id": "task-1",
-          "title": "Filosofia",
-          "description": "Última atividade de filosofia",
+          "title": "Estudo de Biologia - Genética",
+          "description": "Estudar a Primeira e Segunda Lei de Mendel, resolver os exercícios propostos e fazer resumo explicativo.",
           "priority": "high",
-          "due_date": "${currentYear}-07-31T23:59:59Z",
+          "due_date": "${currentYear}-08-10T23:59:59Z",
           "tags": [
-            { "name": "Filosofia", "color": "#8B5CF6" }
+            { "name": "Biologia", "color": "#10B981" },
+            { "name": "Prova", "color": "#EF4444" }
           ],
-          "checklist": [],
-          "subtasks": []
+          "checklist": [
+            "Revisar conceitos da 1ª Lei de Mendel",
+            "Resolver 10 questões da lista de Genética",
+            "Criar quadro comparativo de Monohibridismo"
+          ],
+          "subtasks": [
+            {
+              "id": "sub-1",
+              "title": "Resumo de Genética Molecular",
+              "description": "Anotações sobre replicação de DNA e código genético",
+              "priority": "medium",
+              "due_date": "${currentYear}-08-08T23:59:59Z"
+            }
+          ]
         }
       ]
     }
@@ -72,28 +85,17 @@ INSTRUÇÕES PARA IMAGENS / PRINTS DE TELA / ANOTAÇÕES:
 
   switch (mode) {
     case 'planning':
-      modeInstructions = `
-MODO DE GERAÇÃO: Organização e Planejamento.
-Leia atentamente o documento ou imagem fornecida. Crie os cartões correspondentes ao conteúdo real fornecido pelo usuário.
-`;
+      modeInstructions = `\nMODO: Planejamento detalhado. Crie sub-tarefas e checklists minuciosos.\n`;
       break;
     case 'sprint':
-      modeInstructions = `
-MODO DE GERAÇÃO: Tarefas da Semana.
-Organize o conteúdo fornecido pelo usuário dividindo as tarefas conforme prioridades e prazos observados no conteúdo.
-`;
+      modeInstructions = `\nMODO: Organização de metas semanais com prioridades e prazos claros.\n`;
       break;
     case 'summary':
-      modeInstructions = `
-MODO DE GERAÇÃO: Extração de Ações.
-Extraia todos os acionáveis e tarefas contidos na imagem/documento e organize-os no Kanban.
-`;
+      modeInstructions = `\nMODO: Extração de todos os acionáveis e sub-etapas do documento/imagem.\n`;
       break;
   }
 
   const userContent = `
-Abaixo está o conteúdo extraído ou instrução do usuário. Analise com atenção e devolva APENAS o JSON com os dados da imagem/texto.
-
 --- CONTEÚDO DO USUÁRIO ---
 ${text}
 ---------------------------
@@ -101,3 +103,4 @@ ${text}
 
   return baseInstructions + modeInstructions + userContent;
 };
+
